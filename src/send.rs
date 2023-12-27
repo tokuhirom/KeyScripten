@@ -1,7 +1,5 @@
 use anyhow::anyhow;
-use core_graphics::event::{
-    CGEvent, CGEventTapLocation,
-};
+use core_graphics::event::{CGEvent, CGEventField, CGEventFlags, CGEventTapLocation, CGEventType};
 use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 use crate::event::Event;
 
@@ -18,8 +16,12 @@ unsafe fn convert_native_with_source(
             log::info!("[rdev] Sending key release event: {:?}", code);
             CGEvent::new_keyboard_event(source, *code, false).ok()
         }
-        _ => {
-            return None
+        Event::FlagsChanged(code, flags) => {
+            let event = CGEvent::new(source).ok()?;
+            event.set_type(CGEventType::FlagsChanged);
+            // event.set_integer_value_field(CGEventField::);
+            event.set_flags(CGEventFlags::CGEventFlagNonCoalesced);
+            Some(event)
         }
     }
 }

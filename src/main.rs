@@ -12,6 +12,7 @@ use std::thread;
 use std::time::Duration;
 use core_graphics::event::{CGEventFlags, CGKeyCode};
 use simplelog::ColorChoice;
+use crate::common::CGEventTapCreate;
 use crate::event::Event;
 use crate::grab::grab_ex;
 use crate::key::Key;
@@ -166,6 +167,9 @@ impl Sender {
     pub fn process(&self, buffer: VecDeque<CGKeyCode>) {
         if let Some(size) = self.check_repeat(&buffer) {
             log::info!("Repeat count: {}", size);
+
+            self.send_event(&Event::FlagsChanged(0, CGEventFlags::CGEventFlagNonCoalesced));
+
             let front = &buffer.as_slices().0[0..size];
             for code in front.iter().rev() {
                 self.send_event(&Event::KeyPress(*code));
