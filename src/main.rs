@@ -12,7 +12,6 @@ use std::thread;
 use std::time::Duration;
 use core_graphics::event::{CGEventFlags, CGKeyCode};
 use simplelog::ColorChoice;
-use crate::common::CGEventTapCreate;
 use crate::event::Event;
 use crate::grab::grab_ex;
 use crate::key::Key;
@@ -34,16 +33,16 @@ fn main() -> anyhow::Result<()> {
         ),
     ])?;
 
-    let (tx, rx) = sync_channel(7);
+    let (tx, rx) = sync_channel::<State>(7);
 
     thread::spawn(move || {
         let sender = Sender::new();
 
         loop {
             match rx.recv() {
-                Ok(buffer) => {
-                    log::info!("buffer={:?}", buffer);
-                    sender.process(buffer);
+                Ok(state) => {
+                    log::info!("buffer={:?}", state.buffer);
+                    sender.process(state);
                 }
                 Err(err) => {
                     log::error!("Cannot receive event: {:?}", err);
@@ -68,11 +67,11 @@ struct Handler {
     playing: bool,
     latest_flags: Option<CGEventFlags>,
     shortcut_pressed: bool,
-    tx: SyncSender<VecDeque<CGKeyCode>>,
+    tx: SyncSender<State>,
 }
 
 impl Handler {
-    fn new(capacity: usize, tx: SyncSender<VecDeque<CGKeyCode>>) -> Handler {
+    fn new(capacity: usize, tx: SyncSender<State>) -> Handler {
         Handler {
             buffer: VecDeque::with_capacity(capacity),
             capacity,
@@ -94,8 +93,10 @@ impl Handler {
                 if self.is_shortcut_pressed(code) {
                     log::info!("Shortcut key pressed!! 444");
                     self.shortcut_pressed = true;
-                    if let Err(err) = self.tx.send(self.buffer.clone()) {
-                        log::error!("Cannot send message to the execution thread: {}", err);
+                    if let Some(flags) = self.latest_flags {
+                        if let Err(err) = self.tx.send(State::new(self.buffer.clone(), flags)) {
+                            log::error!("Cannot send message to the execution thread: {}", err);
+                        }
                     }
                     return None;
                 }
@@ -167,16 +168,21 @@ impl Sender {
         }
     }
 
-    pub fn process(&self, buffer: VecDeque<CGKeyCode>) {
+    pub fn process(&self, state: State) {
+        let buffer = state.buffer;
         if let Some(size) = self.check_repeat(&buffer) {
             log::info!("Repeat count: {}", size);
 
+            // clear flags state
             self.send_event(&Event::FlagsChanged(0, CGEventFlags::CGEventFlagNonCoalesced));
 
             let front = &buffer.as_slices().0[0..size];
             for code in front.iter().rev() {
                 self.send_event(&Event::KeyPress(*code));
             }
+
+            // restore
+            self.send_event(&Event::FlagsChanged(0, state.flags));
         } else {
             log::warn!("No repeats!!!");
         }
@@ -207,5 +213,19 @@ impl Sender {
         // Let ths OS catchup (at least MacOS)
         let delay = Duration::from_millis(50);
         thread::sleep(delay);
+    }
+}
+
+struct State {
+    pub(crate) buffer: VecDeque<CGKeyCode>,
+    pub(crate) flags: CGEventFlags,
+}
+
+impl State {
+    fn new(buffer: VecDeque<CGKeyCode>, flags: CGEventFlags) -> Self {
+        State {
+            buffer,
+            flags
+        }
     }
 }
