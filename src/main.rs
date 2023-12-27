@@ -197,7 +197,7 @@ impl Sender {
         for size in (1..=buffer.len() / 2).rev() {
             let front = &buffer.as_slices().0[0..size];
             let rear = &buffer.as_slices().0[size..size*2];
-            log::info!("front={:?} rear={:?}", front, rear);
+            // log::info!("front={:?} rear={:?}", front, rear);
             if front == rear {
                 return Some(size);
             }
