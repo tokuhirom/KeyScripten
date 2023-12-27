@@ -94,6 +94,9 @@ impl Handler {
                 if self.is_shortcut_pressed(code) {
                     log::info!("Shortcut key pressed!! 444");
                     self.shortcut_pressed = true;
+                    if let Err(err) = self.tx.send(self.buffer.clone()) {
+                        log::error!("Cannot send message to the execution thread: {}", err);
+                    }
                     return None;
                 }
 
@@ -110,9 +113,9 @@ impl Handler {
                 log::info!("Flags changed: key={:?}, flags={:?}", key, flags);
                 if self.shortcut_pressed && !self.is_modifier_pressing(flags) {
                     self.shortcut_pressed = false;
-                    if let Err(err) = self.tx.send(self.buffer.clone()) {
-                        log::error!("Cannot send message to the execution thread: {}", err);
-                    }
+                    // if let Err(err) = self.tx.send(self.buffer.clone()) {
+                    //     log::error!("Cannot send message to the execution thread: {}", err);
+                    // }
                     return Some(event);
                 }
 
