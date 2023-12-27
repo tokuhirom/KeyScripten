@@ -31,7 +31,7 @@ extern "C" {}
 
 pub fn simulate_ex(event_type: &Event) -> anyhow::Result<()> {
     unsafe {
-        let source = match CGEventSource::new(CGEventSourceStateID::HIDSystemState) {
+        let source = match CGEventSource::new(CGEventSourceStateID::Private) {
             Ok(source) => {
                 source
             }
