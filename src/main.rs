@@ -94,9 +94,14 @@ impl Handler {
                     log::info!("Shortcut key pressed!! 444");
                     self.shortcut_pressed = true;
                     if let Some(flags) = self.latest_flags {
-                        if let Err(err) = self.tx.send(State::new(self.buffer.clone(), flags)) {
-                            log::error!("Cannot send message to the execution thread: {}", err);
-                        }
+                        let sender = Sender::new();
+                        sender.process(State::new(
+                            self.buffer.clone(),
+                            flags // TODO flags
+                        ));
+                        // if let Err(err) = self.tx.send(State::new(self.buffer.clone(), flags)) {
+                        //     log::error!("Cannot send message to the execution thread: {}", err);
+                        // }
                     }
                     return None;
                 }
