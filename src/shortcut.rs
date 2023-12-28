@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 use core_graphics::event::{CGEventFlags, CGKeyCode};
 use anyhow::anyhow;
-use crate::{keycode, keycodes};
-use crate::key::Key;
+use crate::keycode;
 
 #[derive(Debug, PartialEq)]
 pub struct Shortcut {

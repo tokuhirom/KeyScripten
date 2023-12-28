@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 use anyhow::anyhow;
-use confy::ConfyError;
 use serde::{Deserialize, Serialize};
 
 const APP_NAME: &'static str = "onemoretime";

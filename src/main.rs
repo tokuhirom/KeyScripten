@@ -1,9 +1,7 @@
 mod send;
-mod keycodes;
 mod grab;
 mod common;
 mod event;
-mod key;
 mod sender;
 mod state;
 mod handler;
