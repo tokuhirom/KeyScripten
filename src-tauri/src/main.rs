@@ -16,6 +16,12 @@ use crate::app_config::AppConfig;
 use crate::grab::grab_ex;
 use crate::shortcut::parse_shortcut;
 
+// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+#[tauri::command]
+fn greet(name: &str) -> String {
+    format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
 fn main() -> anyhow::Result<()> {
     let log_config = simplelog::ConfigBuilder::new()
         .set_time_offset_to_local()
@@ -36,6 +42,11 @@ fn main() -> anyhow::Result<()> {
     log::info!("Shortcut key is: `{}`", app_config.repeat_shortcut);
 
     let shortcut = parse_shortcut(app_config.repeat_shortcut.as_str())?;
+
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![greet])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 
     let mut handler = Handler::new(64, shortcut);
     if let Err(error) = grab_ex(move |event| {

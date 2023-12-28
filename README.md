@@ -10,6 +10,13 @@ TBD
 
 TBD
 
+## Hacking
+
+### How do I build this?
+
+    cd src-tauri/
+    cargo run
+
 ## Configuration
 
 This app loads the configuration file from `~/Library/Application Support/rs.onemoretime/default-config.toml`.
