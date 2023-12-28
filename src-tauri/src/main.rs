@@ -8,6 +8,7 @@ mod app_config;
 mod keycode;
 mod shortcut;
 
+use std::thread;
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 use simplelog::ColorChoice;
 use handler::Handler;
@@ -43,17 +44,19 @@ fn main() -> anyhow::Result<()> {
 
     let shortcut = parse_shortcut(app_config.repeat_shortcut.as_str())?;
 
+    thread::spawn(move || {
+        let mut handler = Handler::new(64, shortcut);
+        if let Err(error) = grab_ex(move |event| {
+            handler.callback(event)
+        }) {
+            println!("Error: {:?}", error)
+        }
+    });
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-
-    let mut handler = Handler::new(64, shortcut);
-    if let Err(error) = grab_ex(move |event| {
-        handler.callback(event)
-    }) {
-        println!("Error: {:?}", error)
-    }
 
     Ok(())
 }
