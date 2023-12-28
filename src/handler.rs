@@ -12,7 +12,6 @@ pub struct Handler {
     capacity: usize,
     playing: bool, // TODO remove this?
     latest_flags: CGEventFlags,
-    shortcut_pressed: bool, // TODO remove this?
     shortcut: Shortcut,
 }
 
@@ -23,22 +22,15 @@ impl Handler {
             capacity,
             playing: false,
             latest_flags: CGEventFlags::CGEventFlagNonCoalesced,
-            shortcut_pressed: false,
             shortcut,
         }
     }
 
     pub fn callback(&mut self, event: Event) -> Option<Event> {
-        if self.playing {
-            log::info!("Ignoring event due to playing macro now: {:?}", event);
-            return Some(event);
-        }
-
         match event {
             Event::KeyPress(code) => {
                 if is_shortcut_pressed(self.latest_flags, code, &self.shortcut) {
                     log::info!("Shortcut key pressed!! 444");
-                    self.shortcut_pressed = true;
 
                     let sender = Sender::new();
                     if let Err(err) = sender.process(State::new(
@@ -64,11 +56,6 @@ impl Handler {
             }
             Event::FlagsChanged(key, flags) => {
                 log::info!("Flags changed: key={:?}, flags={:?}", key, flags);
-                if self.shortcut_pressed && !self.is_modifier_pressing(flags) {
-                    self.shortcut_pressed = false;
-                    return Some(event);
-                }
-
                 self.latest_flags = flags;
             }
         }
