@@ -1,11 +1,12 @@
 use std::collections::VecDeque;
-use core_graphics::event::{CGEventFlags, CGKeyCode};
+use core_graphics::event::{CGEventField, CGEventFlags, CGKeyCode};
 use std::sync::mpsc::SyncSender;
 use std::ops::BitAnd;
 use crate::event::Event;
 use crate::key::Key;
 use crate::keycodes::key_from_code;
 use crate::KeyState;
+use crate::send::kCGEventSourceUserData;
 use crate::sender::Sender;
 use crate::state::State;
 

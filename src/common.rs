@@ -1,9 +1,10 @@
 #![allow(clippy::upper_case_acronyms)]
 use cocoa::base::id;
-use core_graphics::event::{CGEvent, CGEventTapLocation, CGEventType, EventField};
+use core_graphics::event::{CGEvent, CGEventField, CGEventTapLocation, CGEventType, EventField};
 use std::convert::TryInto;
 use std::os::raw::c_void;
 use crate::event::Event;
+use crate::send::{kCGEventSourceUserData, USER_DATA_FOR_ONE_MORE_TIME};
 
 pub type CFMachPortRef = *const c_void;
 pub type CFIndex = u64;
@@ -83,6 +84,13 @@ pub unsafe fn convert(
     cg_event_type: CGEventType,
     cg_event: &CGEvent,
 ) -> Option<Event> {
+    let user_data = cg_event.get_integer_value_field(kCGEventSourceUserData as CGEventField);
+    log::debug!("event's USER_DATA={}", user_data);
+    if user_data == USER_DATA_FOR_ONE_MORE_TIME {
+        // This event is sent from this application itself.
+        return None
+    }
+
     return match cg_event_type {
         CGEventType::KeyDown => {
             let code = cg_event.get_integer_value_field(EventField::KEYBOARD_EVENT_KEYCODE);
@@ -98,7 +106,6 @@ pub unsafe fn convert(
             let code = cg_event.get_integer_value_field(EventField::KEYBOARD_EVENT_KEYCODE);
             let code = code.try_into().ok()?;
             let flags = cg_event.get_flags();
-            log::info!("HELLO {} {:?}", code, flags);
             Some(Event::FlagsChanged(code, flags))
         }
         _ => {
