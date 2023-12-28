@@ -1,6 +1,5 @@
 mod send;
 mod grab;
-mod common;
 mod event;
 mod sender;
 mod state;
