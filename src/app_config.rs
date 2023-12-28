@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
-const APP_NAME: &'static str = "onemoretime";
+const APP_NAME: &str = "onemoretime";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AppConfig {
