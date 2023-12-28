@@ -41,10 +41,12 @@ impl Handler {
                     self.shortcut_pressed = true;
 
                     let sender = Sender::new();
-                    sender.process(State::new(
+                    if let Err(err) = sender.process(State::new(
                         self.buffer.clone(),
                         self.latest_flags
-                    ));
+                    )) {
+                        log::error!("Cannot process shortcut: {:?}", err);
+                    }
                     return None;
                 }
 
@@ -56,7 +58,7 @@ impl Handler {
                 if self.capacity < self.buffer.len() {
                     self.buffer.pop_back();
                 }
-                log::info!("pressed~~~ {:?}", self.buffer);
+                log::info!("pressed~~~ code={}, buffer={:?}", code, self.buffer);
             }
             Event::KeyRelease(_code) => {
             }

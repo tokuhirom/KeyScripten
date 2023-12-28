@@ -33,7 +33,7 @@ fn main() -> anyhow::Result<()> {
         ),
     ])?;
 
-    let mut handler = Handler::new(64);
+    let mut handler = Handler::new(6);
     if let Err(error) = grab_ex(move |event| {
         handler.callback(event)
     }) {

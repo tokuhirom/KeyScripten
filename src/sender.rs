@@ -19,7 +19,7 @@ impl Sender {
     pub fn process(&self, state: State) -> anyhow::Result<()> {
         let buffer = state.buffer;
         if let Some(size) = self.check_repeat(&buffer) {
-            log::info!("Repeat count: {}", size);
+            log::warn!("Repeat count: {}", size);
 
             // clear flags state
             send_flags_changed_event(CGEventFlags::CGEventFlagNonCoalesced)?;
@@ -32,7 +32,7 @@ impl Sender {
             // restore
             send_flags_changed_event(state.flags)?;
         } else {
-            log::warn!("No repeats!!!");
+            log::warn!("No repeats!!!: {:?}", buffer);
         }
         Ok(())
     }
