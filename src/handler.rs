@@ -59,22 +59,6 @@ impl Handler {
         }
         Some(event)
     }
-
-    fn is_modifier_pressing(&self, flags: CGEventFlags) -> bool {
-        let modifiers = vec![
-            CGEventFlags::CGEventFlagControl,
-            CGEventFlags::CGEventFlagAlternate,
-            CGEventFlags::CGEventFlagShift,
-            CGEventFlags::CGEventFlagCommand,
-        ];
-        for modifier in modifiers {
-            if !(flags & modifier).is_empty() {
-                log::info!("Pressing moldifier: {:?}, {}", modifier, (flags & modifier).is_empty());
-                return true;
-            }
-        }
-        false
-    }
 }
 
 fn is_shortcut_pressed(flags: CGEventFlags, code: CGKeyCode, shortcut: &Shortcut) -> bool {
