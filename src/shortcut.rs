@@ -10,11 +10,13 @@ pub struct Shortcut {
     pub keycode: CGKeyCode,
 }
 
+const KEY_CODE_KEY_T: CGKeyCode = 17;
+
 impl Default for Shortcut {
     fn default() -> Self {
         Shortcut {
             flags: CGEventFlags::CGEventFlagControl,
-            keycode: keycodes::code_from_key(Key::KeyT).unwrap(),
+            keycode: KEY_CODE_KEY_T,
         }
     }
 }
@@ -61,14 +63,13 @@ pub fn parse_shortcut(s: &str) -> anyhow::Result<Shortcut> {
 mod tests {
     use super::*;
     use core_graphics::event::CGEventFlags;
-    use crate::keycodes;
 
     #[test]
     fn test_parse_shortcut() -> anyhow::Result<()> {
         // 指定したフラグとキーコードが正しくパースされることをテスト
         let shortcut = parse_shortcut("C-M-t")?;
         assert_eq!(shortcut.flags, CGEventFlags::CGEventFlagControl | CGEventFlags::CGEventFlagCommand);
-        assert_eq!(shortcut.keycode, keycodes::code_from_key(Key::KeyT).unwrap());
+        assert_eq!(shortcut.keycode, KEY_CODE_KEY_T);
 
         // 未知のキーコードが与えられた場合にエラーになること
         assert!(parse_shortcut("C-unknown").is_err());
