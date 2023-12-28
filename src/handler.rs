@@ -8,24 +8,27 @@ use crate::keycodes::key_from_code;
 use crate::KeyState;
 
 use crate::sender::Sender;
+use crate::shortcut::Shortcut;
 use crate::state::State;
 
 pub struct Handler {
     buffer: VecDeque<KeyState>,
     capacity: usize,
-    playing: bool,
+    playing: bool, // TODO remove this?
     latest_flags: CGEventFlags,
-    shortcut_pressed: bool,
+    shortcut_pressed: bool, // TODO remove this?
+    shortcut: Shortcut,
 }
 
 impl Handler {
-    pub fn new(capacity: usize) -> Handler {
+    pub fn new(capacity: usize, shortcut: Shortcut) -> Handler {
         Handler {
             buffer: VecDeque::with_capacity(capacity),
             capacity,
             playing: false,
             latest_flags: CGEventFlags::CGEventFlagNonCoalesced,
             shortcut_pressed: false,
+            shortcut,
         }
     }
 
@@ -37,7 +40,7 @@ impl Handler {
 
         match event {
             Event::KeyPress(code) => {
-                if self.is_shortcut_pressed(code) {
+                if is_shortcut_pressed(self.latest_flags, code, &self.shortcut) {
                     log::info!("Shortcut key pressed!! 444");
                     self.shortcut_pressed = true;
 
@@ -91,20 +94,28 @@ impl Handler {
         }
         false
     }
-
-    fn is_shortcut_pressed(&self, code: CGKeyCode) -> bool {
-        // TODO: make this configurable
-        log::info!("is_shortcut_pressed: {:?} code={:?}", self.latest_flags, code);
-
-        let flags = self.latest_flags;
-        // TODO more smart bit comparison
-        if flags.bitand(CGEventFlags::CGEventFlagControl).bits() > 0 &&
-            flags.bitand(CGEventFlags::CGEventFlagAlternate).bits() == 0 &&
-            flags.bitand(CGEventFlags::CGEventFlagShift).bits() == 0 &&
-            flags.bitand(CGEventFlags::CGEventFlagCommand).bits() == 0 &&
-            key_from_code(code) == Key::KeyJ {
-            return true;
-        }
-        false
-    }
 }
+
+fn is_shortcut_pressed(flags: CGEventFlags, code: CGKeyCode, shortcut: &Shortcut) -> bool {
+    let expected_flags = shortcut.flags;
+    let expected_code = shortcut.keycode;
+
+    log::info!("is_shortcut_pressed?: flags={:?} code={:?}, expected({:?}, {:?})",
+        flags, code,
+        expected_flags, expected_code);
+
+    // 全てのキー修飾フラグを取得
+    let all_modifiers = CGEventFlags::CGEventFlagControl
+        | CGEventFlags::CGEventFlagAlternate
+        | CGEventFlags::CGEventFlagShift
+        | CGEventFlags::CGEventFlagCommand;
+
+    // 期待するフラグだけが押されていて、それ以外のフラグは押されていないことをチェック
+    let is_correct_flags_pressed = flags & all_modifiers == expected_flags;
+
+    // キーコードが期待通りであることをチェック
+    let is_correct_keycode = code == expected_code;
+
+    is_correct_flags_pressed && is_correct_keycode
+}
+

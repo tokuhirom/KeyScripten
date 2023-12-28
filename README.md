@@ -38,6 +38,11 @@ TBD
 
 I refer the rdev to implement this application: https://github.com/Narsil/rdev/blob/main/LICENSE
 
+## LIMITATIONS
+
+  - If you want to use symbols as a shortcut key with JIS keyboard, maybe there's an issue...
+    - I don't have a JIS keyboard. patches welcome.
+
 ## SEE ALSO
 
 https://qiita.com/hanspond/items/7e23d4853ab22968500c

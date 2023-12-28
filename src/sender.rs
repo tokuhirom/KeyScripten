@@ -34,6 +34,7 @@ impl Sender {
         Ok(())
     }
 
+    // TODO support predictive mode?
     fn check_repeat(&self, buffer: &VecDeque<KeyState>) -> Option<usize> {
         for size in (1..=buffer.len() / 2).rev() {
             let front = &buffer.as_slices().0[0..size];
