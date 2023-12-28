@@ -1,8 +1,5 @@
 use core_graphics::event::CGEventFlags;
 use std::collections::VecDeque;
-use std::time::Duration;
-use std::thread;
-use crate::event::Event;
 use crate::KeyState;
 use crate::send::{send_flags_changed_event, send_keyboard_event};
 use crate::state::State;
@@ -26,7 +23,7 @@ impl Sender {
 
             let front = &buffer.as_slices().0[0..size];
             for key_state in front.iter().rev() {
-                send_keyboard_event(key_state.code, true)?;
+                send_keyboard_event(key_state.code, key_state.flags, true)?;
             }
 
             // restore
