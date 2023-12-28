@@ -52,7 +52,6 @@ unsafe extern "C" fn raw_callback(
     cg_event: CGEventRef,
     _user_info: *mut ::std::os::raw::c_void,
 ) -> CGEventRef {
-    println!("Event ref {:?}, {:?}", event_type, cg_event,);
     // let cg_event: CGEvent = transmute_copy::<*mut c_void, CGEvent>(&cg_event_ptr);
     let Some(event) = convert(event_type, cg_event) else {
         return cg_event;
