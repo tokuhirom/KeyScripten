@@ -15,18 +15,16 @@ pub struct Handler {
     playing: bool,
     latest_flags: CGEventFlags,
     shortcut_pressed: bool,
-    tx: SyncSender<State>,
 }
 
 impl Handler {
-    pub fn new(capacity: usize, tx: SyncSender<State>) -> Handler {
+    pub fn new(capacity: usize) -> Handler {
         Handler {
             buffer: VecDeque::with_capacity(capacity),
             capacity,
             playing: false,
             latest_flags: CGEventFlags::CGEventFlagNonCoalesced,
             shortcut_pressed: false,
-            tx,
         }
     }
 
@@ -47,9 +45,6 @@ impl Handler {
                         self.buffer.clone(),
                         self.latest_flags
                     ));
-                    // if let Err(err) = self.tx.send(State::new(self.buffer.clone(), flags)) {
-                    //     log::error!("Cannot send message to the execution thread: {}", err);
-                    // }
                     return None;
                 }
 
@@ -69,9 +64,6 @@ impl Handler {
                 log::info!("Flags changed: key={:?}, flags={:?}", key, flags);
                 if self.shortcut_pressed && !self.is_modifier_pressing(flags) {
                     self.shortcut_pressed = false;
-                    // if let Err(err) = self.tx.send(self.buffer.clone()) {
-                    //     log::error!("Cannot send message to the execution thread: {}", err);
-                    // }
                     return Some(event);
                 }
 

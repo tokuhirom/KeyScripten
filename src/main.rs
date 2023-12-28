@@ -33,25 +33,7 @@ fn main() -> anyhow::Result<()> {
         ),
     ])?;
 
-    let (tx, rx) = sync_channel::<State>(7);
-
-    thread::spawn(move || {
-        let sender = Sender::new();
-
-        loop {
-            match rx.recv() {
-                Ok(state) => {
-                    log::info!("buffer={:?}", state.buffer);
-                    sender.process(state);
-                }
-                Err(err) => {
-                    log::error!("Cannot receive event: {:?}", err);
-                }
-            }
-        }
-    });
-
-    let mut handler = Handler::new(64, tx);
+    let mut handler = Handler::new(64);
     if let Err(error) = grab_ex(move |event| {
         handler.callback(event)
     }) {
