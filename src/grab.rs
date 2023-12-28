@@ -54,12 +54,14 @@ unsafe extern "C" fn raw_callback(
 ) -> CGEventRef {
     println!("Event ref {:?}, {:?}", event_type, cg_event,);
     // let cg_event: CGEvent = transmute_copy::<*mut c_void, CGEvent>(&cg_event_ptr);
-    if let Some(event) = convert(event_type, cg_event) {
-        if let Some(callback) = &mut GLOBAL_CALLBACK {
-            if callback(event).is_none() {
-                CGEventSetType(cg_event, CGEventType_kCGEventNull);
-            }
-        }
+    let Some(event) = convert(event_type, cg_event) else {
+        return cg_event;
+    };
+    let Some(callback) = &mut GLOBAL_CALLBACK else {
+        return cg_event;
+    };
+    if callback(event).is_none() {
+        CGEventSetType(cg_event, CGEventType_kCGEventNull);
     }
     cg_event
 }
