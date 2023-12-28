@@ -1,5 +1,5 @@
-use core_graphics::event::CGKeyCode;
 use std::collections::HashMap;
+use apple_sys::CoreGraphics::CGKeyCode;
 
 type KeyCodeMap = HashMap<&'static str, CGKeyCode>;
 

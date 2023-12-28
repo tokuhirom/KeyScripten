@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use core_graphics::event::{CGEventFlags, CGKeyCode};
 use anyhow::anyhow;
+use apple_sys::CoreGraphics::{CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand, CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventFlags_kCGEventFlagMaskShift, CGKeyCode};
 use crate::keycode;
 
 #[derive(Debug, PartialEq)]
@@ -14,7 +14,7 @@ const KEY_CODE_KEY_T: CGKeyCode = 17;
 impl Default for Shortcut {
     fn default() -> Self {
         Shortcut {
-            flags: CGEventFlags::CGEventFlagControl,
+            flags: CGEventFlags_kCGEventFlagMaskControl,
             keycode: KEY_CODE_KEY_T,
         }
     }
@@ -22,13 +22,13 @@ impl Default for Shortcut {
 
 pub fn parse_shortcut(s: &str) -> anyhow::Result<Shortcut> {
     let mut map = HashMap::new();
-    map.insert("C-", CGEventFlags::CGEventFlagControl);
-    map.insert("S-", CGEventFlags::CGEventFlagShift);
-    map.insert("M-", CGEventFlags::CGEventFlagCommand);
-    map.insert("A-", CGEventFlags::CGEventFlagAlternate);
+    map.insert("C-", CGEventFlags_kCGEventFlagMaskControl);
+    map.insert("S-", CGEventFlags_kCGEventFlagMaskShift);
+    map.insert("M-", CGEventFlags_kCGEventFlagMaskCommand);
+    map.insert("A-", CGEventFlags_kCGEventFlagMaskAlternate);
 
     let mut start = 0;
-    let mut flags = CGEventFlags::CGEventFlagNull;
+    let mut flags = 0;
 
     while s.len() - start >= 2 {
         let part = &s[start..start+2];
@@ -61,7 +61,6 @@ pub fn parse_shortcut(s: &str) -> anyhow::Result<Shortcut> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use core_graphics::event::CGEventFlags;
 
     #[test]
     fn test_parse_shortcut() -> anyhow::Result<()> {

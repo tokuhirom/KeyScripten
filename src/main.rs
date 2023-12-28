@@ -9,7 +9,7 @@ mod app_config;
 mod keycode;
 mod shortcut;
 
-use core_graphics::event::{CGEventFlags, CGKeyCode};
+use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 use simplelog::ColorChoice;
 use handler::Handler;
 use crate::app_config::AppConfig;

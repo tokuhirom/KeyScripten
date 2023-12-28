@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use core_graphics::event::CGEventFlags;
+use apple_sys::CoreGraphics::CGEventFlags;
 use crate::KeyState;
 
 #[derive(Debug)]

@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use core_graphics::event::{CGEventFlags, CGKeyCode};
+use apple_sys::CoreGraphics::{CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand, CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventFlags_kCGEventFlagMaskShift, CGKeyCode};
 use crate::event::Event;
 use crate::KeyState;
 
@@ -19,7 +19,7 @@ impl Handler {
         Handler {
             buffer: VecDeque::with_capacity(capacity),
             capacity,
-            latest_flags: CGEventFlags::CGEventFlagNonCoalesced,
+            latest_flags: CGEventFlags_kCGEventFlagMaskNonCoalesced,
             shortcut,
         }
     }
@@ -70,10 +70,10 @@ fn is_shortcut_pressed(flags: CGEventFlags, code: CGKeyCode, shortcut: &Shortcut
         expected_flags, expected_code);
 
     // 全てのキー修飾フラグを取得
-    let all_modifiers = CGEventFlags::CGEventFlagControl
-        | CGEventFlags::CGEventFlagAlternate
-        | CGEventFlags::CGEventFlagShift
-        | CGEventFlags::CGEventFlagCommand;
+    let all_modifiers = CGEventFlags_kCGEventFlagMaskControl
+        | CGEventFlags_kCGEventFlagMaskAlternate
+        | CGEventFlags_kCGEventFlagMaskShift
+        | CGEventFlags_kCGEventFlagMaskCommand;
 
     // 期待するフラグだけが押されていて、それ以外のフラグは押されていないことをチェック
     let is_correct_flags_pressed = flags & all_modifiers == expected_flags;

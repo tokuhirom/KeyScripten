@@ -1,4 +1,4 @@
-use core_graphics::event::{CGEventFlags, CGKeyCode};
+use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 
 /// In order to manage different OSs, the current EventType choices are a mix and
 /// match to account for all possible events.

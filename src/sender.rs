@@ -1,5 +1,5 @@
-use core_graphics::event::CGEventFlags;
 use std::collections::VecDeque;
+use apple_sys::CoreGraphics::CGEventFlags_kCGEventFlagMaskNonCoalesced;
 use crate::KeyState;
 use crate::send::{send_flags_changed_event, send_keyboard_event};
 use crate::state::State;
@@ -19,7 +19,7 @@ impl Sender {
             log::warn!("Repeat count: {}", size);
 
             // clear flags state
-            send_flags_changed_event(CGEventFlags::CGEventFlagNonCoalesced)?;
+            send_flags_changed_event(CGEventFlags_kCGEventFlagMaskNonCoalesced)?;
 
             let front = &buffer.as_slices().0[0..size];
             for key_state in front.iter().rev() {
