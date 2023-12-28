@@ -11,6 +11,7 @@ mod shortcut;
 use std::thread;
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 use simplelog::ColorChoice;
+use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
 use handler::Handler;
 use crate::app_config::AppConfig;
 
@@ -53,7 +54,28 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+    let tray_menu = SystemTrayMenu::new()
+        .add_item(quit);
+
+    let tray = SystemTray::new()
+        .with_menu(tray_menu);
+
     tauri::Builder::default()
+        .system_tray(tray)
+        .on_system_tray_event(|app, event| {
+            match event {
+                SystemTrayEvent::MenuItemClick { id, .. } => {
+                    match id.as_str() {
+                        "quit" => {
+                            std::process::exit(0);
+                        }
+                        _ => {}
+                    }
+                }
+                _ => {}
+            }
+        })
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
