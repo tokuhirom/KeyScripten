@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand, CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventFlags_kCGEventFlagMaskShift, CGKeyCode};
+use apple_sys::CoreGraphics::{CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand, CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskShift, CGKeyCode};
 use crate::keycode;
 
 #[derive(Debug, PartialEq)]
@@ -66,7 +66,7 @@ mod tests {
     fn test_parse_shortcut() -> anyhow::Result<()> {
         // 指定したフラグとキーコードが正しくパースされることをテスト
         let shortcut = parse_shortcut("C-M-t")?;
-        assert_eq!(shortcut.flags, CGEventFlags::CGEventFlagControl | CGEventFlags::CGEventFlagCommand);
+        assert_eq!(shortcut.flags, CGEventFlags_kCGEventFlagMaskControl | CGEventFlags_kCGEventFlagMaskCommand);
         assert_eq!(shortcut.keycode, KEY_CODE_KEY_T);
 
         // 未知のキーコードが与えられた場合にエラーになること

@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventCreate, CGEventCreateKeyboardEvent, CGEventField_kCGEventSourceUserData, CGEventFlags, CGEventPost, CGEventSetFlags, CGEventSetIntegerValueField, CGEventSetType, CGEventSourceCreate, CGEventSourceRef, CGEventSourceStateID, CGEventSourceStateID_kCGEventSourceStatePrivate, CGEventTapLocation_kCGHIDEventTap, CGEventType_kCGEventFlagsChanged, CGKeyCode};
+use apple_sys::CoreGraphics::{CGEventCreate, CGEventCreateKeyboardEvent, CGEventField_kCGEventSourceUserData, CGEventFlags, CGEventPost, CGEventSetFlags, CGEventSetIntegerValueField, CGEventSetType, CGEventSourceCreate, CGEventSourceRef, CGEventSourceStateID_kCGEventSourceStatePrivate, CGEventTapLocation_kCGHIDEventTap, CGEventType_kCGEventFlagsChanged, CGKeyCode};
 
 #[link(name = "Cocoa", kind = "framework")]
 extern "C" {}
