@@ -79,7 +79,7 @@ pub unsafe fn convert(
         return None
     }
 
-    return match cg_event_type {
+    match cg_event_type {
         CGEventType::KeyDown => {
             let code = cg_event.get_integer_value_field(EventField::KEYBOARD_EVENT_KEYCODE);
             let code = code.try_into().ok()?;
@@ -99,5 +99,5 @@ pub unsafe fn convert(
         _ => {
             None
         }
-    };
+    }
 }

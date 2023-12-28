@@ -8,14 +8,10 @@ mod sender;
 mod state;
 mod handler;
 
-use std::ops::BitAnd;
-use std::sync::mpsc::sync_channel;
-use std::thread;
 use core_graphics::event::{CGEventFlags, CGKeyCode};
 use simplelog::ColorChoice;
 use handler::Handler;
-use sender::Sender;
-use state::State;
+
 use crate::grab::grab_ex;
 
 fn main() -> anyhow::Result<()> {

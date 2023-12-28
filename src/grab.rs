@@ -41,9 +41,9 @@ where
             CGEventTapLocation::HID, // HID, Session, AnnotatedSession,
             kCGHeadInsertEventTap,
             CGEventTapOption::Default,
-            ((1 << CGEventType::KeyDown as u64)
+            (1 << CGEventType::KeyDown as u64)
                 + (1 << CGEventType::KeyUp as u64)
-                + (1 << CGEventType::FlagsChanged as u64)),
+                + (1 << CGEventType::FlagsChanged as u64),
             raw_callback,
             nil,
         );

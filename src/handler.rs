@@ -1,12 +1,12 @@
 use std::collections::VecDeque;
-use core_graphics::event::{CGEventField, CGEventFlags, CGKeyCode};
-use std::sync::mpsc::SyncSender;
+use core_graphics::event::{CGEventFlags, CGKeyCode};
+
 use std::ops::BitAnd;
 use crate::event::Event;
 use crate::key::Key;
 use crate::keycodes::key_from_code;
 use crate::KeyState;
-use crate::send::kCGEventSourceUserData;
+
 use crate::sender::Sender;
 use crate::state::State;
 
@@ -73,7 +73,7 @@ impl Handler {
                 self.latest_flags = flags;
             }
         }
-        return Some(event);
+        Some(event)
     }
 
     fn is_modifier_pressing(&self, flags: CGEventFlags) -> bool {
@@ -89,7 +89,7 @@ impl Handler {
                 return true;
             }
         }
-        return false;
+        false
     }
 
     fn is_shortcut_pressed(&self, code: CGKeyCode) -> bool {
@@ -105,6 +105,6 @@ impl Handler {
                 return true;
             }
         }
-        return false;
+        false
     }
 }

@@ -21,7 +21,7 @@ pub fn send_keyboard_event(keycode: CGKeyCode, flags: CGEventFlags, keydown: boo
 
     log::info!("Sending keyboard event: {:?}", keycode);
     let event = CGEvent::new_keyboard_event(source, keycode, keydown)
-        .map_err(|err| { anyhow!("Cannot create keyboard event")})?;
+        .map_err(|_err| { anyhow!("Cannot create keyboard event")})?;
     event.set_flags(flags);
     event.set_integer_value_field(kCGEventSourceUserData as CGEventField, USER_DATA_FOR_ONE_MORE_TIME);
     event.post(CGEventTapLocation::HID);
