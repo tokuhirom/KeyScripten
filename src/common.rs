@@ -30,18 +30,6 @@ pub enum CGEventTapOption {
 
 // https://developer.apple.com/documentation/coregraphics/cgeventmask?language=objc
 pub type CGEventMask = u64;
-#[allow(non_upper_case_globals)]
-pub const kCGEventMaskForAllEvents: u64 = (1 << CGEventType::LeftMouseDown as u64)
-    + (1 << CGEventType::LeftMouseUp as u64)
-    + (1 << CGEventType::RightMouseDown as u64)
-    + (1 << CGEventType::RightMouseUp as u64)
-    + (1 << CGEventType::MouseMoved as u64)
-    + (1 << CGEventType::LeftMouseDragged as u64)
-    + (1 << CGEventType::RightMouseDragged as u64)
-    + (1 << CGEventType::KeyDown as u64)
-    + (1 << CGEventType::KeyUp as u64)
-    + (1 << CGEventType::FlagsChanged as u64)
-    + (1 << CGEventType::ScrollWheel as u64);
 
 #[cfg(target_os = "macos")]
 #[link(name = "Cocoa", kind = "framework")]

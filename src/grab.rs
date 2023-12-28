@@ -4,7 +4,7 @@ use cocoa::foundation::NSAutoreleasePool;
 use core_graphics::event::{CGEventTapLocation, CGEventType};
 use std::os::raw::c_void;
 use anyhow::anyhow;
-use crate::common::{CFMachPortCreateRunLoopSource, CFRunLoopAddSource, CFRunLoopGetCurrent, CFRunLoopRun, CGEventRef, CGEventTapCreate, CGEventTapEnable, CGEventTapOption, CGEventTapProxy, convert, kCFRunLoopCommonModes, kCGEventMaskForAllEvents, kCGHeadInsertEventTap};
+use crate::common::{CFMachPortCreateRunLoopSource, CFRunLoopAddSource, CFRunLoopGetCurrent, CFRunLoopRun, CGEventRef, CGEventTapCreate, CGEventTapEnable, CGEventTapOption, CGEventTapProxy, convert, kCFRunLoopCommonModes, kCGHeadInsertEventTap};
 use crate::event::Event;
 
 static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(Event) -> Option<Event>>> = None;
