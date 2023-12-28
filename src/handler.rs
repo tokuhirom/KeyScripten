@@ -95,15 +95,15 @@ impl Handler {
     fn is_shortcut_pressed(&self, code: CGKeyCode) -> bool {
         // TODO: make this configurable
         log::info!("is_shortcut_pressed: {:?} code={:?}", self.latest_flags, code);
-        if let flags = self.latest_flags {
-            // TODO more smart bit comparison
-            if flags.bitand(CGEventFlags::CGEventFlagControl).bits() > 0 &&
-                flags.bitand(CGEventFlags::CGEventFlagAlternate).bits() == 0 &&
-                flags.bitand(CGEventFlags::CGEventFlagShift).bits() == 0 &&
-                flags.bitand(CGEventFlags::CGEventFlagCommand).bits() == 0 &&
-                key_from_code(code) == Key::KeyJ {
-                return true;
-            }
+
+        let flags = self.latest_flags;
+        // TODO more smart bit comparison
+        if flags.bitand(CGEventFlags::CGEventFlagControl).bits() > 0 &&
+            flags.bitand(CGEventFlags::CGEventFlagAlternate).bits() == 0 &&
+            flags.bitand(CGEventFlags::CGEventFlagShift).bits() == 0 &&
+            flags.bitand(CGEventFlags::CGEventFlagCommand).bits() == 0 &&
+            key_from_code(code) == Key::KeyJ {
+            return true;
         }
         false
     }
