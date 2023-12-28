@@ -22,8 +22,10 @@
   - `CGEventSetIntegerValueField` を使って、`CGEvent` にフラグを付与すればよろしい。
 - Configuration file 機構を実装した
   - ショートカットキーをカスタマイズ可能とした。
-  - 
+  - `confy` create を採用した。
+    - 設定ファイルの処理が簡単に行える
 - 残タスク
   - 予測機能(現在は繰り返しの自動抽出のみが実装されている)
   - 常駐機能
+  - ショートカットキーの設定機能
   - github actions でのテスト

@@ -10,6 +10,11 @@ TBD
 
 TBD
 
+## Configuration
+
+This app loads the configuration file from `~/Library/Application Support/rs.onemoretime/default-config.toml`.
+You can change the shortcut key by this file(I will add the shortcut key configuration in the future release).
+
 ## LICENSE
 
     The MIT License (MIT)
