@@ -3234,6 +3234,7 @@ dependencies = [
  "html5ever",
  "infer",
  "json-patch",
+ "json5",
  "kuchikiki",
  "log",
  "memchr",
