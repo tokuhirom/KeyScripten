@@ -20,6 +20,7 @@ impl AppConfig {
             .map_err(|err| { anyhow!("Cannot load configuration file: {:?}", err)})
     }
 
+    #[allow(dead_code)]
     pub fn save(app_config: &AppConfig) -> anyhow::Result<()> {
         confy::store(APP_NAME, None, app_config)
             .map_err(|err| { anyhow!("Cannot store configuration: {:?}", err)})

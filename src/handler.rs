@@ -10,7 +10,6 @@ use crate::state::State;
 pub struct Handler {
     buffer: VecDeque<KeyState>,
     capacity: usize,
-    playing: bool, // TODO remove this?
     latest_flags: CGEventFlags,
     shortcut: Shortcut,
 }
@@ -20,7 +19,6 @@ impl Handler {
         Handler {
             buffer: VecDeque::with_capacity(capacity),
             capacity,
-            playing: false,
             latest_flags: CGEventFlags::CGEventFlagNonCoalesced,
             shortcut,
         }

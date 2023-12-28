@@ -23,9 +23,9 @@ pub const kCGHeadInsertEventTap: u32 = 0;
 // https://developer.apple.com/documentation/coregraphics/cgeventtapoptions?language=objc
 #[allow(non_upper_case_globals)]
 #[repr(u32)]
+#[allow(dead_code)]
 pub enum CGEventTapOption {
     Default = 0,
-    #[warn(dead_code)]
     ListenOnly = 1,
 }
 
