@@ -24,6 +24,7 @@ unsafe fn convert(
         return None
     }
 
+    #[allow(non_upper_case_globals)]
     match cg_event_type {
         CGEventType_kCGEventKeyDown => {
             let code = CGEventGetIntegerValueField(cg_event, CGEventField_kCGKeyboardEventKeycode);
