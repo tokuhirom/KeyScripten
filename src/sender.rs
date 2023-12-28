@@ -4,7 +4,7 @@ use std::time::Duration;
 use std::thread;
 use crate::event::Event;
 use crate::KeyState;
-use crate::send::simulate_ex;
+use crate::send::{send_flags_changed_event, send_keyboard_event};
 use crate::state::State;
 
 pub struct Sender {
@@ -16,24 +16,25 @@ impl Sender {
         }
     }
 
-    pub fn process(&self, state: State) {
+    pub fn process(&self, state: State) -> anyhow::Result<()> {
         let buffer = state.buffer;
         if let Some(size) = self.check_repeat(&buffer) {
             log::info!("Repeat count: {}", size);
 
             // clear flags state
-            self.send_event(&Event::FlagsChanged(0, CGEventFlags::CGEventFlagNonCoalesced));
+            send_flags_changed_event(CGEventFlags::CGEventFlagNonCoalesced)?;
 
             let front = &buffer.as_slices().0[0..size];
             for key_state in front.iter().rev() {
-                self.send_event(&Event::KeyPress(key_state.code));
+                send_keyboard_event(key_state.code, true)?;
             }
 
             // restore
-            self.send_event(&Event::FlagsChanged(0, state.flags));
+            send_flags_changed_event(state.flags)?;
         } else {
             log::warn!("No repeats!!!");
         }
+        Ok(())
     }
 
     fn check_repeat(&self, buffer: &VecDeque<KeyState>) -> Option<usize> {
@@ -46,20 +47,5 @@ impl Sender {
             }
         }
         None
-    }
-
-    fn send_event(&self, event_type: &Event) {
-        log::info!("Sending event: {:?}", event_type);
-
-        match simulate_ex(event_type) {
-            Ok(()) => (),
-            Err(err) => {
-                log::error!("We could not send {:?}: {:?}", event_type, err);
-            }
-        }
-
-        // Let ths OS catchup (at least MacOS)
-        let delay = Duration::from_millis(50);
-        thread::sleep(delay);
     }
 }
