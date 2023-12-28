@@ -36,15 +36,6 @@
     },
     "security": {
       "csp": null
-    },
-    "windows": [
-      {
-        "fullscreen": false,
-        "resizable": true,
-        "title": "onemoretime",
-        "width": 800,
-        "height": 600
-      }
-    ]
+    }
   }
 }
