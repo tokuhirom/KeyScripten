@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use core_graphics::event::{CGEvent, CGEventField, CGEventFlags, CGEventTapLocation, CGEventType};
+use core_graphics::event::{CGEvent, CGEventFlags, CGEventTapLocation, CGEventType};
 use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 use crate::event::Event;
 

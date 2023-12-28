@@ -61,11 +61,17 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[derive(Debug, Clone, PartialEq)]
+struct KeyState {
+    code: CGKeyCode,
+    flags: CGEventFlags,
+}
+
 struct Handler {
-    buffer: VecDeque<CGKeyCode>,
+    buffer: VecDeque<KeyState>,
     capacity: usize,
     playing: bool,
-    latest_flags: Option<CGEventFlags>,
+    latest_flags: CGEventFlags,
     shortcut_pressed: bool,
     tx: SyncSender<State>,
 }
@@ -76,7 +82,7 @@ impl Handler {
             buffer: VecDeque::with_capacity(capacity),
             capacity,
             playing: false,
-            latest_flags: None,
+            latest_flags: CGEventFlags::CGEventFlagNonCoalesced,
             shortcut_pressed: false,
             tx,
         }
@@ -93,21 +99,23 @@ impl Handler {
                 if self.is_shortcut_pressed(code) {
                     log::info!("Shortcut key pressed!! 444");
                     self.shortcut_pressed = true;
-                    if let Some(flags) = self.latest_flags {
-                        let sender = Sender::new();
-                        sender.process(State::new(
-                            self.buffer.clone(),
-                            flags // TODO flags
-                        ));
-                        // if let Err(err) = self.tx.send(State::new(self.buffer.clone(), flags)) {
-                        //     log::error!("Cannot send message to the execution thread: {}", err);
-                        // }
-                    }
+
+                    let sender = Sender::new();
+                    sender.process(State::new(
+                        self.buffer.clone(),
+                        self.latest_flags
+                    ));
+                    // if let Err(err) = self.tx.send(State::new(self.buffer.clone(), flags)) {
+                    //     log::error!("Cannot send message to the execution thread: {}", err);
+                    // }
                     return None;
                 }
 
                 // fill buffer
-                self.buffer.push_front(code);
+                self.buffer.push_front(KeyState {
+                    code,
+                    flags: self.latest_flags
+                });
                 if self.capacity < self.buffer.len() {
                     self.buffer.pop_back();
                 }
@@ -125,7 +133,7 @@ impl Handler {
                     return Some(event);
                 }
 
-                self.latest_flags = Some(flags);
+                self.latest_flags = flags;
             }
         }
         return Some(event);
@@ -150,7 +158,7 @@ impl Handler {
     fn is_shortcut_pressed(&self, code: CGKeyCode) -> bool {
         // TODO: make this configurable
         log::info!("is_shortcut_pressed: {:?} code={:?}", self.latest_flags, code);
-        if let Some( flags) = self.latest_flags {
+        if let flags = self.latest_flags {
             // TODO more smart bit comparison
             if flags.bitand(CGEventFlags::CGEventFlagControl).bits() > 0 &&
                 flags.bitand(CGEventFlags::CGEventFlagAlternate).bits() == 0 &&
@@ -182,8 +190,8 @@ impl Sender {
             self.send_event(&Event::FlagsChanged(0, CGEventFlags::CGEventFlagNonCoalesced));
 
             let front = &buffer.as_slices().0[0..size];
-            for code in front.iter().rev() {
-                self.send_event(&Event::KeyPress(*code));
+            for key_state in front.iter().rev() {
+                self.send_event(&Event::KeyPress(key_state.code));
             }
 
             // restore
@@ -193,7 +201,7 @@ impl Sender {
         }
     }
 
-    fn check_repeat(&self, buffer: &VecDeque<CGKeyCode>) -> Option<usize> {
+    fn check_repeat(&self, buffer: &VecDeque<KeyState>) -> Option<usize> {
         for size in (1..=buffer.len() / 2).rev() {
             let front = &buffer.as_slices().0[0..size];
             let rear = &buffer.as_slices().0[size..size*2];
@@ -221,13 +229,14 @@ impl Sender {
     }
 }
 
+#[derive(Debug)]
 struct State {
-    pub(crate) buffer: VecDeque<CGKeyCode>,
+    pub(crate) buffer: VecDeque<KeyState>,
     pub(crate) flags: CGEventFlags,
 }
 
 impl State {
-    fn new(buffer: VecDeque<CGKeyCode>, flags: CGEventFlags) -> Self {
+    fn new(buffer: VecDeque<KeyState>, flags: CGEventFlags) -> Self {
         State {
             buffer,
             flags
