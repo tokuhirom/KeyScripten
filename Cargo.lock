@@ -197,20 +197,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0688c2a7f92e427f44895cd63841bff7b29f8d7a1648b9e7e07a4a365b2e1257"
 
 [[package]]
-name = "enigo-samples"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cocoa",
- "config",
- "core-foundation",
- "core-foundation-sys",
- "core-graphics",
- "log",
- "simplelog",
-]
-
-[[package]]
 name = "foreign-types"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -362,6 +348,20 @@ name = "once_cell"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
+
+[[package]]
+name = "onemoretime"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cocoa",
+ "config",
+ "core-foundation",
+ "core-foundation-sys",
+ "core-graphics",
+ "log",
+ "simplelog",
+]
 
 [[package]]
 name = "ordered-multimap"
