@@ -60,3 +60,4 @@ There's a keyboard input related apps written in rust.
 ### Dynamic macro related links
 
 - [DynamicMacroAHK](https://forestail.com/programing/dynamic-macro-autohotkey/)
+- [Dynamic Macro](http://www.pitecan.com/papers/JSSSTDmacro/JSSSTDmacro.html)
