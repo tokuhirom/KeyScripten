@@ -25,6 +25,7 @@ pub const kCGHeadInsertEventTap: u32 = 0;
 #[repr(u32)]
 pub enum CGEventTapOption {
     Default = 0,
+    #[warn(dead_code)]
     ListenOnly = 1,
 }
 
@@ -39,8 +40,8 @@ extern "C" {
         tap: CGEventTapLocation,
         place: CGEventTapPlacement,
         options: CGEventTapOption,
-        eventsOfInterest: CGEventMask,
-        callback: QCallback,
+        events_of_interest: CGEventMask,
+        callback: CGEventTapCallback,
         user_info: id,
     ) -> CFMachPortRef;
     pub fn CFMachPortCreateRunLoopSource(
@@ -57,11 +58,7 @@ extern "C" {
 
 }
 
-// TODO Remove this, this was added as the coded
-// existed and worked, but clippy is complaining.
-// There's probably a better fix.
-#[allow(improper_ctypes_definitions)]
-pub type QCallback = unsafe extern "C" fn(
+pub type CGEventTapCallback = unsafe extern "C" fn(
     proxy: CGEventTapProxy,
     _type: CGEventType,
     cg_event: CGEventRef,
