@@ -12,6 +12,9 @@ use std::{fs, thread};
 use std::str::FromStr;
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
+use boa_engine::{Context, js_string, Source};
+use boa_engine::property::Attribute;
+use boa_runtime::Console;
 use chrono::Local;
 use log::LevelFilter;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
@@ -64,6 +67,24 @@ fn main() -> anyhow::Result<()> {
 
     log::info!("Default log level is `{}`", level_filter);
     log::info!("Shortcut key is: `{}`", app_config.repeat_shortcut);
+
+    let mut context = Context::default();
+    let console = Console::init(&mut context);
+    context
+        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
+        .expect("the console object shouldn't exist");
+    context.register_global_property("hogehoge", 3, Attribute::all()).unwrap();
+    match context.eval(Source::from_bytes("console.log(hogehoge)")) {
+        Ok(res) => {
+            println!(
+                "{}",
+                res.to_string(&mut context).unwrap().to_std_string_escaped()
+            );
+        }
+        Err(err) => {
+            eprintln!("Uncaught {err}");
+        }
+    }
 
     let shortcut = parse_shortcut(app_config.repeat_shortcut.as_str())?;
 
