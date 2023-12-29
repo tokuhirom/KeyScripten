@@ -19,7 +19,7 @@ fn build_event_source() -> anyhow::Result<CGEventSourceRef> {
 pub fn send_keyboard_event(keycode: CGKeyCode, flags: CGEventFlags, keydown: bool) -> anyhow::Result<()> {
     let source = build_event_source()?;
 
-    log::info!("Sending keyboard event: {:?}", keycode);
+    log::debug!("Sending keyboard event: {:?}", keycode);
     unsafe {
         let event = CGEventCreateKeyboardEvent(source, keycode, keydown);
         if event.is_null() {

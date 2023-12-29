@@ -8,11 +8,10 @@ mod app_config;
 mod keycode;
 mod shortcut;
 
-use std::fs::File;
 use std::{fs, thread};
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
-use simplelog::ColorChoice;
+use chrono::Local;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
 use handler::Handler;
 use crate::app_config::AppConfig;
@@ -29,11 +28,6 @@ fn greet(name: &str) -> String {
 }
 
 fn main() -> anyhow::Result<()> {
-    let log_config = simplelog::ConfigBuilder::new()
-        .set_time_offset_to_local()
-        .expect("Cannot get timezone")
-        .build();
-
     let log_path = dirs::data_dir().unwrap()
         .join(APP_NAME)
         .join("onemoretime.log");
@@ -41,19 +35,20 @@ fn main() -> anyhow::Result<()> {
     fs::create_dir_all(log_path.parent().unwrap())
         .map_err(|err| anyhow!("Cannot create {:?}: {:?}", log_path, err))?;
 
-    simplelog::CombinedLogger::init(vec![
-        simplelog::TermLogger::new(
-            simplelog::LevelFilter::Debug,
-            log_config.clone(),
-            simplelog::TerminalMode::Mixed,
-            ColorChoice::Auto
-        ),
-        simplelog::WriteLogger::new(
-            simplelog::LevelFilter::Info,
-            log_config,
-            File::create(log_path)?
-        ),
-    ])?;
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "[{} {} {}] {}",
+                Local::now().to_rfc3339(),
+                record.level(),
+                record.target(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Info)
+        .chain(std::io::stdout())
+        .chain(fern::log_file(log_path)?)
+        .apply()?;
 
     let app_config = AppConfig::load()?;
     log::info!("Shortcut key is: `{}`", app_config.repeat_shortcut);
