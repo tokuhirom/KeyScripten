@@ -8,6 +8,7 @@ use crate::APP_NAME;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AppConfig {
     pub repeat_shortcut: String,
+    pub log_level: String,
 }
 
 impl AppConfig {
@@ -52,7 +53,8 @@ impl AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            repeat_shortcut: "C-t".to_string()
+            repeat_shortcut: "C-t".to_string(),
+            log_level: "INFO".to_string(),
         }
     }
 }

@@ -10,6 +10,8 @@ TBD
 
 You need to allow the accessibility option here. Because this application captures all keyboard input. 
 
+![img_1.png](img_1.png)
+
 ![img.png](img.png)
 
 ## Hacking
