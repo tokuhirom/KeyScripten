@@ -31,6 +31,12 @@
   - cmd-tab でリストアップされてしまう。
     - [tauri-plugin-positioner](https://github.com/tauri-apps/tauri-plugin-positioner) を使えば良さそう
     - 消えたっぽい?
+- アイコンの変更
+  - DALL-E で作った適当なアイコンに差し替え
+  - 後で、良いものがあれば差し替えたい
+    - https://tauri.app/v1/guides/features/icons の手順でやれば差し替えられます
+    -  `cd src-tauri && npm run icon path/to/icon.png`
+    
 
 - 残タスク
   - 予測機能(現在は繰り返しの自動抽出のみが実装されている)
@@ -39,4 +45,3 @@
   - info level ログを減らす
     - buffer のダンプ時の表示をもう少し小さくできそうではある。
   - ログレベルを設定で変えられるようにする
-  - アイコンの変更
