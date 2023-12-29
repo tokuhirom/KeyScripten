@@ -26,6 +26,7 @@ anyhow = "1.0.77"
 cocoa = "0.25.0"
 
 confy = "0.5.1"
+dirs = "5.0.1"
 
 apple-sys = { version = "0.2.0", features = ["CoreGraphics", "CoreFoundation"] }
 

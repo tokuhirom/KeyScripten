@@ -36,7 +36,9 @@
   - 後で、良いものがあれば差し替えたい
     - https://tauri.app/v1/guides/features/icons の手順でやれば差し替えられます
     -  `cd src-tauri && npm run icon path/to/icon.png`
-    
+- build
+  - `cd src-tauri && npm run tauri build` でアプリケーションがビルドされる。
+  - dmg ファイルが生成される。
 
 - 残タスク
   - 予測機能(現在は繰り返しの自動抽出のみが実装されている)

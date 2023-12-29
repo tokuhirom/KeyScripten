@@ -8,6 +8,7 @@ mod app_config;
 mod keycode;
 mod shortcut;
 
+use std::fs::File;
 use std::thread;
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 use simplelog::ColorChoice;
@@ -30,12 +31,18 @@ fn main() -> anyhow::Result<()> {
         .expect("Cannot get timezone")
         .build();
 
+    let log_dir = dirs::data_dir().unwrap();
     simplelog::CombinedLogger::init(vec![
         simplelog::TermLogger::new(
-            simplelog::LevelFilter::Info,
+            simplelog::LevelFilter::Debug,
             log_config.clone(),
             simplelog::TerminalMode::Mixed,
             ColorChoice::Auto
+        ),
+        simplelog::WriteLogger::new(
+            simplelog::LevelFilter::Info,
+            log_config,
+            File::create(log_dir.join("onemoretime.log"))?
         ),
     ])?;
 

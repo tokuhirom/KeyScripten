@@ -28,7 +28,7 @@ impl Handler {
         match event {
             Event::KeyPress(code) => {
                 if is_shortcut_pressed(self.latest_flags, code, &self.shortcut) {
-                    log::info!("Shortcut key pressed!! 444");
+                    log::debug!("Shortcut key pressed!!");
 
                     let sender = Sender::new();
                     if let Err(err) = sender.process(State::new(
@@ -48,12 +48,12 @@ impl Handler {
                 if self.capacity < self.buffer.len() {
                     self.buffer.pop_back();
                 }
-                log::info!("pressed~~~ code={}, buffer={:?}", code, self.buffer);
+                log::debug!("pressed~~~ code={}, buffer={:?}", code, self.buffer);
             }
             Event::KeyRelease(_code) => {
             }
             Event::FlagsChanged(key, flags) => {
-                log::info!("Flags changed: key={:?}, flags={:?}", key, flags);
+                log::debug!("Flags changed: key={:?}, flags={:?}", key, flags);
                 self.latest_flags = flags;
             }
         }
@@ -65,7 +65,7 @@ fn is_shortcut_pressed(flags: CGEventFlags, code: CGKeyCode, shortcut: &Shortcut
     let expected_flags = shortcut.flags;
     let expected_code = shortcut.keycode;
 
-    log::info!("is_shortcut_pressed?: flags={:?} code={:?}, expected({:?}, {:?})",
+    log::debug!("is_shortcut_pressed?: flags={:?} code={:?}, expected({:?}, {:?})",
         flags, code,
         expected_flags, expected_code);
 

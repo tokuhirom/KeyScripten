@@ -8,7 +8,9 @@ TBD
 
 ## Accessibility permission
 
-TBD
+You need to allow the accessibility option here. Because this application captures all keyboard input. 
+
+![img.png](img.png)
 
 ## Hacking
 
