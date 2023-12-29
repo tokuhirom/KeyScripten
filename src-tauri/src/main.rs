@@ -9,7 +9,8 @@ mod keycode;
 mod shortcut;
 
 use std::fs::File;
-use std::thread;
+use std::{fs, thread};
+use anyhow::anyhow;
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 use simplelog::ColorChoice;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
@@ -18,6 +19,8 @@ use crate::app_config::AppConfig;
 
 use crate::grab::grab_ex;
 use crate::shortcut::parse_shortcut;
+
+const APP_NAME: &str = "onemoretime";
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -31,7 +34,13 @@ fn main() -> anyhow::Result<()> {
         .expect("Cannot get timezone")
         .build();
 
-    let log_dir = dirs::data_dir().unwrap();
+    let log_path = dirs::data_dir().unwrap()
+        .join(APP_NAME)
+        .join("onemoretime.log");
+    log::info!("Logging file is output to {:?}", log_path);
+    fs::create_dir_all(log_path.parent().unwrap())
+        .map_err(|err| anyhow!("Cannot create {:?}: {:?}", log_path, err))?;
+
     simplelog::CombinedLogger::init(vec![
         simplelog::TermLogger::new(
             simplelog::LevelFilter::Debug,
@@ -42,11 +51,10 @@ fn main() -> anyhow::Result<()> {
         simplelog::WriteLogger::new(
             simplelog::LevelFilter::Info,
             log_config,
-            File::create(log_dir.join("onemoretime.log"))?
+            File::create(log_path)?
         ),
     ])?;
 
-    log::info!("Loading configuration from {:?}", AppConfig::get_configuration_file_path()?);
     let app_config = AppConfig::load()?;
     log::info!("Shortcut key is: `{}`", app_config.repeat_shortcut);
 

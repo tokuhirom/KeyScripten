@@ -1,8 +1,9 @@
+use std::fs::File;
 use std::path::PathBuf;
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
+use crate::APP_NAME;
 
-const APP_NAME: &str = "onemoretime";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AppConfig {
@@ -10,22 +11,41 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-    pub fn get_configuration_file_path() -> anyhow::Result<PathBuf> {
-        confy::get_configuration_file_path(APP_NAME, None)
-            .map_err(|err| { anyhow!("Cannot get configuration file path: {:?}", err)})
+    pub fn get_configuration_file_path() -> PathBuf {
+        dirs::config_dir().unwrap()
+            .join(APP_NAME).join("config.json")
     }
 
     pub fn load() -> anyhow::Result<AppConfig> {
-        confy::load::<AppConfig>(APP_NAME, None)
-            .map_err(|err| { anyhow!("Cannot load configuration file: {:?}", err)})
+        let path = AppConfig::get_configuration_file_path();
+        log::info!("Loading configuration from {:?}", path);
+
+        return match File::open(path.clone()) {
+            Ok(file) => {
+                return match serde_json::from_reader(file) {
+                    Ok(config) => {
+                        Ok(config)
+                    }
+                    Err(err) => {
+                        log::error!("Cannot deserialize configuration file({:?}): {:?}",
+                            path, err);
+                        Ok(AppConfig::default())
+                    }
+                };
+            }
+            Err(err) => {
+                log::warn!("Cannot open configuration file({:?}): {:?}", path, err);
+                // fallback to default configuration
+                Ok(AppConfig::default())
+            }
+        }
     }
 
     #[allow(dead_code)]
     pub fn save(app_config: &AppConfig) -> anyhow::Result<()> {
-        confy::store(APP_NAME, None, app_config)
+        confy::store_path(AppConfig::get_configuration_file_path(), app_config)
             .map_err(|err| { anyhow!("Cannot store configuration: {:?}", err)})
     }
-
 }
 
 
