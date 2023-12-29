@@ -8,7 +8,18 @@ TBD
 
 ## Accessibility permission
 
-TBD
+You need to allow the accessibility option here. Because this application captures all keyboard input. 
+
+![img_1.png](img_1.png)
+
+![img.png](img.png)
+
+## Hacking
+
+### How do I build this?
+
+    cd src-tauri/
+    cargo run
 
 ## Configuration
 

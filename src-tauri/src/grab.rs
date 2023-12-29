@@ -52,7 +52,8 @@ unsafe extern "C" fn raw_callback(
     cg_event: CGEventRef,
     _user_info: *mut ::std::os::raw::c_void,
 ) -> CGEventRef {
-    println!("Event ref {:?}, {:?}", event_type, cg_event,);
+    log::debug!("Called raw_callback");
+
     // let cg_event: CGEvent = transmute_copy::<*mut c_void, CGEvent>(&cg_event_ptr);
     let Some(event) = convert(event_type, cg_event) else {
         return cg_event;
@@ -73,6 +74,7 @@ where
     unsafe {
         GLOBAL_CALLBACK = Some(Box::new(callback));
         let _pool = NSAutoreleasePool::new(nil);
+        log::debug!("Calling CGEventTapCreate");
         let tap = CGEventTapCreate(
             CGEventTapLocation_kCGHIDEventTap, // HID, Session, AnnotatedSession,
             CGEventTapPlacement_kCGHeadInsertEventTap,
@@ -92,9 +94,11 @@ where
         }
 
         let current_loop = CFRunLoopGetCurrent();
+        log::debug!("Calling CFRunLoopAddSource");
         CFRunLoopAddSource(current_loop, _loop, kCFRunLoopCommonModes);
 
         CGEventTapEnable(tap, true);
+        log::info!("Running CFRunLoopRun");
         CFRunLoopRun();
     }
     Ok(())
