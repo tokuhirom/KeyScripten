@@ -82,26 +82,12 @@ fn main() -> anyhow::Result<()> {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
 
         let mut js = JS::new().expect("Cannot create JS instance");
-        js.eval(&r#"
-        register_plugin(
-            "com.github.tokuhirom.onemoretime.dynamicmacro",
-            "One more time",
-            function (event) {
-                console.log(`event detected :::${event}`);
-            },
-            [
-                {
-                    "name": "shortcut",
-                    "type": "shortcut",
-                    "default": "C-t"
-                }
-            ]
-        )
-    "#.to_string()).unwrap();
+        let src = include_str!("../js/dynamic-macro.js");
+        js.eval(src.to_string()).unwrap();
 
         let mut handler = Handler::new(64, shortcut, js);
-        if let Err(error) = grab_ex(move |event| {
-            handler.callback(event)
+        if let Err(error) = grab_ex(move |event, cg_event_type, cg_event_ref| {
+            handler.callback(event, cg_event_type, cg_event_ref)
         }) {
             println!("Error: {:?}", error)
         }

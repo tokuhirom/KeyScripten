@@ -8,7 +8,8 @@ use apple_sys::CoreGraphics::{CGEventField_kCGEventSourceUserData, CGEventField_
 use crate::event::Event;
 use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
 
-static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(Event) -> Option<Event>>> = None;
+// TODO don't use global variable here.
+static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(Event, CGEventType, CGEventRef) -> Option<Event>>> = None;
 
 #[link(name = "Cocoa", kind = "framework")]
 extern "C" {}
@@ -61,7 +62,7 @@ unsafe extern "C" fn raw_callback(
     let Some(callback) = &mut GLOBAL_CALLBACK else {
         return cg_event;
     };
-    if callback(event).is_none() {
+    if callback(event, event_type, cg_event).is_none() {
         CGEventSetType(cg_event, CGEventType_kCGEventNull);
     }
     cg_event
@@ -69,7 +70,7 @@ unsafe extern "C" fn raw_callback(
 
 pub fn grab_ex<T>(callback: T) -> anyhow::Result<()>
 where
-    T: FnMut(Event) -> Option<Event> + 'static,
+    T: FnMut(Event, CGEventType, CGEventRef) -> Option<Event> + 'static,
 {
     unsafe {
         GLOBAL_CALLBACK = Some(Box::new(callback));

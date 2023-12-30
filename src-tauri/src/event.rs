@@ -1,4 +1,5 @@
-use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
+use apple_sys::CoreGraphics::CGEventFlags;
+use apple_sys::CoreGraphics::{CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGKeyCode};
 
 /// In order to manage different OSs, the current EventType choices are a mix and
 /// match to account for all possible events.
@@ -10,4 +11,13 @@ pub enum Event {
     KeyPress(CGKeyCode),
     KeyRelease(CGKeyCode),
     FlagsChanged(CGKeyCode, CGEventFlags),
+}
+
+pub fn event_type(cg_event_type: CGEventType) -> &'static str {
+    match cg_event_type {
+        CGEventType_kCGEventKeyDown => "keydown",
+        CGEventType_kCGEventKeyUp => "keyup",
+        CGEventType_kCGEventFlagsChanged => "flags_changed",
+        _ => "unknown",
+    }
 }

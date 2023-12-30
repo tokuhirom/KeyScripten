@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
-use apple_sys::CoreGraphics::{CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand, CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventFlags_kCGEventFlagMaskShift, CGKeyCode};
-use crate::event::Event;
+use apple_sys::CoreGraphics::{CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand, CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventFlags_kCGEventFlagMaskShift, CGEventRef, CGEventType, CGKeyCode};
+use crate::event::{Event};
 use crate::js::JS;
 use crate::KeyState;
 
@@ -27,14 +27,14 @@ impl Handler<'_> {
         }
     }
 
-    pub fn callback(&mut self, event: Event) -> Option<Event> {
-        if let Err(err) = self.js.send_event(event) {
+    pub fn callback(&mut self, event: Event, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> Option<Event> {
+        if let Err(err) = self.js.send_event(cg_event_type, cg_event_ref) {
             log::error!("Cannot call JS callback: {:?}", err);
         }
 
         match event {
             Event::KeyPress(code) => {
-                if is_shortcut_pressed(self.latest_flags, code, &self.shortcut) {
+                if matches_hotkey_string(self.latest_flags, code, &self.shortcut) {
                     log::debug!("Shortcut key pressed!!");
 
                     let sender = Sender::new();
@@ -68,7 +68,7 @@ impl Handler<'_> {
     }
 }
 
-fn is_shortcut_pressed(flags: CGEventFlags, code: CGKeyCode, shortcut: &Shortcut) -> bool {
+fn matches_hotkey_string(flags: CGEventFlags, code: CGKeyCode, shortcut: &Shortcut) -> bool {
     let expected_flags = shortcut.flags;
     let expected_code = shortcut.keycode;
 
