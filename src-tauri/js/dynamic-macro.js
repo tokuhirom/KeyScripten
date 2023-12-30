@@ -1,6 +1,16 @@
 let latest_flags = undefined;
 const buffer = [];
 
+function run_dynamic_macro() {
+    console.log("run_dynamic_macro");
+    send_flags_changed_event(0);
+
+    const KEY_A = 0;
+    send_keyboard_event(KEY_A, 0, true);
+
+    send_flags_changed_event(latest_flags);
+}
+
 register_plugin(
     "com.github.tokuhirom.onemoretime.dynamicmacro",
     "One more time",
@@ -10,7 +20,7 @@ register_plugin(
         } else if (event.type === "keydown") {
             if (matches_hotkey_string(latest_flags, event.keycode, "C-t")) {
                 console.log("KKKKKKKKKKKKKKKKKKKKYAY!!! shortcut!!!!");
-                // TODO run dynamic macro
+                run_dynamic_macro();
                 return false;
             }
             buffer.unshift([event, config]);

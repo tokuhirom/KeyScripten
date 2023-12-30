@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGKeyCode};
+use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGKeyCode};
 use boa_engine::{Context, js_string, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, Source};
 use boa_engine::object::builtins::{JsArray, JsMap};
 use boa_engine::property::{Attribute, PropertyKey};
@@ -8,6 +8,7 @@ use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_runtime::Console;
 use crate::event::{event_type};
 use crate::handler::matches_hotkey_string;
+use crate::send::{send_flags_changed_event, send_keyboard_event};
 use crate::shortcut::{parse_shortcut, Shortcut};
 
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -36,6 +37,8 @@ impl JS<'_> {
         js.register_constants()?;
         js.register_register_plugin()?;
         js.register_matches_hotkey_string()?;
+        js.register_send_flags_changed_event()?;
+        js.register_send_keyboard_event()?;
         return Ok(js);
     }
 
@@ -54,6 +57,7 @@ impl JS<'_> {
         self.register_constant("kCGEventKeyUp", CGEventType_kCGEventKeyUp)?;
         self.register_constant("kCGEventFlagsChanged", CGEventType_kCGEventFlagsChanged)?;
         self.register_constant("kCGKeyboardEventKeycode", CGEventField_kCGKeyboardEventKeycode)?;
+        self.register_constant("kCGEventFlagMaskNonCoalesced", CGEventFlags_kCGEventFlagMaskNonCoalesced)?;
         Ok(())
     }
 
@@ -104,8 +108,6 @@ impl JS<'_> {
 
     fn register_matches_hotkey_string(&mut self) -> anyhow::Result<()> {
         unsafe {
-            // this, args, etc.
-
             if let Err(err) = self.context.register_global_callable("matches_hotkey_string", 1, NativeFunction::from_closure_with_captures(
                 move |_this, args, captures, context| {
                     log::info!("print22!!!! {:?}", args);
@@ -132,6 +134,62 @@ impl JS<'_> {
                 GcRefCell::new(self.big_struct.clone())
             )) {
                 return Err(anyhow!("Cannot register `register_plugin` function: {:?}", err));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn register_send_flags_changed_event(&mut self) -> anyhow::Result<()> {
+        unsafe {
+            if let Err(err) = self.context.register_global_callable("send_flags_changed_event", 1, NativeFunction::from_closure_with_captures(
+                move |_this, args, captures, context| {
+                    let flags: &JsValue = args.get_or_undefined(0);
+                    match send_flags_changed_event(flags.to_i32(context).unwrap() as CGEventFlags) {
+                        Ok(_) => {
+                            Ok(JsValue::undefined())
+                        }
+                        Err(err) => {
+                            Err(JsNativeError::typ()
+                                .with_message(format!("Cannot run send_flags_changed_event: {:?}", err))
+                                .into())
+                        }
+                    }
+                },
+                GcRefCell::new(self.big_struct.clone())
+            )) {
+                return Err(anyhow!("Cannot register `send_flags_changed_event` function: {:?}", err));
+            }
+        }
+
+        Ok(())
+    }
+
+    // send_keyboard_event(key_state.code, key_state.flags, true)?;
+    fn register_send_keyboard_event(&mut self) -> anyhow::Result<()> {
+        unsafe {
+            if let Err(err) = self.context.register_global_callable("send_keyboard_event", 1, NativeFunction::from_closure(
+                move |_this, args, context| {
+                    let keycode: &JsValue = args.get_or_undefined(0);
+                    let flags: &JsValue = args.get_or_undefined(1);
+                    let pressed: &JsValue = args.get_or_undefined(2);
+                    match send_keyboard_event(
+                        keycode.to_i32(context).unwrap() as CGKeyCode,
+                        flags.to_i32(context).unwrap() as CGEventFlags,
+                        pressed.to_boolean(),
+                    ) {
+                        Ok(_) => {
+                            Ok(JsValue::undefined())
+                        }
+                        Err(err) => {
+                            Err(JsNativeError::typ()
+                                .with_message(format!("Cannot run send_keyboard_event: {:?}", err))
+                                .into())
+                        }
+                    }
+                },
+            )) {
+                return Err(anyhow!("Cannot register `send_keyboard_event` function: {:?}", err));
             }
         }
 
