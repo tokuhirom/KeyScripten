@@ -1,30 +1,37 @@
 use std::collections::VecDeque;
 use apple_sys::CoreGraphics::{CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand, CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventFlags_kCGEventFlagMaskShift, CGKeyCode};
 use crate::event::Event;
+use crate::js::JS;
 use crate::KeyState;
 
 use crate::sender::Sender;
 use crate::shortcut::Shortcut;
 use crate::state::State;
 
-pub struct Handler {
+pub struct Handler<'a> {
     buffer: VecDeque<KeyState>,
     capacity: usize,
     latest_flags: CGEventFlags,
     shortcut: Shortcut,
+    js: JS<'a>,
 }
 
-impl Handler {
-    pub fn new(capacity: usize, shortcut: Shortcut) -> Handler {
+impl Handler<'_> {
+    pub fn new(capacity: usize, shortcut: Shortcut, js: JS) -> Handler {
         Handler {
             buffer: VecDeque::with_capacity(capacity),
             capacity,
             latest_flags: CGEventFlags_kCGEventFlagMaskNonCoalesced,
             shortcut,
+            js,
         }
     }
 
     pub fn callback(&mut self, event: Event) -> Option<Event> {
+        if let Err(err) = self.js.send_event(event) {
+            log::error!("Cannot call JS callback: {:?}", err);
+        }
+
         match event {
             Event::KeyPress(code) => {
                 if is_shortcut_pressed(self.latest_flags, code, &self.shortcut) {

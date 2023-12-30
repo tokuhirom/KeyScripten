@@ -6,6 +6,7 @@ use boa_engine::object::builtins::{JsArray, JsMap};
 use boa_engine::property::{Attribute, PropertyKey};
 use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_runtime::Console;
+use crate::event::Event;
 
 #[derive(Debug, Clone, Trace, Finalize)]
 struct BigStruct {
@@ -109,7 +110,7 @@ impl JS<'_> {
 
     // Call this method when key/mouse event was received.
     // This method calls JS handlers.
-    pub fn send_event(&mut self) -> anyhow::Result<()> {
+    pub fn send_event(&mut self, event: Event) -> anyhow::Result<()> {
         let len = match self.big_struct.id_list.length(&mut self.context) {
             Ok(len) => { len }
             Err(err) => {

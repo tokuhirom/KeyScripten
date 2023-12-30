@@ -76,8 +76,13 @@ fn main() -> anyhow::Result<()> {
     log::info!("Default log level is `{}`", level_filter);
     log::info!("Shortcut key is: `{}`", app_config.repeat_shortcut);
 
-    let mut js = JS::new()?;
-    js.eval(&r#"
+    let shortcut = parse_shortcut(app_config.repeat_shortcut.as_str())?;
+
+    thread::spawn(move || {
+        log::debug!("Starting handler thread: {:?}", thread::current().id());
+
+        let mut js = JS::new().expect("Cannot create JS instance");
+        js.eval(&r#"
         register_plugin(
             "com.github.tokuhirom.onemoretime.dynamicmacro",
             "One more time",
@@ -92,15 +97,9 @@ fn main() -> anyhow::Result<()> {
                 }
             ]
         )
-    "#.to_string())?;
-    js.send_event()?;
+    "#.to_string()).unwrap();
 
-    let shortcut = parse_shortcut(app_config.repeat_shortcut.as_str())?;
-
-    thread::spawn(move || {
-        log::debug!("Starting handler thread: {:?}", thread::current().id());
-
-        let mut handler = Handler::new(64, shortcut);
+        let mut handler = Handler::new(64, shortcut, js);
         if let Err(error) = grab_ex(move |event| {
             handler.callback(event)
         }) {
