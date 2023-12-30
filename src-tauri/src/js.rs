@@ -1,12 +1,14 @@
 use std::fmt::Debug;
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp};
-use boa_engine::{Context, js_string, JsObject, JsResult, JsValue, NativeFunction, Source};
+use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGKeyCode};
+use boa_engine::{Context, js_string, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, Source};
 use boa_engine::object::builtins::{JsArray, JsMap};
 use boa_engine::property::{Attribute, PropertyKey};
 use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_runtime::Console;
 use crate::event::{event_type};
+use crate::handler::matches_hotkey_string;
+use crate::shortcut::{parse_shortcut, Shortcut};
 
 #[derive(Debug, Clone, Trace, Finalize)]
 struct BigStruct {
@@ -33,6 +35,7 @@ impl JS<'_> {
         js.init_console()?;
         js.register_constants()?;
         js.register_register_plugin()?;
+        js.register_matches_hotkey_string()?;
         return Ok(js);
     }
 
@@ -89,6 +92,42 @@ impl JS<'_> {
                     callbacks.set(id.clone(), callback.clone(), context).unwrap();
 
                     Ok(JsValue::from(js_string!("hello")))
+                },
+                GcRefCell::new(self.big_struct.clone())
+            )) {
+                return Err(anyhow!("Cannot register `register_plugin` function: {:?}", err));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn register_matches_hotkey_string(&mut self) -> anyhow::Result<()> {
+        unsafe {
+            // this, args, etc.
+
+            if let Err(err) = self.context.register_global_callable("matches_hotkey_string", 1, NativeFunction::from_closure_with_captures(
+                move |_this, args, captures, context| {
+                    log::info!("print22!!!! {:?}", args);
+
+                    let flags: &JsValue = args.get_or_undefined(0);
+                    let keycode = args.get_or_undefined(1);
+                    let shortcut = args.get_or_undefined(2);
+                    let shortcut = shortcut.as_string().unwrap().to_std_string().unwrap();
+                    match parse_shortcut(shortcut.as_str()) { // TODO cache? config をパースしたタイミングで、ショートカットのパースもしておくべき
+                        Ok(shortcut) => {
+                            let result = matches_hotkey_string(flags.to_i32(context).unwrap() as CGEventFlags,
+                                                               keycode.to_i32(context).unwrap() as CGKeyCode,
+                                                               &shortcut);
+
+                            Ok(JsValue::from(result))
+                        }
+                        Err(err) => {
+                            Err(JsNativeError::typ()
+                                              .with_message(format!("Cannot run parse_shortcut: {:?}", err))
+                                              .into())
+                        }
+                    }
                 },
                 GcRefCell::new(self.big_struct.clone())
             )) {

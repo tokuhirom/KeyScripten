@@ -8,7 +8,11 @@ register_plugin(
         if (event.type === "flags_changed") {
             latest_flags = event.flags;
         } else if (event.type === "keydown") {
-            // TODO: call matches_hotkey_string
+            if (matches_hotkey_string(latest_flags, event.keycode, "C-t")) {
+                console.log("KKKKKKKKKKKKKKKKKKKKYAY!!! shortcut!!!!");
+                // TODO run dynamic macro
+                return false;
+            }
             buffer.unshift([event, config]);
             if (buffer.length > 6) {
                 buffer.pop();

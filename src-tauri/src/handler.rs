@@ -68,7 +68,7 @@ impl Handler<'_> {
     }
 }
 
-fn matches_hotkey_string(flags: CGEventFlags, code: CGKeyCode, shortcut: &Shortcut) -> bool {
+pub fn matches_hotkey_string(flags: CGEventFlags, code: CGKeyCode, shortcut: &Shortcut) -> bool {
     let expected_flags = shortcut.flags;
     let expected_code = shortcut.keycode;
 
