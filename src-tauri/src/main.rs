@@ -7,13 +7,20 @@ mod handler;
 mod app_config;
 mod keycode;
 mod shortcut;
+mod js;
 
 use std::{fs, thread};
+use std::arch::aarch64::vbic_s8;
 use std::str::FromStr;
+use std::sync::Arc;
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
-use boa_engine::{Context, js_string, Source};
-use boa_engine::property::Attribute;
+use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGKeyCode, exit};
+use boa_engine::{Context, js_string, JsObject, JsResult, JsString, JsValue, NativeFunction, Source, string::utf16};
+use boa_engine::object::builtins::{JsArray, JsMap};
+use boa_engine::object::FunctionObjectBuilder;
+use boa_engine::object::ObjectKind::Array;
+use boa_engine::property::{Attribute, PropertyDescriptor};
+use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_runtime::Console;
 use chrono::Local;
 use log::LevelFilter;
@@ -22,6 +29,7 @@ use handler::Handler;
 use crate::app_config::AppConfig;
 
 use crate::grab::grab_ex;
+use crate::js::JS;
 use crate::shortcut::parse_shortcut;
 
 const APP_NAME: &str = "onemoretime";
@@ -68,23 +76,24 @@ fn main() -> anyhow::Result<()> {
     log::info!("Default log level is `{}`", level_filter);
     log::info!("Shortcut key is: `{}`", app_config.repeat_shortcut);
 
-    let mut context = Context::default();
-    let console = Console::init(&mut context);
-    context
-        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
-        .expect("the console object shouldn't exist");
-    context.register_global_property("hogehoge", 3, Attribute::all()).unwrap();
-    match context.eval(Source::from_bytes("console.log(hogehoge)")) {
-        Ok(res) => {
-            println!(
-                "{}",
-                res.to_string(&mut context).unwrap().to_std_string_escaped()
-            );
-        }
-        Err(err) => {
-            eprintln!("Uncaught {err}");
-        }
-    }
+    let mut js = JS::new()?;
+    js.eval(&r#"
+        register_plugin(
+            "com.github.tokuhirom.onemoretime.dynamicmacro",
+            "One more time",
+            function (event) {
+                console.log(`event detected :::${event}`);
+            },
+            [
+                {
+                    "name": "shortcut",
+                    "type": "shortcut",
+                    "default": "C-t"
+                }
+            ]
+        )
+    "#.to_string())?;
+    js.send_event()?;
 
     let shortcut = parse_shortcut(app_config.repeat_shortcut.as_str())?;
 
