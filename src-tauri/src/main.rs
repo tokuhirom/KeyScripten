@@ -1,7 +1,6 @@
 mod send;
 mod grab;
 mod event;
-mod state;
 mod app_config;
 mod keycode;
 mod hotkey;
