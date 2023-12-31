@@ -10,6 +10,7 @@ use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
 
 // TODO don't use global variable here.
 static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(CGEventType, CGEventRef) -> bool>> = None;
+static mut GLOBAL_JS: Option<Box<JS<'_>>> = None;
 
 #[link(name = "Cocoa", kind = "framework")]
 extern "C" {}
@@ -32,21 +33,26 @@ unsafe extern "C" fn raw_callback(
         return cg_event;
     }
 
-    let Some(callback) = &mut GLOBAL_CALLBACK else {
+    let Some(js) = &mut GLOBAL_JS else {
         return cg_event;
     };
-    if !callback(event_type, cg_event) {
-        CGEventSetType(cg_event, CGEventType_kCGEventNull);
+
+    match js.send_event(event_type, cg_event) {
+        Ok(b) => {
+            if !b {
+                CGEventSetType(cg_event, CGEventType_kCGEventNull);
+            }
+        }
+        Err(err) => {
+            log::error!("Cannot call JS callback: {:?}", err);
+        }
     }
+
     cg_event
 }
 
-pub fn grab_ex<T>(callback: T) -> anyhow::Result<()>
-where
-    T: FnMut(CGEventType, CGEventRef) -> bool + 'static,
-{
+pub fn grab_ex() -> anyhow::Result<()> {
     unsafe {
-        GLOBAL_CALLBACK = Some(Box::new(callback));
         let _pool = NSAutoreleasePool::new(nil);
         log::debug!("Calling CGEventTapCreate");
         let tap = CGEventTapCreate(
@@ -82,18 +88,11 @@ pub fn run_handler() {
     let mut js = JS::new().expect("Cannot create JS instance");
     let src = include_str!("../js/dynamic-macro.js");
     js.eval(src.to_string()).unwrap();
+    unsafe {
+        GLOBAL_JS = Some(Box::new(js));
+    }
 
-    if let Err(error) = grab_ex(move |cg_event_type, cg_event_ref| {
-        match js.send_event(cg_event_type, cg_event_ref) {
-            Ok(b) => {
-                b
-            }
-            Err(err) => {
-                log::error!("Cannot call JS callback: {:?}", err);
-                true //  // send event to the normal destination
-            }
-        }
-    }) {
+    if let Err(error) = grab_ex() {
         println!("Error: {:?}", error)
     }
 }
