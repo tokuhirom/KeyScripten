@@ -1,6 +1,6 @@
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
-use boa_engine::{Context, js_string, JsArgs, JsNativeError, JsResult, JsValue};
-use boa_gc::{GcRef, GcRefCell};
+use boa_engine::{Context, JsArgs, JsNativeError, JsResult, JsValue};
+use boa_gc::{GcRefCell};
 use crate::handler::matches_hotkey_string;
 use crate::js::BigStruct;
 use crate::send::{send_flags_changed_event, send_keyboard_event};
@@ -12,7 +12,7 @@ pub struct JsBuiltin {
 
 impl JsBuiltin {
     pub fn register_plugin(_this: &JsValue, args: &[JsValue], captures: &GcRefCell<BigStruct>, context: &mut Context<'_>) -> JsResult<JsValue> {
-        let id: &JsValue = args.get(0).unwrap();
+        let id: &JsValue = args.first().unwrap();
         let _name = args.get(1).unwrap();
         let callback = args.get(2).unwrap();
         let _config_schema = args.get(3).unwrap();

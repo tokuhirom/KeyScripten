@@ -4,9 +4,9 @@ use crate::event::{Event};
 use crate::js::JS;
 use crate::KeyState;
 
-use crate::sender::Sender;
+
 use crate::shortcut::Shortcut;
-use crate::state::State;
+
 
 pub struct Handler<'a> {
     buffer: VecDeque<KeyState>,
@@ -28,7 +28,7 @@ impl Handler<'_> {
     }
 
     pub fn callback(&mut self, event: Event, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> Option<Event> {
-        return match self.js.send_event(cg_event_type, cg_event_ref) {
+        match self.js.send_event(cg_event_type, cg_event_ref) {
             Ok(b) => {
                 if b {
                     Some(event)
@@ -40,7 +40,7 @@ impl Handler<'_> {
                 log::error!("Cannot call JS callback: {:?}", err);
                 None
             }
-        };
+        }
     }
 }
 

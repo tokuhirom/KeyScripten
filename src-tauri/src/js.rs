@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGKeyCode};
-use boa_engine::{Context, js_string, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, Source};
+use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp};
+use boa_engine::{Context, js_string, JsObject, JsValue, NativeFunction, Source};
 use boa_engine::native_function::NativeFunctionPointer;
 use boa_engine::object::builtins::{JsArray, JsMap};
 use boa_engine::property::{Attribute, PropertyKey};
@@ -36,7 +36,7 @@ impl JS<'_> {
         js.register_constants()?;
         js.register_register_plugin()?;
         js.register_builtin_functions()?;
-        return Ok(js);
+        Ok(js)
     }
 
     fn init_console(&mut self) -> anyhow::Result<()>{

@@ -21,9 +21,9 @@ impl AppConfig {
         let path = AppConfig::get_configuration_file_path();
         log::info!("Loading configuration from {:?}", path);
 
-        return match File::open(path.clone()) {
+        match File::open(path.clone()) {
             Ok(file) => {
-                return match serde_json::from_reader(file) {
+                match serde_json::from_reader(file) {
                     Ok(config) => {
                         Ok(config)
                     }
@@ -32,7 +32,7 @@ impl AppConfig {
                             path, err);
                         Ok(AppConfig::default())
                     }
-                };
+                }
             }
             Err(err) => {
                 log::warn!("Cannot open configuration file({:?}): {:?}", path, err);

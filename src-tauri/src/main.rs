@@ -11,18 +11,18 @@ mod js;
 mod js_builtin;
 
 use std::{fs, thread};
-use std::arch::aarch64::vbic_s8;
+
 use std::str::FromStr;
-use std::sync::Arc;
+
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGKeyCode, exit};
-use boa_engine::{Context, js_string, JsObject, JsResult, JsString, JsValue, NativeFunction, Source, string::utf16};
-use boa_engine::object::builtins::{JsArray, JsMap};
-use boa_engine::object::FunctionObjectBuilder;
-use boa_engine::object::ObjectKind::Array;
-use boa_engine::property::{Attribute, PropertyDescriptor};
-use boa_gc::{Finalize, GcRefCell, Trace};
-use boa_runtime::Console;
+use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
+
+
+
+
+
+
+
 use chrono::Local;
 use log::LevelFilter;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
