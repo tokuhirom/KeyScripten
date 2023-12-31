@@ -7,14 +7,12 @@ use boa_engine::property::{Attribute, PropertyKey};
 use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_runtime::Console;
 use crate::event::{event_type};
-use crate::handler::matches_hotkey_string;
-use crate::send::{send_flags_changed_event, send_keyboard_event};
-use crate::shortcut::{parse_shortcut, Shortcut};
+use crate::js_builtin::JsBuiltin;
 
 #[derive(Debug, Clone, Trace, Finalize)]
-struct BigStruct {
-    id_list: JsArray,
-    callbacks: JsMap,
+pub struct BigStruct {
+    pub id_list: JsArray,
+    pub callbacks: JsMap,
 }
 
 pub struct JS<'a> {
@@ -74,29 +72,8 @@ impl JS<'_> {
 
     fn register_register_plugin(&mut self) -> anyhow::Result<()> {
         unsafe {
-            // this, args, etc.
-
             if let Err(err) = self.context.register_global_callable("register_plugin", 1, NativeFunction::from_closure_with_captures(
-                move |_this, args, captures, context| {
-                    log::info!("print11!!!! {:?}", args);
-
-                    let id: &JsValue = args.get(0).unwrap();
-                    let _name = args.get(1).unwrap();
-                    let callback = args.get(2).unwrap();
-                    let _config_schema = args.get(3).unwrap();
-
-                    let mut captures = captures.borrow_mut();
-                    let BigStruct { id_list, callbacks } = &mut *captures;
-
-                    // push id to the array
-                    id_list.push(id.clone(), context).unwrap();
-
-                    log::info!("id_list={:?}, {}", id_list, id_list.length(context).unwrap());
-
-                    callbacks.set(id.clone(), callback.clone(), context).unwrap();
-
-                    Ok(JsValue::from(js_string!("hello")))
-                },
+                JsBuiltin::register_plugin,
                 GcRefCell::new(self.big_struct.clone())
             )) {
                 return Err(anyhow!("Cannot register `register_plugin` function: {:?}", err));
@@ -108,32 +85,12 @@ impl JS<'_> {
 
     fn register_matches_hotkey_string(&mut self) -> anyhow::Result<()> {
         unsafe {
-            if let Err(err) = self.context.register_global_callable("matches_hotkey_string", 1, NativeFunction::from_closure_with_captures(
-                move |_this, args, captures, context| {
-                    log::info!("print22!!!! {:?}", args);
-
-                    let flags: &JsValue = args.get_or_undefined(0);
-                    let keycode = args.get_or_undefined(1);
-                    let shortcut = args.get_or_undefined(2);
-                    let shortcut = shortcut.as_string().unwrap().to_std_string().unwrap();
-                    match parse_shortcut(shortcut.as_str()) { // TODO cache? config をパースしたタイミングで、ショートカットのパースもしておくべき
-                        Ok(shortcut) => {
-                            let result = matches_hotkey_string(flags.to_i32(context).unwrap() as CGEventFlags,
-                                                               keycode.to_i32(context).unwrap() as CGKeyCode,
-                                                               &shortcut);
-
-                            Ok(JsValue::from(result))
-                        }
-                        Err(err) => {
-                            Err(JsNativeError::typ()
-                                              .with_message(format!("Cannot run parse_shortcut: {:?}", err))
-                                              .into())
-                        }
-                    }
-                },
-                GcRefCell::new(self.big_struct.clone())
-            )) {
-                return Err(anyhow!("Cannot register `register_plugin` function: {:?}", err));
+            if let Err(err) = self.context.register_global_callable(
+                "matches_hotkey_string",
+                1,
+                NativeFunction::from_fn_ptr(JsBuiltin::matches_hotkey_string)
+            ) {
+                return Err(anyhow!("Cannot register `matches_hotkey_string` function: {:?}", err));
             }
         }
 
@@ -142,21 +99,8 @@ impl JS<'_> {
 
     fn register_send_flags_changed_event(&mut self) -> anyhow::Result<()> {
         unsafe {
-            if let Err(err) = self.context.register_global_callable("send_flags_changed_event", 1, NativeFunction::from_closure_with_captures(
-                move |_this, args, captures, context| {
-                    let flags: &JsValue = args.get_or_undefined(0);
-                    match send_flags_changed_event(flags.to_i32(context).unwrap() as CGEventFlags) {
-                        Ok(_) => {
-                            Ok(JsValue::undefined())
-                        }
-                        Err(err) => {
-                            Err(JsNativeError::typ()
-                                .with_message(format!("Cannot run send_flags_changed_event: {:?}", err))
-                                .into())
-                        }
-                    }
-                },
-                GcRefCell::new(self.big_struct.clone())
+            if let Err(err) = self.context.register_global_callable("send_flags_changed_event", 1, NativeFunction::from_fn_ptr(
+                JsBuiltin::send_flags_changed_event
             )) {
                 return Err(anyhow!("Cannot register `send_flags_changed_event` function: {:?}", err));
             }
@@ -168,27 +112,11 @@ impl JS<'_> {
     // send_keyboard_event(key_state.code, key_state.flags, true)?;
     fn register_send_keyboard_event(&mut self) -> anyhow::Result<()> {
         unsafe {
-            if let Err(err) = self.context.register_global_callable("send_keyboard_event", 1, NativeFunction::from_closure(
-                move |_this, args, context| {
-                    let keycode: &JsValue = args.get_or_undefined(0);
-                    let flags: &JsValue = args.get_or_undefined(1);
-                    let pressed: &JsValue = args.get_or_undefined(2);
-                    match send_keyboard_event(
-                        keycode.to_i32(context).unwrap() as CGKeyCode,
-                        flags.to_i32(context).unwrap() as CGEventFlags,
-                        pressed.to_boolean(),
-                    ) {
-                        Ok(_) => {
-                            Ok(JsValue::undefined())
-                        }
-                        Err(err) => {
-                            Err(JsNativeError::typ()
-                                .with_message(format!("Cannot run send_keyboard_event: {:?}", err))
-                                .into())
-                        }
-                    }
-                },
-            )) {
+            if let Err(err) = self.context.register_global_callable(
+                "send_keyboard_event",
+                1,
+                NativeFunction::from_fn_ptr(JsBuiltin::send_keyboard_event)
+            ) {
                 return Err(anyhow!("Cannot register `send_keyboard_event` function: {:?}", err));
             }
         }
@@ -207,7 +135,7 @@ impl JS<'_> {
 
     // Call this method when key/mouse event was received.
     // This method calls JS handlers.
-    pub fn send_event(&mut self, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> anyhow::Result<()> {
+    pub fn send_event(&mut self, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> anyhow::Result<bool> {
         let len = match self.big_struct.id_list.length(&mut self.context) {
             Ok(len) => { len }
             Err(err) => {
@@ -239,13 +167,9 @@ impl JS<'_> {
                     return Err(anyhow!("Cannot call the handler: {:?}", err));
                 }
             };
-            if got.to_boolean() {
-                log::debug!("Do not propagate...")
-            } else {
-                log::debug!("propagate the event")
-            }
+            return Ok(got.to_boolean());
         }
-        Ok(())
+        Ok(false)
     }
 
     fn build_key_event(&mut self, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> anyhow::Result<JsObject> {

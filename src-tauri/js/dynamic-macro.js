@@ -2,10 +2,9 @@ let latest_flags = undefined;
 const buffer = [];
 
 function run_dynamic_macro() {
-    console.log("run_dynamic_macro");
-    send_flags_changed_event(0);
+    send_flags_changed_event(kCGEventFlagMaskNonCoalesced);
 
-    const KEY_A = 0;
+    const KEY_A = 0; // TODO: expose this style keycodes from rust world
     send_keyboard_event(KEY_A, 0, true);
 
     send_flags_changed_event(latest_flags);
@@ -18,8 +17,8 @@ register_plugin(
         if (event.type === "flags_changed") {
             latest_flags = event.flags;
         } else if (event.type === "keydown") {
+            // TODO config.hotkey.matches(latest_flags, keycode)
             if (matches_hotkey_string(latest_flags, event.keycode, "C-t")) {
-                console.log("KKKKKKKKKKKKKKKKKKKKYAY!!! shortcut!!!!");
                 run_dynamic_macro();
                 return false;
             }
@@ -34,8 +33,8 @@ register_plugin(
     },
     [
         {
-            "name": "shortcut",
-            "type": "shortcut",
+            "name": "hotkey",
+            "type": "hotkey",
             "default": "C-t"
         }
     ]

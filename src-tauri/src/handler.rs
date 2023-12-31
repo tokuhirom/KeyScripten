@@ -28,43 +28,19 @@ impl Handler<'_> {
     }
 
     pub fn callback(&mut self, event: Event, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> Option<Event> {
-        if let Err(err) = self.js.send_event(cg_event_type, cg_event_ref) {
-            log::error!("Cannot call JS callback: {:?}", err);
-        }
-
-        match event {
-            Event::KeyPress(code) => {
-                if matches_hotkey_string(self.latest_flags, code, &self.shortcut) {
-                    log::debug!("Shortcut key pressed!!");
-
-                    let sender = Sender::new();
-                    if let Err(err) = sender.process(State::new(
-                        self.buffer.clone(),
-                        self.latest_flags
-                    )) {
-                        log::error!("Cannot process shortcut: {:?}", err);
-                    }
-                    return None;
+        return match self.js.send_event(cg_event_type, cg_event_ref) {
+            Ok(b) => {
+                if b {
+                    Some(event)
+                } else {
+                    None
                 }
-
-                // fill buffer
-                self.buffer.push_front(KeyState {
-                    code,
-                    flags: self.latest_flags
-                });
-                if self.capacity < self.buffer.len() {
-                    self.buffer.pop_back();
-                }
-                log::debug!("pressed~~~ code={}, buffer={:?}", code, self.buffer);
             }
-            Event::KeyRelease(_code) => {
+            Err(err) => {
+                log::error!("Cannot call JS callback: {:?}", err);
+                None
             }
-            Event::FlagsChanged(key, flags) => {
-                log::debug!("Flags changed: key={:?}, flags={:?}", key, flags);
-                self.latest_flags = flags;
-            }
-        }
-        Some(event)
+        };
     }
 }
 

@@ -8,6 +8,7 @@ mod app_config;
 mod keycode;
 mod shortcut;
 mod js;
+mod js_builtin;
 
 use std::{fs, thread};
 use std::arch::aarch64::vbic_s8;
