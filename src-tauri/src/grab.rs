@@ -1,6 +1,5 @@
 #![allow(improper_ctypes_definitions)]
 
-use std::sync::Arc;
 use cocoa::base::nil;
 use cocoa::foundation::NSAutoreleasePool;
 use anyhow::anyhow;
