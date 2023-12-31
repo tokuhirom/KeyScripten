@@ -71,11 +71,11 @@ impl JS<'_> {
 
     fn register_register_plugin(&mut self) -> anyhow::Result<()> {
         unsafe {
-            if let Err(err) = self.context.register_global_callable("register_plugin", 1, NativeFunction::from_closure_with_captures(
+            if let Err(err) = self.context.register_global_callable("registerPlugin", 1, NativeFunction::from_closure_with_captures(
                 JsBuiltin::register_plugin,
                 GcRefCell::new(self.big_struct.clone())
             )) {
-                return Err(anyhow!("Cannot register `register_plugin` function: {:?}", err));
+                return Err(anyhow!("Cannot register `registerPlugin` function: {:?}", err));
             }
         }
 
@@ -96,9 +96,9 @@ impl JS<'_> {
             Ok(())
         }
 
-        register(&mut self.context, "matches_hotkey_string", JsBuiltin::matches_hotkey_string)?;
-        register(&mut self.context, "send_flags_changed_event", JsBuiltin::send_flags_changed_event)?;
-        register(&mut self.context, "send_keyboard_event", JsBuiltin::send_keyboard_event)?;
+        register(&mut self.context, "matchesHotkeyString", JsBuiltin::matches_hotkey_string)?;
+        register(&mut self.context, "sendFlagsChangedEvent", JsBuiltin::send_flags_changed_event)?;
+        register(&mut self.context, "sendKeyboardEvent", JsBuiltin::send_keyboard_event)?;
         Ok(())
     }
 

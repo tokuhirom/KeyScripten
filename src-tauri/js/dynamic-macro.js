@@ -2,21 +2,20 @@ let latest_flags = undefined;
 const buffer = [];
 
 function run_dynamic_macro() {
-    // const KEY_A = 0; // TODO: expose this style keycodes from rust world
+    // const KeyCode.A = 0; // TODO: expose this style keycodes from rust world
     // send_keyboard_event(KEY_A, 0, true);
 
     const size = checkRepeat(buffer);
 
     if (size !== null) {
-        // TODO make builtin functions lowerCamelCase
-        send_flags_changed_event(kCGEventFlagMaskNonCoalesced);
+        sendFlagsChangedEvent(kCGEventFlagMaskNonCoalesced);
 
         const front = buffer.slice(0, size);
         for (const keyState of front.reverse()) {
-            send_keyboard_event(keyState[0], keyState[1], true);
+            sendKeyboardEvent(keyState[0], keyState[1], true);
         }
 
-        send_flags_changed_event(latest_flags);
+        sendFlagsChangedEvent(latest_flags);
     } else {
         console.warn("No repeats!!!: " + JSON.stringify(buffer));
     }
@@ -34,7 +33,7 @@ function checkRepeat(buffer) {
     return null;
 }
 
-register_plugin(
+registerPlugin(
     "com.github.tokuhirom.onemoretime.dynamicmacro",
     "One more time",
     function (event, config) {
@@ -42,7 +41,7 @@ register_plugin(
             latest_flags = event.flags;
         } else if (event.type === "keydown") {
             // TODO config.hotkey.matches(latest_flags, keycode)
-            if (matches_hotkey_string(latest_flags, event.keycode, "C-j")) {
+            if (matchesHotkeyString(latest_flags, event.keycode, "C-j")) {
                 run_dynamic_macro();
                 return false;
             }
