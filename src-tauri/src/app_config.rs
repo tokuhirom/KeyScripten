@@ -49,7 +49,6 @@ impl AppConfig {
     }
 }
 
-
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
