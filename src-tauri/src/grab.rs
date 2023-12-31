@@ -4,8 +4,7 @@ use cocoa::base::nil;
 use cocoa::foundation::NSAutoreleasePool;
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{CFMachPortCreateRunLoopSource, CFRunLoopAddSource, CFRunLoopGetCurrent, CFRunLoopRun, kCFAllocatorDefault, kCFRunLoopCommonModes};
-use apple_sys::CoreGraphics::{CGEventField_kCGEventSourceUserData, CGEventField_kCGKeyboardEventKeycode, CGEventGetFlags, CGEventGetIntegerValueField, CGEventMask, CGEventRef, CGEventSetType, CGEventTapCreate, CGEventTapEnable, CGEventTapLocation_kCGHIDEventTap, CGEventTapOptions_kCGEventTapOptionDefault, CGEventTapPlacement_kCGHeadInsertEventTap, CGEventTapProxy, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGEventType_kCGEventNull, CGKeyCode};
-use crate::event::Event;
+use apple_sys::CoreGraphics::{CGEventField_kCGEventSourceUserData, CGEventGetIntegerValueField, CGEventMask, CGEventRef, CGEventSetType, CGEventTapCreate, CGEventTapEnable, CGEventTapLocation_kCGHIDEventTap, CGEventTapOptions_kCGEventTapOptionDefault, CGEventTapPlacement_kCGHeadInsertEventTap, CGEventTapProxy, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGEventType_kCGEventNull};
 use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
 
 // TODO don't use global variable here.
@@ -19,39 +18,6 @@ unsafe fn is_sent_from_this_app(cg_event: CGEventRef) -> bool {
     let user_data = CGEventGetIntegerValueField(cg_event, CGEventField_kCGEventSourceUserData);
     return user_data == USER_DATA_FOR_ONE_MORE_TIME;
 }
-
-unsafe fn convert(
-    cg_event_type: CGEventType,
-    cg_event: CGEventRef,
-) -> Option<Event> {
-    let user_data = CGEventGetIntegerValueField(cg_event, CGEventField_kCGEventSourceUserData);
-    log::debug!("event's USER_DATA={}", user_data);
-    if user_data == USER_DATA_FOR_ONE_MORE_TIME {
-        // This event is sent from this application itself.
-        return None
-    }
-
-    #[allow(non_upper_case_globals)]
-    match cg_event_type {
-        CGEventType_kCGEventKeyDown => {
-            let code = CGEventGetIntegerValueField(cg_event, CGEventField_kCGKeyboardEventKeycode);
-            Some(Event::KeyPress(code as CGKeyCode))
-        }
-        CGEventType_kCGEventKeyUp => {
-            let code = CGEventGetIntegerValueField(cg_event, CGEventField_kCGKeyboardEventKeycode);
-            Some(Event::KeyRelease(code as CGKeyCode))
-        }
-        CGEventType_kCGEventFlagsChanged => {
-            let code = CGEventGetIntegerValueField(cg_event, CGEventField_kCGKeyboardEventKeycode);
-            let flags = CGEventGetFlags(cg_event);
-            Some(Event::FlagsChanged(code as CGKeyCode, flags))
-        }
-        _ => {
-            None
-        }
-    }
-}
-
 
 unsafe extern "C" fn raw_callback(
     _proxy: CGEventTapProxy,
