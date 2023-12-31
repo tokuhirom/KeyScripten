@@ -2,10 +2,9 @@ mod send;
 mod grab;
 mod event;
 mod state;
-mod handler;
 mod app_config;
 mod keycode;
-mod shortcut;
+mod hotkey;
 mod js;
 mod js_builtin;
 
@@ -29,7 +28,7 @@ use crate::app_config::AppConfig;
 
 use crate::grab::grab_ex;
 use crate::js::JS;
-use crate::shortcut::parse_shortcut;
+use crate::hotkey::parse_hotkey;
 
 const APP_NAME: &str = "onemoretime";
 
@@ -75,7 +74,7 @@ fn main() -> anyhow::Result<()> {
     log::info!("Default log level is `{}`", level_filter);
     log::info!("Shortcut key is: `{}`", app_config.repeat_shortcut);
 
-    let shortcut = parse_shortcut(app_config.repeat_shortcut.as_str())?;
+    let shortcut = parse_hotkey(app_config.repeat_shortcut.as_str())?;
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());

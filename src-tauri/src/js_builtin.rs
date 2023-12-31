@@ -1,10 +1,9 @@
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 use boa_engine::{Context, JsArgs, JsNativeError, JsResult, JsValue};
 use boa_gc::{GcRefCell};
-use crate::handler::matches_hotkey_string;
 use crate::js::BigStruct;
 use crate::send::{send_flags_changed_event, send_keyboard_event};
-use crate::shortcut::parse_shortcut;
+use crate::hotkey::parse_hotkey;
 
 pub struct JsBuiltin {
 
@@ -36,11 +35,11 @@ impl JsBuiltin {
         let shortcut = args.get_or_undefined(2);
         let shortcut = shortcut.as_string().unwrap().to_std_string().unwrap();
 
-        match parse_shortcut(shortcut.as_str()) { // TODO cache? config をパースしたタイミングで、ショートカットのパースもしておくべき
-            Ok(shortcut) => {
-                let result = matches_hotkey_string(flags.to_i32(context).unwrap() as CGEventFlags,
-                                                   keycode.to_i32(context).unwrap() as CGKeyCode,
-                                                   &shortcut);
+        match parse_hotkey(shortcut.as_str()) { // TODO cache? config をパースしたタイミングで、ショートカットのパースもしておくべき
+            Ok(hotkey) => {
+                let result = hotkey.matches(
+                    flags.to_i32(context).unwrap() as CGEventFlags,
+                    keycode.to_i32(context).unwrap() as CGKeyCode);
 
                 Ok(JsValue::from(result))
             }
