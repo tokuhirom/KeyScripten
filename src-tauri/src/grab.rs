@@ -8,9 +8,6 @@ use apple_sys::CoreGraphics::{CGEventField_kCGEventSourceUserData, CGEventGetInt
 use crate::js::JS;
 use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
 
-// TODO don't use global variable here.
-static mut GLOBAL_JS: Option<Box<JS<'_>>> = None;
-
 #[link(name = "Cocoa", kind = "framework")]
 extern "C" {}
 
@@ -24,7 +21,7 @@ unsafe extern "C" fn raw_callback(
     _proxy: CGEventTapProxy,
     event_type: CGEventType,
     cg_event: CGEventRef,
-    _user_info: *mut ::std::os::raw::c_void,
+    user_info: *mut ::std::os::raw::c_void,
 ) -> CGEventRef {
     log::debug!("Called raw_callback");
 
@@ -32,10 +29,7 @@ unsafe extern "C" fn raw_callback(
         return cg_event;
     }
 
-    let Some(js) = &mut GLOBAL_JS else {
-        return cg_event;
-    };
-
+    let js = &mut *(user_info as *mut JS);
     match js.send_event(event_type, cg_event) {
         Ok(b) => {
             if !b {
@@ -52,8 +46,6 @@ unsafe extern "C" fn raw_callback(
 
 pub fn grab_ex(js: JS<'static>) -> anyhow::Result<()> {
     unsafe {
-        GLOBAL_JS = Some(Box::new(js));
-
         let _pool = NSAutoreleasePool::new(nil);
         log::debug!("Calling CGEventTapCreate");
         let tap = CGEventTapCreate(
@@ -64,7 +56,7 @@ pub fn grab_ex(js: JS<'static>) -> anyhow::Result<()> {
                 + (1 << CGEventType_kCGEventKeyUp as CGEventMask)
                 + (1 << CGEventType_kCGEventFlagsChanged as CGEventMask),
             Some(raw_callback),
-            std::ptr::null_mut(), // TODO use callback here!!! Do not use global variable.
+            Box::into_raw(Box::new(js)) as *mut _,
         );
         if tap.is_null() {
             return Err(anyhow!("Cannot create CGEventTapCreate"));
