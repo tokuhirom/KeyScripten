@@ -44,7 +44,7 @@ unsafe extern "C" fn raw_callback(
     cg_event
 }
 
-pub fn grab_ex(js: JS<'static>) -> anyhow::Result<()> {
+fn grab(js: JS<'static>) -> anyhow::Result<()> {
     unsafe {
         let _pool = NSAutoreleasePool::new(nil);
         log::debug!("Calling CGEventTapCreate");
@@ -82,5 +82,5 @@ pub fn run_handler() -> anyhow::Result<()> {
     let src = include_str!("../js/dynamic-macro.js");
     js.eval(src.to_string()).unwrap();
 
-    grab_ex(js)
+    grab(js)
 }
