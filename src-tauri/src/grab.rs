@@ -16,7 +16,7 @@ extern "C" {}
 // This event is sent from this application itself.
 unsafe fn is_sent_from_this_app(cg_event: CGEventRef) -> bool {
     let user_data = CGEventGetIntegerValueField(cg_event, CGEventField_kCGEventSourceUserData);
-    return user_data == USER_DATA_FOR_ONE_MORE_TIME;
+    user_data == USER_DATA_FOR_ONE_MORE_TIME
 }
 
 unsafe extern "C" fn raw_callback(
