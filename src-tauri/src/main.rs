@@ -70,7 +70,9 @@ fn main() -> anyhow::Result<()> {
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
-        run_handler();
+        if let Err(err) = run_handler() {
+            log::error!("Cannot run handler: {:?}", err);
+        }
     });
 
     log::debug!("Creating menu object");

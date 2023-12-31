@@ -1,5 +1,6 @@
 #![allow(improper_ctypes_definitions)]
 
+use std::sync::Arc;
 use cocoa::base::nil;
 use cocoa::foundation::NSAutoreleasePool;
 use anyhow::anyhow;
@@ -9,7 +10,6 @@ use crate::js::JS;
 use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
 
 // TODO don't use global variable here.
-static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(CGEventType, CGEventRef) -> bool>> = None;
 static mut GLOBAL_JS: Option<Box<JS<'_>>> = None;
 
 #[link(name = "Cocoa", kind = "framework")]
@@ -51,8 +51,10 @@ unsafe extern "C" fn raw_callback(
     cg_event
 }
 
-pub fn grab_ex() -> anyhow::Result<()> {
+pub fn grab_ex(js: JS<'static>) -> anyhow::Result<()> {
     unsafe {
+        GLOBAL_JS = Some(Box::new(js));
+
         let _pool = NSAutoreleasePool::new(nil);
         log::debug!("Calling CGEventTapCreate");
         let tap = CGEventTapCreate(
@@ -84,15 +86,10 @@ pub fn grab_ex() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn run_handler() {
+pub fn run_handler() -> anyhow::Result<()> {
     let mut js = JS::new().expect("Cannot create JS instance");
     let src = include_str!("../js/dynamic-macro.js");
     js.eval(src.to_string()).unwrap();
-    unsafe {
-        GLOBAL_JS = Some(Box::new(js));
-    }
 
-    if let Err(error) = grab_ex() {
-        println!("Error: {:?}", error)
-    }
+    grab_ex(js)
 }
