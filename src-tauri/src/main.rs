@@ -15,12 +15,6 @@ use std::str::FromStr;
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 
-
-
-
-
-
-
 use chrono::Local;
 use log::LevelFilter;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
@@ -119,6 +113,7 @@ fn main() -> anyhow::Result<()> {
         .on_system_tray_event(|app, event| {
             tauri_plugin_positioner::on_tray_event(app, &event);
 
+            #[allow(clippy::single_match)]
             match event {
                 SystemTrayEvent::MenuItemClick { id, .. } => {
                     match id.as_str() {

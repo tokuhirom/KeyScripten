@@ -84,15 +84,14 @@ impl JS<'_> {
 
     fn register_builtin_functions(&mut self) -> anyhow::Result<()> {
         fn register(context: &mut Context, name: &str, fn_ptr: NativeFunctionPointer) -> anyhow::Result<()> {
-            unsafe {
-                if let Err(err) = context.register_global_callable(
-                    name,
-                    1,
-                    NativeFunction::from_fn_ptr(fn_ptr)
-                ) {
-                    return Err(anyhow!("Cannot register `{}` function: {:?}", name, err));
-                }
+            if let Err(err) = context.register_global_callable(
+                name,
+                1,
+                NativeFunction::from_fn_ptr(fn_ptr)
+            ) {
+                return Err(anyhow!("Cannot register `{}` function: {:?}", name, err));
             }
+
             Ok(())
         }
 
