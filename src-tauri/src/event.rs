@@ -14,6 +14,7 @@ pub enum Event {
 }
 
 pub fn event_type(cg_event_type: CGEventType) -> &'static str {
+    #[allow(non_upper_case_globals)]
     match cg_event_type {
         CGEventType_kCGEventKeyDown => "keydown",
         CGEventType_kCGEventKeyUp => "keyup",
