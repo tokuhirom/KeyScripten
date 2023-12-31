@@ -76,18 +76,14 @@ fn main() -> anyhow::Result<()> {
         let src = include_str!("../js/dynamic-macro.js");
         js.eval(src.to_string()).unwrap();
 
-        if let Err(error) = grab_ex(move |event, cg_event_type, cg_event_ref| {
+        if let Err(error) = grab_ex(move |cg_event_type, cg_event_ref| {
             match js.send_event(cg_event_type, cg_event_ref) {
                 Ok(b) => {
-                    if b {
-                        Some(event)
-                    } else {
-                        None
-                    }
+                    b
                 }
                 Err(err) => {
                     log::error!("Cannot call JS callback: {:?}", err);
-                    None
+                    true //  // send event to the normal destination
                 }
             }
         }) {

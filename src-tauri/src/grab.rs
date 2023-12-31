@@ -9,10 +9,16 @@ use crate::event::Event;
 use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
 
 // TODO don't use global variable here.
-static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(Event, CGEventType, CGEventRef) -> Option<Event>>> = None;
+static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(CGEventType, CGEventRef) -> bool>> = None;
 
 #[link(name = "Cocoa", kind = "framework")]
 extern "C" {}
+
+// This event is sent from this application itself.
+unsafe fn is_sent_from_this_app(cg_event: CGEventRef) -> bool {
+    let user_data = CGEventGetIntegerValueField(cg_event, CGEventField_kCGEventSourceUserData);
+    return user_data == USER_DATA_FOR_ONE_MORE_TIME;
+}
 
 unsafe fn convert(
     cg_event_type: CGEventType,
@@ -55,14 +61,14 @@ unsafe extern "C" fn raw_callback(
 ) -> CGEventRef {
     log::debug!("Called raw_callback");
 
-    // let cg_event: CGEvent = transmute_copy::<*mut c_void, CGEvent>(&cg_event_ptr);
-    let Some(event) = convert(event_type, cg_event) else {
+    if is_sent_from_this_app(cg_event) {
         return cg_event;
-    };
+    }
+
     let Some(callback) = &mut GLOBAL_CALLBACK else {
         return cg_event;
     };
-    if callback(event, event_type, cg_event).is_none() {
+    if !callback(event_type, cg_event) {
         CGEventSetType(cg_event, CGEventType_kCGEventNull);
     }
     cg_event
@@ -70,7 +76,7 @@ unsafe extern "C" fn raw_callback(
 
 pub fn grab_ex<T>(callback: T) -> anyhow::Result<()>
 where
-    T: FnMut(Event, CGEventType, CGEventRef) -> Option<Event> + 'static,
+    T: FnMut(CGEventType, CGEventRef) -> bool + 'static,
 {
     unsafe {
         GLOBAL_CALLBACK = Some(Box::new(callback));
