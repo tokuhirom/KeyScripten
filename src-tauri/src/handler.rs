@@ -1,48 +1,5 @@
-use std::collections::VecDeque;
 use apple_sys::CoreGraphics::{CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand, CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventFlags_kCGEventFlagMaskShift, CGEventRef, CGEventType, CGKeyCode};
-use crate::event::{Event};
-use crate::js::JS;
-use crate::KeyState;
-
-
 use crate::shortcut::Shortcut;
-
-
-pub struct Handler<'a> {
-    buffer: VecDeque<KeyState>,
-    capacity: usize,
-    latest_flags: CGEventFlags,
-    shortcut: Shortcut,
-    js: JS<'a>,
-}
-
-impl Handler<'_> {
-    pub fn new(capacity: usize, shortcut: Shortcut, js: JS) -> Handler {
-        Handler {
-            buffer: VecDeque::with_capacity(capacity),
-            capacity,
-            latest_flags: CGEventFlags_kCGEventFlagMaskNonCoalesced,
-            shortcut,
-            js,
-        }
-    }
-
-    pub fn callback(&mut self, event: Event, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> Option<Event> {
-        match self.js.send_event(cg_event_type, cg_event_ref) {
-            Ok(b) => {
-                if b {
-                    Some(event)
-                } else {
-                    None
-                }
-            }
-            Err(err) => {
-                log::error!("Cannot call JS callback: {:?}", err);
-                None
-            }
-        }
-    }
-}
 
 pub fn matches_hotkey_string(flags: CGEventFlags, code: CGKeyCode, shortcut: &Shortcut) -> bool {
     let expected_flags = shortcut.flags;

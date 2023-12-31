@@ -1,7 +1,6 @@
 mod send;
 mod grab;
 mod event;
-mod sender;
 mod state;
 mod handler;
 mod app_config;
@@ -26,7 +25,6 @@ use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 use chrono::Local;
 use log::LevelFilter;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
-use handler::Handler;
 use crate::app_config::AppConfig;
 
 use crate::grab::grab_ex;
@@ -86,9 +84,20 @@ fn main() -> anyhow::Result<()> {
         let src = include_str!("../js/dynamic-macro.js");
         js.eval(src.to_string()).unwrap();
 
-        let mut handler = Handler::new(64, shortcut, js);
         if let Err(error) = grab_ex(move |event, cg_event_type, cg_event_ref| {
-            handler.callback(event, cg_event_type, cg_event_ref)
+            match js.send_event(cg_event_type, cg_event_ref) {
+                Ok(b) => {
+                    if b {
+                        Some(event)
+                    } else {
+                        None
+                    }
+                }
+                Err(err) => {
+                    log::error!("Cannot call JS callback: {:?}", err);
+                    None
+                }
+            }
         }) {
             println!("Error: {:?}", error)
         }
