@@ -18,7 +18,7 @@ register_plugin(
             latest_flags = event.flags;
         } else if (event.type === "keydown") {
             // TODO config.hotkey.matches(latest_flags, keycode)
-            if (matches_hotkey_string(latest_flags, event.keycode, "C-t")) {
+            if (matches_hotkey_string(latest_flags, event.keycode, "C-j")) {
                 run_dynamic_macro();
                 return false;
             }

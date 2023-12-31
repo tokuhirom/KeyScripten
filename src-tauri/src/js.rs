@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGKeyCode};
 use boa_engine::{Context, js_string, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, Source};
+use boa_engine::native_function::NativeFunctionPointer;
 use boa_engine::object::builtins::{JsArray, JsMap};
 use boa_engine::property::{Attribute, PropertyKey};
 use boa_gc::{Finalize, GcRefCell, Trace};
@@ -34,9 +35,7 @@ impl JS<'_> {
         js.init_console()?;
         js.register_constants()?;
         js.register_register_plugin()?;
-        js.register_matches_hotkey_string()?;
-        js.register_send_flags_changed_event()?;
-        js.register_send_keyboard_event()?;
+        js.register_builtin_functions()?;
         return Ok(js);
     }
 
@@ -83,44 +82,23 @@ impl JS<'_> {
         Ok(())
     }
 
-    fn register_matches_hotkey_string(&mut self) -> anyhow::Result<()> {
-        unsafe {
-            if let Err(err) = self.context.register_global_callable(
-                "matches_hotkey_string",
-                1,
-                NativeFunction::from_fn_ptr(JsBuiltin::matches_hotkey_string)
-            ) {
-                return Err(anyhow!("Cannot register `matches_hotkey_string` function: {:?}", err));
+    fn register_builtin_functions(&mut self) -> anyhow::Result<()> {
+        fn register(context: &mut Context, name: &str, fn_ptr: NativeFunctionPointer) -> anyhow::Result<()> {
+            unsafe {
+                if let Err(err) = context.register_global_callable(
+                    name,
+                    1,
+                    NativeFunction::from_fn_ptr(fn_ptr)
+                ) {
+                    return Err(anyhow!("Cannot register `{}` function: {:?}", name, err));
+                }
             }
+            Ok(())
         }
 
-        Ok(())
-    }
-
-    fn register_send_flags_changed_event(&mut self) -> anyhow::Result<()> {
-        unsafe {
-            if let Err(err) = self.context.register_global_callable("send_flags_changed_event", 1, NativeFunction::from_fn_ptr(
-                JsBuiltin::send_flags_changed_event
-            )) {
-                return Err(anyhow!("Cannot register `send_flags_changed_event` function: {:?}", err));
-            }
-        }
-
-        Ok(())
-    }
-
-    // send_keyboard_event(key_state.code, key_state.flags, true)?;
-    fn register_send_keyboard_event(&mut self) -> anyhow::Result<()> {
-        unsafe {
-            if let Err(err) = self.context.register_global_callable(
-                "send_keyboard_event",
-                1,
-                NativeFunction::from_fn_ptr(JsBuiltin::send_keyboard_event)
-            ) {
-                return Err(anyhow!("Cannot register `send_keyboard_event` function: {:?}", err));
-            }
-        }
-
+        register(&mut self.context, "matches_hotkey_string", JsBuiltin::matches_hotkey_string)?;
+        register(&mut self.context, "send_flags_changed_event", JsBuiltin::send_flags_changed_event)?;
+        register(&mut self.context, "send_keyboard_event", JsBuiltin::send_keyboard_event)?;
         Ok(())
     }
 
