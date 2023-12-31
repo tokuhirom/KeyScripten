@@ -37,9 +37,9 @@ registerPlugin(
     "com.github.tokuhirom.onemoretime.dynamicmacro",
     "One more time",
     function (event, config) {
-        if (event.type === "flags_changed") {
+        if (event.type === "flagsChanged") {
             latest_flags = event.flags;
-        } else if (event.type === "keydown") {
+        } else if (event.type === "keyDown") {
             // TODO config.hotkey.matches(latest_flags, keycode)
             if (matchesHotkeyString(latest_flags, event.keycode, "C-j")) {
                 run_dynamic_macro();
