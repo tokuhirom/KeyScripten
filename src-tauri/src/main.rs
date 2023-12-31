@@ -19,9 +19,8 @@ use log::LevelFilter;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
 use crate::app_config::AppConfig;
 
-use crate::grab::grab_ex;
+use crate::grab::run_handler;
 use crate::hotkey::HotKey;
-use crate::js::JS;
 
 const APP_NAME: &str = "onemoretime";
 
@@ -71,24 +70,7 @@ fn main() -> anyhow::Result<()> {
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
-
-        let mut js = JS::new().expect("Cannot create JS instance");
-        let src = include_str!("../js/dynamic-macro.js");
-        js.eval(src.to_string()).unwrap();
-
-        if let Err(error) = grab_ex(move |cg_event_type, cg_event_ref| {
-            match js.send_event(cg_event_type, cg_event_ref) {
-                Ok(b) => {
-                    b
-                }
-                Err(err) => {
-                    log::error!("Cannot call JS callback: {:?}", err);
-                    true //  // send event to the normal destination
-                }
-            }
-        }) {
-            println!("Error: {:?}", error)
-        }
+        run_handler();
     });
 
     log::debug!("Creating menu object");

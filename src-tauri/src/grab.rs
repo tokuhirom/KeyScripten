@@ -5,6 +5,7 @@ use cocoa::foundation::NSAutoreleasePool;
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{CFMachPortCreateRunLoopSource, CFRunLoopAddSource, CFRunLoopGetCurrent, CFRunLoopRun, kCFAllocatorDefault, kCFRunLoopCommonModes};
 use apple_sys::CoreGraphics::{CGEventField_kCGEventSourceUserData, CGEventGetIntegerValueField, CGEventMask, CGEventRef, CGEventSetType, CGEventTapCreate, CGEventTapEnable, CGEventTapLocation_kCGHIDEventTap, CGEventTapOptions_kCGEventTapOptionDefault, CGEventTapPlacement_kCGHeadInsertEventTap, CGEventTapProxy, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGEventType_kCGEventNull};
+use crate::js::JS;
 use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
 
 // TODO don't use global variable here.
@@ -75,4 +76,24 @@ where
         CFRunLoopRun();
     }
     Ok(())
+}
+
+pub fn run_handler() {
+    let mut js = JS::new().expect("Cannot create JS instance");
+    let src = include_str!("../js/dynamic-macro.js");
+    js.eval(src.to_string()).unwrap();
+
+    if let Err(error) = grab_ex(move |cg_event_type, cg_event_ref| {
+        match js.send_event(cg_event_type, cg_event_ref) {
+            Ok(b) => {
+                b
+            }
+            Err(err) => {
+                log::error!("Cannot call JS callback: {:?}", err);
+                true //  // send event to the normal destination
+            }
+        }
+    }) {
+        println!("Error: {:?}", error)
+    }
 }
