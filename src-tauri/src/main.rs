@@ -74,7 +74,7 @@ fn main() -> anyhow::Result<()> {
     log::info!("Default log level is `{}`", level_filter);
     log::info!("Shortcut key is: `{}`", app_config.repeat_shortcut);
 
-    let hotkey = HotKey::from_str(app_config.repeat_shortcut.as_str())?;
+    let _hotkey = HotKey::from_str(app_config.repeat_shortcut.as_str())?;
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
