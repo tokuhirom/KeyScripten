@@ -5,6 +5,7 @@ mod hotkey;
 mod js;
 mod js_builtin;
 mod js_hotkey;
+mod js_keycode;
 mod keycode;
 mod send;
 

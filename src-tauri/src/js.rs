@@ -17,6 +17,7 @@ use boa_runtime::Console;
 
 use crate::js_builtin::JsBuiltin;
 use crate::js_hotkey::JsHotKey;
+use crate::js_keycode::{build_keycode, JsKeyCode};
 
 pub struct JS<'a> {
     context: Context<'a>,
@@ -28,6 +29,7 @@ impl JS<'_> {
         let mut js = JS { context };
         js.init_console()?;
         js.init_hotkey()?;
+        js.init_keycode()?;
         js.register_constants()?;
         js.register_builtin_functions()?;
         js.load_driver()?;
@@ -52,6 +54,13 @@ impl JS<'_> {
         if let Err(err) = self.context.register_global_class::<JsHotKey>() {
             return Err(anyhow!("Cannot register `HotKey` object: {:?}", err));
         }
+        Ok(())
+    }
+
+    fn init_keycode(&mut self) -> anyhow::Result<()> {
+        let keycode = build_keycode(&mut self.context)
+            .map_err(|err| anyhow!("Cannot build keycode object: {:?}", err))?;
+        self.register_constant("Key", keycode)?;
         Ok(())
     }
 

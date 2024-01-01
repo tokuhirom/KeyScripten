@@ -1,6 +1,10 @@
 # OneMoreTime.app
 
-This app is the implementation of the [Toshiyuki Masui san's Dynamic Macro](https://gihyo.jp/dev/serial/01/masui-columbus/0006) as a Mac application.
+This app is the programmable keyboard macro system for Mac OSX.
+
+This app contains some of the official plugins:
+
+  * implementation of the [Toshiyuki Masui san's Dynamic Macro](https://gihyo.jp/dev/serial/01/masui-columbus/0006)
 
 ## How it works?
 

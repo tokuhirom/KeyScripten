@@ -2,9 +2,6 @@ let latest_flags = undefined;
 const buffer = [];
 
 function run_dynamic_macro() {
-    // const KeyCode.A = 0; // TODO: expose this style keycodes from rust world
-    // send_keyboard_event(KEY_A, 0, true);
-
     const size = checkRepeat(buffer);
 
     if (size !== null) {
@@ -37,7 +34,7 @@ registerPlugin(
     "com.github.tokuhirom.onemoretime.dynamicmacro",
     "One more time",
     function (event, config) {
-        console.log(`config=${JSON.stringify(config)}`);
+        // console.log(`config=${JSON.stringify(config)}`);
 
         if (event.type === "flagsChanged") {
             latest_flags = event.flags;
@@ -52,7 +49,7 @@ registerPlugin(
                 buffer.pop();
             }
         }
-        console.log(`event detected :::${JSON.stringify(event)}, ${latest_flags}`);
+        // console.log(`event detected :::${JSON.stringify(event)}, ${latest_flags}`);
 
         return true; // send event to the normal destination
     },
