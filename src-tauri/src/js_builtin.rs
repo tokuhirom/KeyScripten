@@ -14,10 +14,10 @@ impl JsBuiltin {
         let id: &JsValue = args.first().unwrap();
         let _name = args.get(1).unwrap();
         let callback = args.get(2).unwrap();
-        let _config_schema = args.get(3).unwrap();
+        let config_schema = args.get(3).unwrap();
 
         let mut captures = captures.borrow_mut();
-        let BigStruct { id_list, callbacks } = &mut *captures;
+        let BigStruct { id_list, callbacks, config_schemas } = &mut *captures;
 
         // push id to the array
         id_list.push(id.clone(), context).unwrap();
@@ -25,6 +25,7 @@ impl JsBuiltin {
         log::info!("id_list={:?}, {}", id_list, id_list.length(context).unwrap());
 
         callbacks.set(id.clone(), callback.clone(), context).unwrap();
+        config_schemas.set(id.clone(), config_schema.clone(), context).unwrap();
 
         Ok(JsValue::undefined())
     }

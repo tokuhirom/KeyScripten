@@ -1,19 +1,25 @@
-use std::fmt::Debug;
+use std::collections::HashMap;
+use std::fmt::{Debug, format};
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp};
-use boa_engine::{Context, js_string, JsObject, JsValue, NativeFunction, Source};
+use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, user};
+use boa_engine::{Context, js_string, JsError, JsObject, JsResult, JsValue, NativeFunction, Source};
+use boa_engine::class::ClassBuilder;
 use boa_engine::native_function::NativeFunctionPointer;
-use boa_engine::object::builtins::{JsArray, JsMap};
+use boa_engine::object::builtins::{JsArray, JsFunction, JsMap};
 use boa_engine::property::{Attribute, PropertyKey};
+use boa_engine::value::TryFromJs;
 use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_runtime::Console;
+use crate::app_config::AppConfig;
 use crate::event::{event_type};
+use crate::hotkey::HotKey;
 use crate::js_builtin::JsBuiltin;
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct BigStruct {
     pub id_list: JsArray,
     pub callbacks: JsMap,
+    pub config_schemas: JsMap,
 }
 
 pub struct JS<'a> {
@@ -27,6 +33,7 @@ impl JS<'_> {
         let big_struct = BigStruct {
             id_list: JsArray::new(&mut context),
             callbacks: JsMap::new(&mut context),
+            config_schemas: JsMap::new(&mut context),
         };
         let mut js = JS {
             context,
@@ -36,6 +43,7 @@ impl JS<'_> {
         js.register_constants()?;
         js.register_register_plugin()?;
         js.register_builtin_functions()?;
+        js.load_driver()?;
         Ok(js)
     }
 
@@ -119,38 +127,80 @@ impl JS<'_> {
                 return Err(anyhow!("Cannot get the length of ids: {:?}", err))
             }
         };
-        for i in 0..len {
-            let id = match self.big_struct.id_list.get(i, &mut self.context) {
-                Ok(id) => { id }
-                Err(err) => {
-                    return Err(anyhow!("Cannot get id: {:?}", err))
-                }
-            };
-            log::debug!("Calling {:?}", id);
-            let callback = match self.big_struct.callbacks.get(id.clone(), &mut self.context) {
-                Ok(callback) => { callback }
-                Err(err) => {
-                    return Err(anyhow!("Cannot get callback: {:?}, {:?}", err, id))
-                }
-            };
-            log::debug!("Callback={:?}", callback);
 
-            let key_event = self.build_key_event(cg_event_type, cg_event_ref)?;
+        let p = self.context.global_object().get("$$invokeEvent",&mut self.context)
+            .map_err(|err| anyhow!("Cannot get $$invokeEvent: {:?}", err))?;
+        let invoke_event = JsFunction::try_from_js(&p, &mut self.context)
+            .map_err(|err| anyhow!("Cannot get $$invokeEvent as JsFunction: {:?}", err))?;
 
-            let got = match callback.as_callable().unwrap()
-                .call(&JsValue::undefined(), &[JsValue::from(key_event)], &mut self.context) {
-                Ok(got) => {got}
-                Err(err) => {
-                    return Err(anyhow!("Cannot call the handler: {:?}", err));
+
+        let key_event = self.build_key_event(cg_event_type, cg_event_ref)?;
+        let result = invoke_event.call(&JsValue::undefined(), &[JsValue::from(key_event)], &mut self.context)
+            .map_err(|err| anyhow!("Cannot call $$invokeEvent as JsFunction: {:?}", err))?;
+        let result = result.as_boolean()
+            .unwrap_or(true);
+        Ok(result)
+    }
+
+    fn build_config(&mut self, id_rs: &String, config: &AppConfig, config_schema: JsMap) -> JsResult<JsMap> {
+        let result = JsMap::new(&mut self.context);
+
+        let user_config = if let Some(plugin_configs) = &config.plugins {
+            if let Some(user_config) = plugin_configs.get(id_rs) {
+                user_config.clone()
+            } else {
+                HashMap::default()
+            }
+        } else {
+            HashMap::default()
+        };
+
+        let pf = config_schema.keys(&mut self.context)?;
+        loop {
+            let key = pf.next(&mut self.context)?;
+            if key.is_null_or_undefined() {
+                break;
+            }
+
+            let value = config_schema.get(key, &mut self.context)?;
+            let schema_for_item = JsMap::try_from_js(&value, &mut self.context)?;
+
+            let name = schema_for_item.get(js_string!("name"), &mut self.context)?;
+            let type_rs = schema_for_item.get(js_string!("type"), &mut self.context)?
+                .to_string(&mut self.context)?
+                .to_std_string()
+                .map_err(|err| JsError::from_opaque(format!("cannot convert string: {}", err).into()))?;
+            let default_rs = schema_for_item.get(js_string!("default"), &mut self.context)?
+                .to_string(&mut self.context)?
+                .to_std_string()
+                .map_err(|err| JsError::from_opaque(format!("cannot convert string: {}", err).into()))?;
+
+            match type_rs.as_str() {
+                "hotkey" => {
+                    // fallback to default value
+                    let hotkey = if let Some(user_config) = user_config.get(name.to_string(&mut self.context)?
+                        .to_std_string()
+                        .map_err(|err| JsError::from_opaque(format!("cannot convert string: {}", err).into()))?
+                        .as_str()) {
+                        user_config.as_str()
+                    } else {
+                        // use default values...
+                        default_rs.as_str()
+                    };
+                    // let hotkey = HotKey::from_str(default_rs.as_str())?;
+                    result.set(name.clone(), /* hotkey */hotkey, &mut self.context)?;
                 }
-            };
-            return Ok(got.to_boolean());
+                _ => {
+                    return Err(JsError::from_opaque(format!("Unknown type: {}", type_rs).into()));
+                }
+            }
+
+            // if value is {"name": "hotkey", "type": "hotkey", "default": "C-t"}
         }
-        Ok(false)
+        Ok(result)
     }
 
     fn build_key_event(&mut self, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> anyhow::Result<JsObject> {
-
         let key_event = JsObject::with_object_proto(self.context.intrinsics());
         fn set<K, V>(js: &mut JS<'_>, key_event: &JsObject, key: K, value: V) -> anyhow::Result<()>
             where
@@ -178,5 +228,10 @@ impl JS<'_> {
         }
 
         Ok(key_event)
+    }
+
+    fn load_driver(&mut self) -> anyhow::Result<JsValue> {
+        let driver_src = include_str!("../js/driver.js");
+        self.eval(driver_src.to_string())
     }
 }

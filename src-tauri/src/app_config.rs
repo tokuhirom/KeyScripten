@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
 use anyhow::anyhow;
@@ -7,7 +8,9 @@ use crate::APP_NAME;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AppConfig {
-    pub repeat_shortcut: String,
+    // key is the plugin id.
+    // values are map of configurations.
+    pub plugins: Option<HashMap<String, HashMap<String, String>>>,
     pub log_level: String,
 }
 
@@ -52,7 +55,7 @@ impl AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            repeat_shortcut: "C-t".to_string(),
+            plugins: Some(HashMap::new()),
             log_level: "INFO".to_string(),
         }
     }

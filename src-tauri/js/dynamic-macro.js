@@ -37,6 +37,8 @@ registerPlugin(
     "com.github.tokuhirom.onemoretime.dynamicmacro",
     "One more time",
     function (event, config) {
+        console.log(`config=${JSON.stringify(config)}`);
+
         if (event.type === "flagsChanged") {
             latest_flags = event.flags;
         } else if (event.type === "keyDown") {

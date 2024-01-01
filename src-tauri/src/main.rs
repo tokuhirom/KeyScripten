@@ -10,6 +10,7 @@ mod js_builtin;
 use std::{fs, thread};
 
 use std::str::FromStr;
+use std::sync::RwLock;
 
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
@@ -20,7 +21,6 @@ use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
 use crate::app_config::AppConfig;
 
 use crate::grab::run_handler;
-use crate::hotkey::HotKey;
 
 const APP_NAME: &str = "onemoretime";
 
@@ -30,17 +30,16 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-fn main() -> anyhow::Result<()> {
-    let app_config = AppConfig::load()?;
+static mut LOG_LEVEL:RwLock<LevelFilter> = RwLock::new(LevelFilter::Info);
 
-    let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
-        Ok(level) => {level}
-        Err(err) => {
-            log::error!("Unknown log level in configuration: {:?},{:?}", app_config.log_level, err);
-            LevelFilter::Info
-        }
-    };
+fn set_log_level(level_filter: LevelFilter) {
+    unsafe {
+        eprintln!("Setting log level to {:?}", level_filter);
+        *LOG_LEVEL.write().unwrap() = level_filter;
+    }
+}
 
+fn logger() -> anyhow::Result<()> {
     let log_path = dirs::data_dir().unwrap()
         .join(APP_NAME)
         .join("onemoretime.log");
@@ -58,15 +57,29 @@ fn main() -> anyhow::Result<()> {
                 message
             ))
         })
-        .level(level_filter)
+        .filter(|metadata| {
+            unsafe { metadata.level() <= *LOG_LEVEL.read().unwrap() }
+        })
         .chain(std::io::stdout())
         .chain(fern::log_file(log_path)?)
         .apply()?;
+    Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
+    logger()?;
+
+    let app_config = AppConfig::load()?;
+    let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
+        Ok(level) => {level}
+        Err(err) => {
+            log::error!("Unknown log level in configuration: {:?},{:?}", app_config.log_level, err);
+            LevelFilter::Info
+        }
+    };
+    set_log_level(level_filter);
 
     log::info!("Default log level is `{}`", level_filter);
-    log::info!("Shortcut key is: `{}`", app_config.repeat_shortcut);
-
-    let _hotkey = HotKey::from_str(app_config.repeat_shortcut.as_str())?;
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
