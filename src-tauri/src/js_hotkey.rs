@@ -11,19 +11,6 @@ pub struct JsHotKey {
 }
 
 impl JsHotKey {
-    /// Says "hello" using the name and the age of a `Person`.
-    fn say_hello(this: &JsValue, _args: &[JsValue], _context: &mut Context<'_>) -> JsResult<JsValue> {
-        let Some(this) = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Self>()) else {
-            return Err(JsError::from_opaque("the 'this' object is not a JsHotkey".into()));
-        };
-
-        println!("Hello {}-year-old!", this.flags);
-
-        Ok(JsValue::undefined())
-    }
-
     fn matches(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let Some(this) = this
             .as_object()
@@ -85,7 +72,6 @@ impl Class for JsHotKey {
 
     /// Here is where the class is initialized, to be inserted into the global object.
     fn init(class: &mut ClassBuilder) -> JsResult<()> {
-        class.method("say_hello", 0, NativeFunction::from_fn_ptr(Self::say_hello));
         class.method("matches", 0, NativeFunction::from_fn_ptr(Self::matches));
 
         Ok(())
