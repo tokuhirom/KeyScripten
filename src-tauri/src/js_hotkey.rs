@@ -63,7 +63,7 @@ impl Class for JsHotKey {
     const NAME: &'static str = "HotKey";
     const LENGTH: usize = 1;
 
-    // This is what is called when we construct a `Person` with the expression `new Person()`.
+    // This is what is called when we construct a `HotKey` with the expression `new HotKey()`.
     fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
         let string_notation = args.get_or_undefined(0).to_string(context)?;
         let string_notation = string_notation.to_std_string_escaped();

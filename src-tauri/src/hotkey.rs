@@ -13,8 +13,6 @@ pub struct HotKey {
     pub keycode: CGKeyCode,
 }
 
-const KEY_CODE_KEY_T: CGKeyCode = 17;
-
 impl HotKey {
     pub fn from_str(s: &str) -> anyhow::Result<HotKey> {
         let mut map = HashMap::new();
@@ -75,18 +73,11 @@ impl HotKey {
     }
 }
 
-impl Default for HotKey {
-    fn default() -> Self {
-        HotKey {
-            flags: CGEventFlags_kCGEventFlagMaskControl,
-            keycode: KEY_CODE_KEY_T,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const KEY_CODE_KEY_T: CGKeyCode = 17;
 
     #[test]
     fn test_parse_shortcut() -> anyhow::Result<()> {
