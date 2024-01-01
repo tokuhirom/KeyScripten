@@ -6,6 +6,7 @@ mod keycode;
 mod hotkey;
 mod js;
 mod js_builtin;
+mod js_hotkey;
 
 use std::{fs, thread};
 

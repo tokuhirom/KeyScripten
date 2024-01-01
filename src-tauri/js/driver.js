@@ -21,7 +21,19 @@ function $$build_config(id, config_schema) {
     const config = {};
     for (const item of config_schema) {
         const value = ((app_config.plugins || {})[id] || {})[item.name] || item.default;
-        config[item.name] = value;
+
+        switch (item.type) {
+            case "hotkey":
+                console.log(`Parsing hotkey: ${id}: ${value}`)
+                let hotkey = new HotKey(value);
+                config[item.name] = hotkey;
+                break;
+            case "string":
+                config[item.name] = value;
+                break;
+            default:
+                throw new Error(`Unknown type for plugin '${id}'(${item.name}): '${item.type}'`)
+        }
         console.log(JSON.stringify([item, value]));
     }
     console.log(JSON.stringify(config));

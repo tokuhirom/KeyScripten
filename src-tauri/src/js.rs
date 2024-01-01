@@ -14,6 +14,7 @@ use crate::app_config::AppConfig;
 use crate::event::{event_type};
 use crate::hotkey::HotKey;
 use crate::js_builtin::JsBuiltin;
+use crate::js_hotkey::JsHotKey;
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct BigStruct {
@@ -40,6 +41,7 @@ impl JS<'_> {
             big_struct,
         };
         js.init_console()?;
+        js.init_hotkey()?;
         js.register_constants()?;
         js.register_register_plugin()?;
         js.register_builtin_functions()?;
@@ -53,6 +55,14 @@ impl JS<'_> {
         if let Err(err) = self.context
             .register_global_property(js_string!(Console::NAME), console, Attribute::all()) {
             return Err(anyhow!("Cannot register `console` object: {:?}", err));
+        }
+        Ok(())
+    }
+
+    fn init_hotkey(&mut self) -> anyhow::Result<()>{
+        // expose `HotKey` object
+        if let Err(err) = self.context.register_global_class::<JsHotKey>() {
+            return Err(anyhow!("Cannot register `HotKey` object: {:?}", err));
         }
         Ok(())
     }

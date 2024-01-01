@@ -42,8 +42,7 @@ registerPlugin(
         if (event.type === "flagsChanged") {
             latest_flags = event.flags;
         } else if (event.type === "keyDown") {
-            // TODO config.hotkey.matches(latest_flags, keycode)
-            if (matchesHotkeyString(latest_flags, event.keycode, "C-j")) {
+            if (config.hotkey.matches(latest_flags, event.keycode)) {
                 run_dynamic_macro();
                 return false;
             }
