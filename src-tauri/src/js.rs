@@ -106,6 +106,7 @@ impl JS<'_> {
         register(&mut self.context, "matchesHotkeyString", JsBuiltin::matches_hotkey_string)?;
         register(&mut self.context, "sendFlagsChangedEvent", JsBuiltin::send_flags_changed_event)?;
         register(&mut self.context, "sendKeyboardEvent", JsBuiltin::send_keyboard_event)?;
+        register(&mut self.context, "loadAppConfigJson", JsBuiltin::load_app_config_json)?;
         Ok(())
     }
 
