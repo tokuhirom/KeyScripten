@@ -5,10 +5,10 @@ use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags
 use boa_engine::{Context, js_string, JsError, JsObject, JsResult, JsValue, NativeFunction, Source};
 
 use boa_engine::native_function::NativeFunctionPointer;
-use boa_engine::object::builtins::{JsArray, JsFunction, JsMap};
+use boa_engine::object::builtins::{JsFunction, JsMap};
 use boa_engine::property::{Attribute, PropertyKey};
 use boa_engine::value::TryFromJs;
-use boa_gc::{Finalize, GcRefCell, Trace};
+
 use boa_runtime::Console;
 use crate::app_config::AppConfig;
 use crate::event::{event_type};
@@ -21,7 +21,7 @@ pub struct JS<'a> {
 }
 impl JS<'_> {
     pub fn new() -> anyhow::Result<Self> {
-        let mut context = Context::default();
+        let context = Context::default();
 
         let mut js = JS { context, };
         js.init_console()?;
