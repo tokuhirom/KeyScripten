@@ -3,7 +3,6 @@ use boa_engine::{Context, JsArgs, JsError, JsNativeError, JsResult, JsString, Js
 use boa_gc::{GcRefCell};
 use crate::app_config::AppConfig;
 use crate::hotkey::HotKey;
-use crate::js::BigStruct;
 use crate::send::{send_flags_changed_event, send_keyboard_event};
 
 pub struct JsBuiltin {
@@ -11,26 +10,6 @@ pub struct JsBuiltin {
 }
 
 impl JsBuiltin {
-    pub fn register_plugin(_this: &JsValue, args: &[JsValue], captures: &GcRefCell<BigStruct>, context: &mut Context<'_>) -> JsResult<JsValue> {
-        let id: &JsValue = args.first().unwrap();
-        let _name = args.get(1).unwrap();
-        let callback = args.get(2).unwrap();
-        let config_schema = args.get(3).unwrap();
-
-        let mut captures = captures.borrow_mut();
-        let BigStruct { id_list, callbacks, config_schemas } = &mut *captures;
-
-        // push id to the array
-        id_list.push(id.clone(), context).unwrap();
-
-        log::info!("id_list={:?}, {}", id_list, id_list.length(context).unwrap());
-
-        callbacks.set(id.clone(), callback.clone(), context).unwrap();
-        config_schemas.set(id.clone(), config_schema.clone(), context).unwrap();
-
-        Ok(JsValue::undefined())
-    }
-
     pub fn matches_hotkey_string(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let flags: &JsValue = args.get_or_undefined(0);
         let keycode = args.get_or_undefined(1);

@@ -16,34 +16,17 @@ use crate::event::{event_type};
 use crate::js_builtin::JsBuiltin;
 use crate::js_hotkey::JsHotKey;
 
-#[derive(Debug, Clone, Trace, Finalize)]
-pub struct BigStruct {
-    pub id_list: JsArray,
-    pub callbacks: JsMap,
-    pub config_schemas: JsMap,
-}
-
 pub struct JS<'a> {
     context: Context<'a>,
-    big_struct: BigStruct,
 }
 impl JS<'_> {
     pub fn new() -> anyhow::Result<Self> {
         let mut context = Context::default();
 
-        let big_struct = BigStruct {
-            id_list: JsArray::new(&mut context),
-            callbacks: JsMap::new(&mut context),
-            config_schemas: JsMap::new(&mut context),
-        };
-        let mut js = JS {
-            context,
-            big_struct,
-        };
+        let mut js = JS { context, };
         js.init_console()?;
         js.init_hotkey()?;
         js.register_constants()?;
-        js.register_register_plugin()?;
         js.register_builtin_functions()?;
         js.load_driver()?;
         Ok(js)
@@ -87,19 +70,6 @@ impl JS<'_> {
         Ok(())
     }
 
-    fn register_register_plugin(&mut self) -> anyhow::Result<()> {
-        unsafe {
-            if let Err(err) = self.context.register_global_callable("registerPlugin", 1, NativeFunction::from_closure_with_captures(
-                JsBuiltin::register_plugin,
-                GcRefCell::new(self.big_struct.clone())
-            )) {
-                return Err(anyhow!("Cannot register `registerPlugin` function: {:?}", err));
-            }
-        }
-
-        Ok(())
-    }
-
     fn register_builtin_functions(&mut self) -> anyhow::Result<()> {
         fn register(context: &mut Context, name: &str, fn_ptr: NativeFunctionPointer) -> anyhow::Result<()> {
             if let Err(err) = context.register_global_callable(
@@ -132,16 +102,9 @@ impl JS<'_> {
     // Call this method when key/mouse event was received.
     // This method calls JS handlers.
     pub fn send_event(&mut self, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> anyhow::Result<bool> {
-        let _len = match self.big_struct.id_list.length(&mut self.context) {
-            Ok(len) => { len }
-            Err(err) => {
-                return Err(anyhow!("Cannot get the length of ids: {:?}", err))
-            }
-        };
-
-        let p = self.context.global_object().get("$$invokeEvent",&mut self.context)
+        let invoke_event = self.context.global_object().get("$$invokeEvent", &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$invokeEvent: {:?}", err))?;
-        let invoke_event = JsFunction::try_from_js(&p, &mut self.context)
+        let invoke_event = JsFunction::try_from_js(&invoke_event, &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$invokeEvent as JsFunction: {:?}", err))?;
 
 
