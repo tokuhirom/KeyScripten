@@ -1,9 +1,13 @@
-use std::collections::HashMap;
-use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand, CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskShift, CGKeyCode};
 use crate::keycode;
+use anyhow::anyhow;
+use apple_sys::CoreGraphics::{
+    CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand,
+    CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskShift, CGKeyCode,
+};
+use boa_gc::{Finalize, Trace};
+use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Trace, Finalize)]
 pub struct HotKey {
     pub flags: CGEventFlags,
     pub keycode: CGKeyCode,
@@ -23,29 +27,22 @@ impl HotKey {
         let mut flags = 0;
 
         while s.len() - start >= 2 {
-            let part = &s[start..start+2];
+            let part = &s[start..start + 2];
             if let Some(code) = map.get(part) {
                 flags |= *code;
                 start += 2;
-            }
-            else {
+            } else {
                 break;
             }
         }
 
         if start >= s.len() {
             Err(anyhow!("Cannot parse shortcut: `{:?}`", s))
-        }
-        else {
+        } else {
             let keyname = &s[start..];
             match keycode::get_keycode(keyname) {
-                Some(keycode) => Ok(HotKey {
-                    flags,
-                    keycode
-                }),
-                None => {
-                    Err(anyhow!("Unknown key: `{:?}`", s))
-                }
+                Some(keycode) => Ok(HotKey { flags, keycode }),
+                None => Err(anyhow!("Unknown key: `{:?}`", s)),
             }
         }
     }
@@ -54,9 +51,13 @@ impl HotKey {
         let expected_flags = self.flags;
         let expected_code = self.keycode;
 
-        log::debug!("is_shortcut_pressed?: flags={:?} code={:?}, expected({:?}, {:?})",
-        flags, code,
-        expected_flags, expected_code);
+        log::debug!(
+            "is_shortcut_pressed?: flags={:?} code={:?}, expected({:?}, {:?})",
+            flags,
+            code,
+            expected_flags,
+            expected_code
+        );
 
         // 全てのキー修飾フラグを取得
         let all_modifiers = CGEventFlags_kCGEventFlagMaskControl
@@ -83,7 +84,6 @@ impl Default for HotKey {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -92,7 +92,10 @@ mod tests {
     fn test_parse_shortcut() -> anyhow::Result<()> {
         // 指定したフラグとキーコードが正しくパースされることをテスト
         let shortcut = HotKey::from_str("C-M-t")?;
-        assert_eq!(shortcut.flags, CGEventFlags_kCGEventFlagMaskControl | CGEventFlags_kCGEventFlagMaskCommand);
+        assert_eq!(
+            shortcut.flags,
+            CGEventFlags_kCGEventFlagMaskControl | CGEventFlags_kCGEventFlagMaskCommand
+        );
         assert_eq!(shortcut.keycode, KEY_CODE_KEY_T);
 
         // 未知のキーコードが与えられた場合にエラーになること
