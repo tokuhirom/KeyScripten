@@ -1,12 +1,12 @@
-mod send;
-mod grab;
-mod event;
 mod app_config;
-mod keycode;
+mod event;
+mod grab;
 mod hotkey;
 mod js;
 mod js_builtin;
 mod js_hotkey;
+mod keycode;
+mod send;
 
 use std::{fs, thread};
 
@@ -14,24 +14,17 @@ use std::str::FromStr;
 use std::sync::RwLock;
 
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
 
+use crate::app_config::AppConfig;
 use chrono::Local;
 use log::LevelFilter;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
-use crate::app_config::AppConfig;
 
 use crate::grab::run_handler;
 
 const APP_NAME: &str = "onemoretime";
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-static mut LOG_LEVEL:RwLock<LevelFilter> = RwLock::new(LevelFilter::Info);
+static mut LOG_LEVEL: RwLock<LevelFilter> = RwLock::new(LevelFilter::Info);
 
 fn set_log_level(level_filter: LevelFilter) {
     unsafe {
@@ -41,7 +34,8 @@ fn set_log_level(level_filter: LevelFilter) {
 }
 
 fn logger() -> anyhow::Result<()> {
-    let log_path = dirs::data_dir().unwrap()
+    let log_path = dirs::data_dir()
+        .unwrap()
         .join(APP_NAME)
         .join("onemoretime.log");
     log::info!("Logging file is output to {:?}", log_path);
@@ -58,9 +52,7 @@ fn logger() -> anyhow::Result<()> {
                 message
             ))
         })
-        .filter(|metadata| {
-            unsafe { metadata.level() <= *LOG_LEVEL.read().unwrap() }
-        })
+        .filter(|metadata| unsafe { metadata.level() <= *LOG_LEVEL.read().unwrap() })
         .chain(std::io::stdout())
         .chain(fern::log_file(log_path)?)
         .apply()?;
@@ -72,9 +64,13 @@ fn main() -> anyhow::Result<()> {
 
     let app_config = AppConfig::load()?;
     let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
-        Ok(level) => {level}
+        Ok(level) => level,
         Err(err) => {
-            log::error!("Unknown log level in configuration: {:?},{:?}", app_config.log_level, err);
+            log::error!(
+                "Unknown log level in configuration: {:?},{:?}",
+                app_config.log_level,
+                err
+            );
             LevelFilter::Info
         }
     };
@@ -92,11 +88,9 @@ fn main() -> anyhow::Result<()> {
     log::debug!("Creating menu object");
 
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    let tray_menu = SystemTrayMenu::new()
-        .add_item(quit);
+    let tray_menu = SystemTrayMenu::new().add_item(quit);
 
-    let tray = SystemTray::new()
-        .with_menu(tray_menu);
+    let tray = SystemTray::new().with_menu(tray_menu);
 
     log::debug!("Building tauri");
 
@@ -108,28 +102,21 @@ fn main() -> anyhow::Result<()> {
 
             #[allow(clippy::single_match)]
             match event {
-                SystemTrayEvent::MenuItemClick { id, .. } => {
-                    match id.as_str() {
-                        "quit" => {
-                            std::process::exit(0);
-                        }
-                        _ => {}
+                SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+                    "quit" => {
+                        std::process::exit(0);
                     }
-                }
+                    _ => {}
+                },
                 _ => {}
             }
         })
-        .invoke_handler(tauri::generate_handler![greet])
-        .run(tauri::generate_context!()) {
+        .invoke_handler(tauri::generate_handler![])
+        .run(tauri::generate_context!())
+    {
         log::error!("Cannot start tauri app: {:?}", err);
         return Err(anyhow!("Cannot start tauri app: {:?}", err));
     }
 
     Ok(())
-}
-
-#[derive(Debug, Clone, PartialEq)]
-struct KeyState {
-    code: CGKeyCode,
-    flags: CGEventFlags,
 }
