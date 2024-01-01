@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use std::fmt::{Debug, format};
+use std::fmt::{Debug};
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, user};
+use apple_sys::CoreGraphics::{CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp};
 use boa_engine::{Context, js_string, JsError, JsObject, JsResult, JsValue, NativeFunction, Source};
-use boa_engine::class::ClassBuilder;
+
 use boa_engine::native_function::NativeFunctionPointer;
 use boa_engine::object::builtins::{JsArray, JsFunction, JsMap};
 use boa_engine::property::{Attribute, PropertyKey};
@@ -12,7 +12,7 @@ use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_runtime::Console;
 use crate::app_config::AppConfig;
 use crate::event::{event_type};
-use crate::hotkey::HotKey;
+
 use crate::js_builtin::JsBuiltin;
 use crate::js_hotkey::JsHotKey;
 
@@ -132,7 +132,7 @@ impl JS<'_> {
     // Call this method when key/mouse event was received.
     // This method calls JS handlers.
     pub fn send_event(&mut self, cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> anyhow::Result<bool> {
-        let len = match self.big_struct.id_list.length(&mut self.context) {
+        let _len = match self.big_struct.id_list.length(&mut self.context) {
             Ok(len) => { len }
             Err(err) => {
                 return Err(anyhow!("Cannot get the length of ids: {:?}", err))

@@ -18,7 +18,7 @@ impl JsHotKey {
             return Err(JsError::from_opaque("the 'this' object is not a JsHotkey".into()));
         };
 
-        let Some(flags) = args.get(0) else {
+        let Some(flags) = args.first() else {
             return Err(JsError::from_opaque("first argument of the JsHotKey.matches should be flags.".into()));
         };
         let flags = match flags.to_u32(context) {
