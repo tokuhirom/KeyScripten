@@ -59,3 +59,22 @@ function $$invokeEvent(event) {
     }
     return true;
 }
+
+function $$getConfigSchema(event) {
+    const result = [];
+
+    for (let i = 0; i < $$IDS.length; i++) {
+        let id = $$IDS[i];
+        let config_schema = $$CONFIG_SCHEMAS[id];
+
+        result.push({
+            "id": id,
+            "config": config_schema,
+        });
+    }
+    const json = JSON.stringify({
+        "plugins": result
+    });
+    console.log(`json=${json}`);
+    return json;
+}

@@ -5,6 +5,7 @@ use apple_sys::CoreGraphics::{
     CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp,
 };
 use boa_engine::{js_string, Context, JsObject, JsValue, NativeFunction, Source};
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 use boa_engine::native_function::NativeFunctionPointer;
@@ -14,10 +15,12 @@ use boa_engine::value::TryFromJs;
 
 use crate::event::event_type;
 use boa_runtime::Console;
+use serde::{Deserialize, Serialize};
 
 use crate::js_builtin::JsBuiltin;
 use crate::js_hotkey::JsHotKey;
 use crate::js_keycode::build_keycode;
+use crate::keycode::get_keycode;
 
 pub struct JS<'a> {
     context: Context<'a>,
@@ -33,6 +36,7 @@ impl JS<'_> {
         js.register_constants()?;
         js.register_builtin_functions()?;
         js.load_driver()?;
+        js.load_bundled()?;
         Ok(js)
     }
 
@@ -201,5 +205,63 @@ impl JS<'_> {
     fn load_driver(&mut self) -> anyhow::Result<JsValue> {
         let driver_src = include_str!("../js/driver.js");
         self.eval(driver_src.to_string())
+    }
+
+    fn load_bundled(&mut self) -> anyhow::Result<JsValue> {
+        let src = include_str!("../js/dynamic-macro.js");
+        self.eval(src.to_string())
+    }
+
+    pub(crate) fn get_config_schema(&mut self) -> anyhow::Result<ConfigSchemaList> {
+        let get_config_schema = self
+            .context
+            .global_object()
+            .get("$$getConfigSchema", &mut self.context)
+            .map_err(|err| anyhow!("Cannot get $$getConfigSchema: {:?}", err))?;
+        let get_config_schema = JsFunction::try_from_js(&get_config_schema, &mut self.context)
+            .map_err(|err| anyhow!("Cannot get $$getConfigSchema as JsFunction: {:?}", err))?;
+
+        let result = get_config_schema
+            .call(&JsValue::undefined(), &[], &mut self.context)
+            .map_err(|err| anyhow!("Cannot call $$getConfigSchema as JsFunction: {:?}", err))?;
+        let result = result
+            .to_string(&mut self.context)
+            .map_err(|err| anyhow!("Cannot get result from $$getConfigSchema: {:?}", err))?;
+        let result = result.to_std_string_escaped();
+        let result: ConfigSchemaList = serde_json::from_str(&result)?;
+        Ok(result)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct ConfigSchemaList {
+    plugins: Vec<ConfigSchema>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct ConfigSchema {
+    id: String,
+    config: Vec<HashMap<String, String>>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_keycode() -> anyhow::Result<()> {
+        let mut js = JS::new()?;
+        let schema = js.get_config_schema()?;
+        log::info!("schema={:?}", schema);
+        Ok(())
+    }
+
+    #[test]
+    fn test_eval() -> anyhow::Result<()> {
+        let mut js = JS::new()?;
+        let value = js.eval("3+4".to_string())?;
+        let got = value.to_u32(&mut js.context).unwrap();
+        assert_eq!(got, 7);
+        Ok(())
     }
 }

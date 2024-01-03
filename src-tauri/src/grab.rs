@@ -88,9 +88,7 @@ fn grab(js: JS<'static>) -> anyhow::Result<()> {
 }
 
 pub fn run_handler() -> anyhow::Result<()> {
-    let mut js = JS::new().expect("Cannot create JS instance");
-    let src = include_str!("../js/dynamic-macro.js");
-    js.eval(src.to_string()).unwrap();
+    let js = JS::new().expect("Cannot create JS instance");
 
     grab(js)
 }
