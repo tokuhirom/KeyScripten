@@ -234,12 +234,12 @@ impl JS<'_> {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct ConfigSchemaList {
+pub struct ConfigSchemaList {
     plugins: Vec<ConfigSchema>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct ConfigSchema {
+pub struct ConfigSchema {
     id: String,
     config: Vec<HashMap<String, String>>,
 }

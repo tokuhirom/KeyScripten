@@ -1,14 +1,3 @@
-mod app_config;
-mod event;
-mod grab;
-mod hotkey;
-mod js;
-mod js_builtin;
-mod js_hotkey;
-mod js_keycode;
-mod keycode;
-mod send;
-
 use std::{fs, thread};
 
 use std::str::FromStr;
@@ -16,12 +5,12 @@ use std::sync::RwLock;
 
 use anyhow::anyhow;
 
-use crate::app_config::AppConfig;
 use chrono::Local;
 use log::LevelFilter;
+use maguromate_core::app_config::AppConfig;
+use maguromate_core::grab::grab;
+use maguromate_core::js::JS;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
-
-use crate::grab::run_handler;
 
 const APP_NAME: &str = "onemoretime";
 
@@ -81,7 +70,8 @@ fn main() -> anyhow::Result<()> {
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
-        if let Err(err) = run_handler() {
+        let js = JS::new().expect("Cannot create JS instance");
+        if let Err(err) = grab(js) {
             log::error!("Cannot run handler: {:?}", err);
         }
     });

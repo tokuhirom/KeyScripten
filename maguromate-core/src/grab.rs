@@ -54,7 +54,7 @@ unsafe extern "C" fn raw_callback(
     cg_event
 }
 
-fn grab(js: JS<'static>) -> anyhow::Result<()> {
+pub fn grab(js: JS<'static>) -> anyhow::Result<()> {
     unsafe {
         let _pool = NSAutoreleasePool::new(nil);
         log::debug!("Calling CGEventTapCreate");
@@ -85,10 +85,4 @@ fn grab(js: JS<'static>) -> anyhow::Result<()> {
         CFRunLoopRun();
     }
     Ok(())
-}
-
-pub fn run_handler() -> anyhow::Result<()> {
-    let js = JS::new().expect("Cannot create JS instance");
-
-    grab(js)
 }
