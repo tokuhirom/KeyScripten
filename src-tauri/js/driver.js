@@ -46,9 +46,15 @@ function $$invokeEvent(event) {
         let id = $$IDS[i];
         let callback = $$CALLBACKS[id];
         let config = $$CONFIG[id];
-        const result = callback(event, config);
-        if (!result) {
-            return result;
+
+        try {
+            const result = callback(event, config);
+            if (!result) {
+                return result;
+            }
+        } catch (e) {
+            console.log(`Cannot invoke the ${id}: ${e}`);
+            return true;
         }
     }
     return true;
