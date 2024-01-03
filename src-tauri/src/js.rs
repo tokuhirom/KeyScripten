@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 use crate::js_builtin::JsBuiltin;
 use crate::js_hotkey::JsHotKey;
 use crate::js_keycode::build_keycode;
-use crate::keycode::get_keycode;
+
 
 pub struct JS<'a> {
     context: Context<'a>,
