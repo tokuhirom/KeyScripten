@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
 use anyhow::anyhow;
@@ -7,7 +8,9 @@ use crate::APP_NAME;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AppConfig {
-    pub repeat_shortcut: String,
+    // key is the plugin id.
+    // values are map of configurations.
+    pub plugins: Option<HashMap<String, HashMap<String, String>>>,
     pub log_level: String,
 }
 
@@ -21,9 +24,9 @@ impl AppConfig {
         let path = AppConfig::get_configuration_file_path();
         log::info!("Loading configuration from {:?}", path);
 
-        return match File::open(path.clone()) {
+        match File::open(path.clone()) {
             Ok(file) => {
-                return match serde_json::from_reader(file) {
+                match serde_json::from_reader(file) {
                     Ok(config) => {
                         Ok(config)
                     }
@@ -32,7 +35,7 @@ impl AppConfig {
                             path, err);
                         Ok(AppConfig::default())
                     }
-                };
+                }
             }
             Err(err) => {
                 log::warn!("Cannot open configuration file({:?}): {:?}", path, err);
@@ -49,11 +52,10 @@ impl AppConfig {
     }
 }
 
-
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            repeat_shortcut: "C-t".to_string(),
+            plugins: Some(HashMap::new()),
             log_level: "INFO".to_string(),
         }
     }

@@ -4,75 +4,48 @@ use cocoa::base::nil;
 use cocoa::foundation::NSAutoreleasePool;
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{CFMachPortCreateRunLoopSource, CFRunLoopAddSource, CFRunLoopGetCurrent, CFRunLoopRun, kCFAllocatorDefault, kCFRunLoopCommonModes};
-use apple_sys::CoreGraphics::{CGEventField_kCGEventSourceUserData, CGEventField_kCGKeyboardEventKeycode, CGEventGetFlags, CGEventGetIntegerValueField, CGEventMask, CGEventRef, CGEventSetType, CGEventTapCreate, CGEventTapEnable, CGEventTapLocation_kCGHIDEventTap, CGEventTapOptions_kCGEventTapOptionDefault, CGEventTapPlacement_kCGHeadInsertEventTap, CGEventTapProxy, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGEventType_kCGEventNull, CGKeyCode};
-use crate::event::Event;
+use apple_sys::CoreGraphics::{CGEventField_kCGEventSourceUserData, CGEventGetIntegerValueField, CGEventMask, CGEventRef, CGEventSetType, CGEventTapCreate, CGEventTapEnable, CGEventTapLocation_kCGHIDEventTap, CGEventTapOptions_kCGEventTapOptionDefault, CGEventTapPlacement_kCGHeadInsertEventTap, CGEventTapProxy, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGEventType_kCGEventNull};
+use crate::js::JS;
 use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
-
-static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(Event) -> Option<Event>>> = None;
 
 #[link(name = "Cocoa", kind = "framework")]
 extern "C" {}
 
-unsafe fn convert(
-    cg_event_type: CGEventType,
-    cg_event: CGEventRef,
-) -> Option<Event> {
+// This event is sent from this application itself.
+unsafe fn is_sent_from_this_app(cg_event: CGEventRef) -> bool {
     let user_data = CGEventGetIntegerValueField(cg_event, CGEventField_kCGEventSourceUserData);
-    log::debug!("event's USER_DATA={}", user_data);
-    if user_data == USER_DATA_FOR_ONE_MORE_TIME {
-        // This event is sent from this application itself.
-        return None
-    }
-
-    #[allow(non_upper_case_globals)]
-    match cg_event_type {
-        CGEventType_kCGEventKeyDown => {
-            let code = CGEventGetIntegerValueField(cg_event, CGEventField_kCGKeyboardEventKeycode);
-            Some(Event::KeyPress(code as CGKeyCode))
-        }
-        CGEventType_kCGEventKeyUp => {
-            let code = CGEventGetIntegerValueField(cg_event, CGEventField_kCGKeyboardEventKeycode);
-            Some(Event::KeyRelease(code as CGKeyCode))
-        }
-        CGEventType_kCGEventFlagsChanged => {
-            let code = CGEventGetIntegerValueField(cg_event, CGEventField_kCGKeyboardEventKeycode);
-            let flags = CGEventGetFlags(cg_event);
-            Some(Event::FlagsChanged(code as CGKeyCode, flags))
-        }
-        _ => {
-            None
-        }
-    }
+    user_data == USER_DATA_FOR_ONE_MORE_TIME
 }
-
 
 unsafe extern "C" fn raw_callback(
     _proxy: CGEventTapProxy,
     event_type: CGEventType,
     cg_event: CGEventRef,
-    _user_info: *mut ::std::os::raw::c_void,
+    user_info: *mut ::std::os::raw::c_void,
 ) -> CGEventRef {
     log::debug!("Called raw_callback");
 
-    // let cg_event: CGEvent = transmute_copy::<*mut c_void, CGEvent>(&cg_event_ptr);
-    let Some(event) = convert(event_type, cg_event) else {
+    if is_sent_from_this_app(cg_event) {
         return cg_event;
-    };
-    let Some(callback) = &mut GLOBAL_CALLBACK else {
-        return cg_event;
-    };
-    if callback(event).is_none() {
-        CGEventSetType(cg_event, CGEventType_kCGEventNull);
     }
+
+    let js = &mut *(user_info as *mut JS);
+    match js.send_event(event_type, cg_event) {
+        Ok(b) => {
+            if !b {
+                CGEventSetType(cg_event, CGEventType_kCGEventNull);
+            }
+        }
+        Err(err) => {
+            log::error!("Cannot call JS callback: {:?}", err);
+        }
+    }
+
     cg_event
 }
 
-pub fn grab_ex<T>(callback: T) -> anyhow::Result<()>
-where
-    T: FnMut(Event) -> Option<Event> + 'static,
-{
+fn grab(js: JS<'static>) -> anyhow::Result<()> {
     unsafe {
-        GLOBAL_CALLBACK = Some(Box::new(callback));
         let _pool = NSAutoreleasePool::new(nil);
         log::debug!("Calling CGEventTapCreate");
         let tap = CGEventTapCreate(
@@ -83,7 +56,7 @@ where
                 + (1 << CGEventType_kCGEventKeyUp as CGEventMask)
                 + (1 << CGEventType_kCGEventFlagsChanged as CGEventMask),
             Some(raw_callback),
-            std::ptr::null_mut(), // TODO use callback here!!! Do not use global variable.
+            Box::into_raw(Box::new(js)) as *mut _,
         );
         if tap.is_null() {
             return Err(anyhow!("Cannot create CGEventTapCreate"));
@@ -102,4 +75,12 @@ where
         CFRunLoopRun();
     }
     Ok(())
+}
+
+pub fn run_handler() -> anyhow::Result<()> {
+    let mut js = JS::new().expect("Cannot create JS instance");
+    let src = include_str!("../js/dynamic-macro.js");
+    js.eval(src.to_string()).unwrap();
+
+    grab(js)
 }

@@ -33,6 +33,12 @@ apple-sys = { version = "0.2.0", features = ["CoreGraphics", "CoreFoundation"] }
 
 tauri-plugin-positioner = { version = "1.0.4", features = ["system-tray"] }
 
+boa_engine = { version = "0.17.3", features = [] }
+boa_runtime = { version = "0.17.3" }
+boa_gc = "0.17.3"
+console = "0.15.7"
+object = "0.32.2"
+
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
 # DO NOT REMOVE!!
