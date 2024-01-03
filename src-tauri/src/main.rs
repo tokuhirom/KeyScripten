@@ -92,7 +92,7 @@ fn main() -> anyhow::Result<()> {
 
     log::debug!("Building tauri");
 
-    if let Err(err) = tauri::Builder::default()
+    tauri::Builder::default()
         .plugin(tauri_plugin_positioner::init())
         .system_tray(tray)
         .on_system_tray_event(|app, event| {
@@ -122,11 +122,13 @@ fn main() -> anyhow::Result<()> {
             }
         })
         .invoke_handler(tauri::generate_handler![get_config_schema])
-        .run(tauri::generate_context!())
-    {
-        log::error!("Cannot start tauri app: {:?}", err);
-        return Err(anyhow!("Cannot start tauri app: {:?}", err));
-    }
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app_handle, event| {
+            if let tauri::RunEvent::ExitRequested { api, .. } = event {
+                api.prevent_exit();
+            }
+        });
 
     Ok(())
 }
