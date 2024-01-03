@@ -21,7 +21,6 @@ use crate::js_builtin::JsBuiltin;
 use crate::js_hotkey::JsHotKey;
 use crate::js_keycode::build_keycode;
 
-
 pub struct JS<'a> {
     context: Context<'a>,
 }
@@ -212,7 +211,8 @@ impl JS<'_> {
         self.eval(src.to_string())
     }
 
-    pub(crate) fn get_config_schema(&mut self) -> anyhow::Result<ConfigSchemaList> {
+    #[allow(dead_code)]
+    pub fn get_config_schema(&mut self) -> anyhow::Result<ConfigSchemaList> {
         let get_config_schema = self
             .context
             .global_object()
