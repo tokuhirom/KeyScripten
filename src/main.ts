@@ -1,6 +1,3 @@
-alert("HELLO");
-console.log("WHAT???");
-
 import "./styles.css";
 import App from "./App.svelte";
 
