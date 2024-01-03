@@ -1,12 +1,21 @@
 #![allow(improper_ctypes_definitions)]
 
-use cocoa::base::nil;
-use cocoa::foundation::NSAutoreleasePool;
-use anyhow::anyhow;
-use apple_sys::CoreGraphics::{CFMachPortCreateRunLoopSource, CFRunLoopAddSource, CFRunLoopGetCurrent, CFRunLoopRun, kCFAllocatorDefault, kCFRunLoopCommonModes};
-use apple_sys::CoreGraphics::{CGEventField_kCGEventSourceUserData, CGEventGetIntegerValueField, CGEventMask, CGEventRef, CGEventSetType, CGEventTapCreate, CGEventTapEnable, CGEventTapLocation_kCGHIDEventTap, CGEventTapOptions_kCGEventTapOptionDefault, CGEventTapPlacement_kCGHeadInsertEventTap, CGEventTapProxy, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp, CGEventType_kCGEventNull};
 use crate::js::JS;
 use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
+use anyhow::anyhow;
+use apple_sys::CoreGraphics::{
+    kCFAllocatorDefault, kCFRunLoopCommonModes, CFMachPortCreateRunLoopSource, CFRunLoopAddSource,
+    CFRunLoopGetCurrent, CFRunLoopRun,
+};
+use apple_sys::CoreGraphics::{
+    CGEventField_kCGEventSourceUserData, CGEventGetIntegerValueField, CGEventMask, CGEventRef,
+    CGEventSetType, CGEventTapCreate, CGEventTapEnable, CGEventTapLocation_kCGHIDEventTap,
+    CGEventTapOptions_kCGEventTapOptionDefault, CGEventTapPlacement_kCGHeadInsertEventTap,
+    CGEventTapProxy, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown,
+    CGEventType_kCGEventKeyUp, CGEventType_kCGEventNull,
+};
+use cocoa::base::nil;
+use cocoa::foundation::NSAutoreleasePool;
 
 #[link(name = "Cocoa", kind = "framework")]
 extern "C" {}
@@ -33,6 +42,7 @@ unsafe extern "C" fn raw_callback(
     match js.send_event(event_type, cg_event) {
         Ok(b) => {
             if !b {
+                log::debug!("Don't send keyboard event to the destination.");
                 CGEventSetType(cg_event, CGEventType_kCGEventNull);
             }
         }

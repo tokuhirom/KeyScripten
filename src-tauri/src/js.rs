@@ -17,7 +17,7 @@ use boa_runtime::Console;
 
 use crate::js_builtin::JsBuiltin;
 use crate::js_hotkey::JsHotKey;
-use crate::js_keycode::{build_keycode};
+use crate::js_keycode::build_keycode;
 
 pub struct JS<'a> {
     context: Context<'a>,

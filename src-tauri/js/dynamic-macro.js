@@ -1,21 +1,66 @@
 let latest_flags = undefined;
 const buffer = [];
 
+/**
+ * Run dynamic macro.
+ * @returns {boolean} Return true if sent keyboard event, false otherwise.
+ */
 function run_dynamic_macro() {
-    const size = checkRepeat(buffer);
+    const repeatSize = checkRepeat(buffer);
 
-    if (size !== null) {
+    if (repeatSize !== null) {
+        console.log(`DynamicMacro: repeat detected`)
         sendFlagsChangedEvent(kCGEventFlagMaskNonCoalesced);
 
-        const front = buffer.slice(0, size);
+        const front = buffer.slice(0, repeatSize);
         for (const keyState of front.reverse()) {
             sendKeyboardEvent(keyState[0], keyState[1], true);
         }
 
         sendFlagsChangedEvent(latest_flags);
+
+        return true;
     } else {
-        console.warn("No repeats!!!: " + JSON.stringify(buffer));
+        const patternXYX = checkPatternXYX(buffer);
+        if (patternXYX) {
+            console.log(`DynamicMacro: Predicted`)
+            sendFlagsChangedEvent(kCGEventFlagMaskNonCoalesced);
+
+            for (const keyState of patternXYX.Y.reverse()) {
+                sendKeyboardEvent(keyState[0], keyState[1], true);
+                buffer.unshift(keyState);
+            }
+
+            sendFlagsChangedEvent(latest_flags);
+
+            return true;
+        } else {
+            console.warn("No pattern found: " + JSON.stringify(buffer));
+            return false;
+        }
     }
+}
+
+function checkPatternXYX(buffer) {
+    let longestX = null;
+    let shortestY = null;
+
+    for (let xLen = 1; xLen <= buffer.length / 2; xLen++) {
+        for (let yStart = xLen; yStart + xLen <= buffer.length; yStart++) {
+            let X1 = buffer.slice(0, xLen);
+            let Y = buffer.slice(xLen, yStart);
+            let X2 = buffer.slice(yStart, yStart + xLen);
+
+            if (JSON.stringify(X1) === JSON.stringify(X2)) {
+                if (!longestX || X1.length > longestX.length || (X1.length === longestX.length && Y.length < shortestY.length)) {
+                    longestX = X1;
+                    shortestY = Y;
+                }
+            }
+        }
+    }
+
+    return longestX && shortestY ? { X: longestX, Y: shortestY } : null;
 }
 
 function checkRepeat(buffer) {
@@ -40,12 +85,11 @@ registerPlugin(
             latest_flags = event.flags;
         } else if (event.type === "keyDown") {
             if (config.hotkey.matches(latest_flags, event.keycode)) {
-                run_dynamic_macro();
-                return false;
+                return !run_dynamic_macro();
             }
 
             buffer.unshift([event.keycode, latest_flags]);
-            if (buffer.length > 6) {
+            if (buffer.length > 10) {
                 buffer.pop();
             }
         }
