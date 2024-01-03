@@ -241,6 +241,8 @@ pub struct ConfigSchemaList {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigSchema {
     id: String,
+    name: String,
+    description: String,
     config: Vec<HashMap<String, String>>,
 }
 
@@ -249,9 +251,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_keycode() -> anyhow::Result<()> {
+    fn test_get_config_schema() -> anyhow::Result<()> {
         let mut js = JS::new()?;
         let schema = js.get_config_schema()?;
+        assert_eq!(
+            schema.plugins.first().unwrap().id,
+            "com.github.tokuhirom.onemoretime.dynamicmacro"
+        );
+        assert_eq!(schema.plugins.first().unwrap().name, "Dynamic Macro");
         log::info!("schema={:?}", schema);
         Ok(())
     }

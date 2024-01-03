@@ -1,14 +1,18 @@
 /** This is a driver of the MaguroMate */
 
 let $$IDS = [];
+let $$NAMES = [];
+let $$DESCRIPTIONS = [];
 let $$CALLBACKS = {};
 let $$CONFIG_SCHEMAS = {};
 let $$CONFIG = {};
 let app_config = JSON.parse(loadAppConfigJson());
 
 // public API
-function registerPlugin(id, name, callback, config_schema) {
+function registerPlugin(id, name, description, callback, config_schema) {
     $$IDS.push(id); // to be unique?
+    $$NAMES[id] = name;
+    $$DESCRIPTIONS[id] = description;
     $$CALLBACKS[id] = callback;
     $$CONFIG_SCHEMAS[id] = config_schema;
 
@@ -30,6 +34,9 @@ function $$build_config(id, config_schema) {
                 break;
             case "string":
                 config[item.name] = value;
+                break;
+            case "integer":
+                config[item.name] = parseInt(value, 10);
                 break;
             default:
                 throw new Error(`Unknown type for plugin '${id}'(${item.name}): '${item.type}'`)
@@ -65,10 +72,14 @@ function $$getConfigSchema(event) {
 
     for (let i = 0; i < $$IDS.length; i++) {
         let id = $$IDS[i];
+        let name = $$NAMES[id];
+        let description = $$DESCRIPTIONS[id];
         let config_schema = $$CONFIG_SCHEMAS[id];
 
         result.push({
             "id": id,
+            "name": name,
+            "description": description,
             "config": config_schema,
         });
     }

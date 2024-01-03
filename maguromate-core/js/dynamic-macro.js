@@ -77,7 +77,16 @@ function checkRepeat(buffer) {
 
 registerPlugin(
     "com.github.tokuhirom.onemoretime.dynamicmacro",
-    "One more time",
+    "Dynamic Macro",
+    `This plugin provides a dynamic macro generation feature, learning from the user's repetitive
+    actions and automatically defining and executing them as macros. After a user repeatedly
+    performs certain key operations, pressing a designated hotkey triggers the plugin to
+    recognize these actions and generate a macro for automatic re-execution. This functionality
+    streamlines repetitive tasks and enhances productivity. Based on the dynamic macro generation
+    technology developed by Mr. Toshiyuki Masui.
+    
+    Ref. http://www.pitecan.com/papers/JSSSTDmacro/JSSSTDmacro.html
+    `,
     function (event, config) {
         // console.log(`config=${JSON.stringify(config)}`);
 
@@ -101,7 +110,14 @@ registerPlugin(
         {
             "name": "hotkey",
             "type": "hotkey",
-            "default": "C-t"
+            "default": "C-t",
+            "description": "Repeat key",
+        },
+        {
+            "name": "buffer_size",
+            "type": "integer",
+            "description": "Maximum history size. This plugin consumes O(N**2) for each typing. Do not set too large buffer.",
+            "default": "64"
         }
     ]
 );
