@@ -9,8 +9,23 @@ use std::path::PathBuf;
 pub struct AppConfig {
     // key is the plugin id.
     // values are map of configurations.
-    pub plugins: Option<HashMap<String, HashMap<String, String>>>,
+    pub plugins: Option<HashMap<String, PluginConfig>>,
     pub log_level: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PluginConfig {
+    pub enabled: bool,
+    pub config: Option<HashMap<String, String>>,
+}
+
+impl Default for PluginConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            config: None,
+        }
+    }
 }
 
 impl AppConfig {

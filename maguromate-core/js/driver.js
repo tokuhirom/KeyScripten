@@ -20,7 +20,7 @@ function registerPlugin(id, name, callback, config_schema) {
 function $$build_config(id, config_schema) {
     const config = {};
     for (const item of config_schema) {
-        const value = ((app_config.plugins || {})[id] || {})[item.name] || item.default;
+        const value = (((app_config.plugins || {})[id] || {}).config || {})[item.name] || item.default;
 
         switch (item.type) {
             case "hotkey":
