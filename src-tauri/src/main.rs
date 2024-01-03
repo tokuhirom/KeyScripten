@@ -9,12 +9,18 @@ use chrono::Local;
 use log::LevelFilter;
 use maguromate_core::app_config::AppConfig;
 use maguromate_core::grab::grab;
-use maguromate_core::js::JS;
-use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu};
+use maguromate_core::js::{ConfigSchemaList, JS};
+use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, WindowBuilder};
 
 const APP_NAME: &str = "onemoretime";
 
 static mut LOG_LEVEL: RwLock<LevelFilter> = RwLock::new(LevelFilter::Info);
+
+#[tauri::command]
+fn get_config_schema() -> Result<ConfigSchemaList, String> {
+    let mut js = JS::new().map_err(|err| format!("{:?}", err))?;
+    js.get_config_schema().map_err(|err| format!("{:?}", err))
+}
 
 fn set_log_level(level_filter: LevelFilter) {
     unsafe {
@@ -79,7 +85,8 @@ fn main() -> anyhow::Result<()> {
     log::debug!("Creating menu object");
 
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    let tray_menu = SystemTrayMenu::new().add_item(quit);
+    let configuration = CustomMenuItem::new("configuration".to_string(), "Configuration");
+    let tray_menu = SystemTrayMenu::new().add_item(configuration).add_item(quit);
 
     let tray = SystemTray::new().with_menu(tray_menu);
 
@@ -97,12 +104,24 @@ fn main() -> anyhow::Result<()> {
                     "quit" => {
                         std::process::exit(0);
                     }
+                    "configuration" => {
+                        log::info!("Got configuration event");
+                        if let Err(err) = WindowBuilder::new(
+                            app,
+                            "config-window".to_string(),
+                            tauri::WindowUrl::App("configuration.html".into()),
+                        )
+                        .build()
+                        {
+                            log::error!("Cannot open configuration window: {:?}", err);
+                        };
+                    }
                     _ => {}
                 },
                 _ => {}
             }
         })
-        .invoke_handler(tauri::generate_handler![])
+        .invoke_handler(tauri::generate_handler![get_config_schema])
         .run(tauri::generate_context!())
     {
         log::error!("Cannot start tauri app: {:?}", err);
