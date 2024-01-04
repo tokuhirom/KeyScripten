@@ -29,13 +29,30 @@ fn load_config() -> Result<AppConfig, String> {
 
 #[tauri::command]
 fn save_config(config: AppConfig) -> Result<(), String> {
-    config.save().map_err(|err| format!("{:?}", err))
+    let result = config.save().map_err(|err| format!("{:?}", err));
+    set_log_level_by_config(&config);
+    result
 }
 
+fn set_log_level_by_config(app_config: &AppConfig) {
+    let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
+        Ok(level) => level,
+        Err(err) => {
+            log::error!(
+                "Unknown log level in configuration: {:?},{:?}",
+                app_config.log_level,
+                err
+            );
+            LevelFilter::Info
+        }
+    };
+    set_log_level(level_filter);
+}
 fn set_log_level(level_filter: LevelFilter) {
     unsafe {
         eprintln!("Setting log level to {:?}", level_filter);
         *LOG_LEVEL.write().unwrap() = level_filter;
+        log::info!("Set log level to `{}`", level_filter);
     }
 }
 
@@ -69,20 +86,7 @@ fn main() -> anyhow::Result<()> {
     logger()?;
 
     let app_config = AppConfig::load()?;
-    let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
-        Ok(level) => level,
-        Err(err) => {
-            log::error!(
-                "Unknown log level in configuration: {:?},{:?}",
-                app_config.log_level,
-                err
-            );
-            LevelFilter::Info
-        }
-    };
-    set_log_level(level_filter);
-
-    log::info!("Default log level is `{}`", level_filter);
+    set_log_level_by_config(&app_config);
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
