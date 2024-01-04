@@ -54,7 +54,7 @@ unsafe extern "C" fn raw_callback(
     cg_event
 }
 
-pub fn grab(js: JS<'static>) -> anyhow::Result<()> {
+pub fn grab_setup(js: JS<'static>) -> anyhow::Result<()> {
     unsafe {
         let _pool = NSAutoreleasePool::new(nil);
         log::debug!("Calling CGEventTapCreate");
@@ -81,8 +81,13 @@ pub fn grab(js: JS<'static>) -> anyhow::Result<()> {
         CFRunLoopAddSource(current_loop, _loop, kCFRunLoopCommonModes);
 
         CGEventTapEnable(tap, true);
-        log::info!("Running CFRunLoopRun");
-        CFRunLoopRun();
     }
     Ok(())
+}
+
+pub fn grab_run() {
+    log::info!("Running CFRunLoopRun");
+    unsafe {
+        CFRunLoopRun();
+    }
 }

@@ -7,12 +7,13 @@ use anyhow::anyhow;
 
 use chrono::Local;
 use codekeys_core::app_config::AppConfig;
-use codekeys_core::grab::grab;
+use codekeys_core::grab::{grab_run, grab_setup};
 use codekeys_core::js::{ConfigSchemaList, JS};
 use log::LevelFilter;
+use tauri::api::dialog;
 use tauri::{
     CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
-    WindowBuilder,
+    WindowBuilder, Wry,
 };
 
 const APP_NAME: &str = "codekeys";
@@ -92,13 +93,18 @@ fn main() -> anyhow::Result<()> {
     set_log_level_by_config(&app_config);
 
     let (tx, rx) = mpsc::channel::<bool>();
+    let (setup_tx, setup_rx) = mpsc::channel::<anyhow::Result<()>>();
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
         let js = JS::new(Some(rx)).expect("Cannot create JS instance");
-        if let Err(err) = grab(js) {
+
+        let result = grab_setup(js);
+        if let Err(err) = &result {
             log::error!("Cannot run handler: {:?}", err);
         }
+        setup_tx.send(result).expect("Send setup message");
+        grab_run();
     });
 
     log::debug!("Creating menu object");
@@ -116,11 +122,26 @@ fn main() -> anyhow::Result<()> {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_positioner::init())
-        .setup(|app| {
+        .setup(move |app| {
             app.listen_global("update-config", move |event| {
                 log::info!("update-config: {:?}", event);
                 tx.send(true).expect("Send message");
             });
+
+            log::info!("Waiting CGEventTapCreate");
+            let setup_result = setup_rx.recv().expect("Setup message received");
+            if let Err(err) = setup_result {
+                log::error!("Cannot run handler: {:?}", err);
+                dialog::message::<Wry>(
+                    None,
+                    "CodeKeys",
+                    format!(
+                        "Cannot setup CGEventTapCreate: {:?}\nPlease read the document for more details: https://github.com/tokuhirom/CodeKeys/blob/main/README.md",
+                        err
+                    ),
+                );
+            }
+
             Ok(())
         })
         .system_tray(tray)
