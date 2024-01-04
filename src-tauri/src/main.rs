@@ -10,7 +10,10 @@ use log::LevelFilter;
 use maguromate_core::app_config::AppConfig;
 use maguromate_core::grab::grab;
 use maguromate_core::js::{ConfigSchemaList, JS};
-use tauri::{CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, WindowBuilder};
+use tauri::{
+    CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
+    WindowBuilder,
+};
 
 const APP_NAME: &str = "onemoretime";
 
@@ -102,7 +105,10 @@ fn main() -> anyhow::Result<()> {
 
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
     let configuration = CustomMenuItem::new("configuration".to_string(), "Configuration");
-    let tray_menu = SystemTrayMenu::new().add_item(configuration).add_item(quit);
+    let tray_menu = SystemTrayMenu::new()
+        .add_item(configuration)
+        .add_native_item(SystemTrayMenuItem::Separator) // separator
+        .add_item(quit);
 
     let tray = SystemTray::new().with_menu(tray_menu);
 
