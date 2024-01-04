@@ -1,10 +1,10 @@
 [package]
-name = "maguromate-core"
+name = "codekeys-core"
 version = "0.0.0"
-description = "maguromate-core"
+description = "codekeys-core"
 authors = ["Tokuhiro Matsuno"]
 license = "MIT"
-repository = "https://github.com/tokuhirom/maguromate"
+repository = "https://github.com/tokuhirom/codekeys"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

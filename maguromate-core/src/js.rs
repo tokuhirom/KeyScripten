@@ -283,7 +283,7 @@ mod tests {
         let schema = js.get_config_schema()?;
         assert_eq!(
             schema.plugins.first().unwrap().id,
-            "com.github.tokuhirom.onemoretime.dynamicmacro"
+            "com.github.tokuhirom.codekeys.dynamicmacro"
         );
         assert_eq!(schema.plugins.first().unwrap().name, "Dynamic Macro");
         log::info!("schema={:?}", schema);

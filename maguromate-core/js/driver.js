@@ -1,4 +1,4 @@
-/** This is a driver of the MaguroMate */
+/** This is a driver of the CodeKeys */
 
 let $$IDS = [];
 let $$NAMES = [];

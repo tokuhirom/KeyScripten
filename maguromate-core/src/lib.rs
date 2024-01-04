@@ -9,4 +9,4 @@ mod js_keycode;
 mod keycode;
 mod send;
 
-const APP_NAME: &str = "onemoretime";
+const APP_NAME: &str = "codekeys";
