@@ -6,10 +6,10 @@ use std::sync::{mpsc, RwLock};
 use anyhow::anyhow;
 
 use chrono::Local;
-use log::LevelFilter;
 use codekeys_core::app_config::AppConfig;
 use codekeys_core::grab::grab;
 use codekeys_core::js::{ConfigSchemaList, JS};
+use log::LevelFilter;
 use tauri::{
     CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
     WindowBuilder,
@@ -138,7 +138,7 @@ fn main() -> anyhow::Result<()> {
                         if let Err(err) = WindowBuilder::new(
                             app,
                             "config-window".to_string(),
-                            tauri::WindowUrl::App("configuration.html".into()),
+                            tauri::WindowUrl::App("index.html".into()),
                         )
                         .build()
                         {
