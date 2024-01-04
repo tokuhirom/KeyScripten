@@ -25,8 +25,8 @@ You need to allow the accessibility option here. Because this application captur
 
 ### How do I build this?
 
-    cd src-tauri/
-    cargo run
+    npm install
+    npm run tauri build
 
 ## Configuration
 

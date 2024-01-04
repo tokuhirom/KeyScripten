@@ -9,7 +9,7 @@ use apple_sys::CoreGraphics::{
 #[link(name = "Cocoa", kind = "framework")]
 extern "C" {}
 
-pub const USER_DATA_FOR_ONE_MORE_TIME: i64 = 5963;
+pub const USER_DATA_FROM_THIS_APP: i64 = 5963;
 
 fn build_event_source() -> anyhow::Result<CGEventSourceRef> {
     unsafe {
@@ -38,7 +38,7 @@ pub fn send_keyboard_event(
         CGEventSetIntegerValueField(
             event,
             CGEventField_kCGEventSourceUserData,
-            USER_DATA_FOR_ONE_MORE_TIME,
+            USER_DATA_FROM_THIS_APP,
         );
         CGEventPost(CGEventTapLocation_kCGHIDEventTap, event);
         Ok(())
