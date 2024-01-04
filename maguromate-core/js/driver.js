@@ -15,10 +15,15 @@ function registerPlugin(id, name, description, callback, config_schema) {
     $$DESCRIPTIONS[id] = description;
     $$CALLBACKS[id] = callback;
     $$CONFIG_SCHEMAS[id] = config_schema;
+    $$CONFIG[id] = $$build_config(id, config_schema);
 
-    const config = $$build_config(id, config_schema);
-    $$CONFIG[id] = config;
-    console.log(`Registered plugin: id=${id} config=${JSON.stringify(config)}`);
+    console.log(`Registered plugin: id=${id} config=${JSON.stringify($$CONFIG[id])}`);
+}
+
+function reloadConfig() {
+    for (const id of Object.keys($$CONFIG)) {
+        $$CONFIG[id] = $$build_config(id, $$CONFIG_SCHEMAS[id]);
+    }
 }
 
 function $$build_config(id, config_schema) {
@@ -48,7 +53,12 @@ function $$build_config(id, config_schema) {
 }
 
 // called by js.rs
-function $$invokeEvent(event) {
+function $$invokeEvent(event, needsConfigReload) {
+    if (needsConfigReload) {
+        console.log("Reloading configuration file")
+        reloadConfig();
+    }
+
     for (let i = 0; i < $$IDS.length; i++) {
         let id = $$IDS[i];
         let callback = $$CALLBACKS[id];

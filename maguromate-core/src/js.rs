@@ -7,6 +7,7 @@ use apple_sys::CoreGraphics::{
 use boa_engine::{js_string, Context, JsObject, JsValue, NativeFunction, Source};
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::sync::mpsc::{Receiver, TryRecvError};
 
 use boa_engine::native_function::NativeFunctionPointer;
 use boa_engine::object::builtins::JsFunction;
@@ -23,12 +24,14 @@ use crate::js_keycode::build_keycode;
 
 pub struct JS<'a> {
     context: Context<'a>,
+    rx: Option<Receiver<bool>>,
 }
+
 impl JS<'_> {
-    pub fn new() -> anyhow::Result<Self> {
+    pub fn new(rx: Option<Receiver<bool>>) -> anyhow::Result<Self> {
         let context = Context::default();
 
-        let mut js = JS { context };
+        let mut js = JS { context, rx };
         js.init_console()?;
         js.init_hotkey()?;
         js.init_keycode()?;
@@ -151,16 +154,41 @@ impl JS<'_> {
         let invoke_event = JsFunction::try_from_js(&invoke_event, &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$invokeEvent as JsFunction: {:?}", err))?;
 
+        let needs_config_reload = self.needs_config_reload();
+
         let key_event = self.build_key_event(cg_event_type, cg_event_ref)?;
         let result = invoke_event
             .call(
                 &JsValue::undefined(),
-                &[JsValue::from(key_event)],
+                &[
+                    JsValue::from(key_event),
+                    JsValue::Boolean(needs_config_reload),
+                ],
                 &mut self.context,
             )
             .map_err(|err| anyhow!("Cannot call $$invokeEvent as JsFunction: {:?}", err))?;
         let result = result.as_boolean().unwrap_or(true);
         Ok(result)
+    }
+
+    fn needs_config_reload(&mut self) -> bool {
+        match &self.rx {
+            Some(rx) => match rx.try_recv() {
+                Ok(_) => true,
+                Err(err) => {
+                    match err {
+                        TryRecvError::Empty => {
+                            log::debug!("needs_config_reload: empty")
+                        }
+                        TryRecvError::Disconnected => {
+                            log::warn!("needs_config_reload: disconnected")
+                        }
+                    }
+                    false
+                }
+            },
+            None => false,
+        }
     }
 
     fn build_key_event(
@@ -211,7 +239,6 @@ impl JS<'_> {
         self.eval(src.to_string())
     }
 
-    #[allow(dead_code)]
     pub fn get_config_schema(&mut self) -> anyhow::Result<ConfigSchemaList> {
         let get_config_schema = self
             .context
@@ -252,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_get_config_schema() -> anyhow::Result<()> {
-        let mut js = JS::new()?;
+        let mut js = JS::new(None)?;
         let schema = js.get_config_schema()?;
         assert_eq!(
             schema.plugins.first().unwrap().id,
@@ -265,7 +292,7 @@ mod tests {
 
     #[test]
     fn test_eval() -> anyhow::Result<()> {
-        let mut js = JS::new()?;
+        let mut js = JS::new(None)?;
         let value = js.eval("3+4".to_string())?;
         let got = value.to_u32(&mut js.context).unwrap();
         assert_eq!(got, 7);

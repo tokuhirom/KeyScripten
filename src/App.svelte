@@ -1,6 +1,7 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri"
     import { appWindow } from '@tauri-apps/api/window';
+    import { emit } from '@tauri-apps/api/event'
     import {onMount} from "svelte";
 
     let config = {
@@ -43,7 +44,7 @@
 
     async function handleSubmit() {
         await invoke("save_config", {config});
-        console.log("Saved");
+        await emit('update-config', "hello from front");
 
         try {
             await appWindow.close();

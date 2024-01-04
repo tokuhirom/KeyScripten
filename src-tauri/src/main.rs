@@ -1,7 +1,7 @@
 use std::{fs, thread};
 
 use std::str::FromStr;
-use std::sync::RwLock;
+use std::sync::{mpsc, RwLock};
 
 use anyhow::anyhow;
 
@@ -10,7 +10,7 @@ use log::LevelFilter;
 use maguromate_core::app_config::AppConfig;
 use maguromate_core::grab::grab;
 use maguromate_core::js::{ConfigSchemaList, JS};
-use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, WindowBuilder};
+use tauri::{CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, WindowBuilder};
 
 const APP_NAME: &str = "onemoretime";
 
@@ -18,7 +18,7 @@ static mut LOG_LEVEL: RwLock<LevelFilter> = RwLock::new(LevelFilter::Info);
 
 #[tauri::command]
 fn get_config_schema() -> Result<ConfigSchemaList, String> {
-    let mut js = JS::new().map_err(|err| format!("{:?}", err))?;
+    let mut js = JS::new(None).map_err(|err| format!("{:?}", err))?;
     js.get_config_schema().map_err(|err| format!("{:?}", err))
 }
 
@@ -88,9 +88,11 @@ fn main() -> anyhow::Result<()> {
     let app_config = AppConfig::load()?;
     set_log_level_by_config(&app_config);
 
+    let (tx, rx) = mpsc::channel::<bool>();
+
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
-        let js = JS::new().expect("Cannot create JS instance");
+        let js = JS::new(Some(rx)).expect("Cannot create JS instance");
         if let Err(err) = grab(js) {
             log::error!("Cannot run handler: {:?}", err);
         }
@@ -108,6 +110,13 @@ fn main() -> anyhow::Result<()> {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_positioner::init())
+        .setup(|app| {
+            app.listen_global("update-config", move |event| {
+                log::info!("update-config: {:?}", event);
+                tx.send(true).expect("Send message");
+            });
+            Ok(())
+        })
         .system_tray(tray)
         .on_system_tray_event(|app, event| {
             tauri_plugin_positioner::on_tray_event(app, &event);
