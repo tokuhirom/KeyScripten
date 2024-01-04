@@ -1,5 +1,6 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri"
+    import { appWindow } from '@tauri-apps/api/window';
     import {onMount} from "svelte";
 
     let config = {
@@ -40,8 +41,15 @@
         console.log(`You selected: ${config.log_level}`);
     }
 
-    function handleSubmit() {
-        alert("TODO: SAVED");
+    async function handleSubmit() {
+        await invoke("save_config", {config});
+        console.log("Saved");
+
+        try {
+            await appWindow.close();
+        } catch (error) {
+            console.error('Error closing window:', error);
+        }
     }
 </script>
 
@@ -97,13 +105,6 @@
 
         <button type="submit">Save configuration</button>
     </form>
-
-    <div style="background-color: bisque; color: black">
-        <h2>Config schema</h2>
-        <pre>{JSON.stringify(config_schema, null, 4)}</pre>
-        <h2>Config</h2>
-        <pre>{JSON.stringify(config, null, 4)}</pre>
-    </div>
 </main>
 
 <style>

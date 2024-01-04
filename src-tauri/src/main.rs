@@ -27,6 +27,11 @@ fn load_config() -> Result<AppConfig, String> {
     AppConfig::load().map_err(|err| format!("{:?}", err))
 }
 
+#[tauri::command]
+fn save_config(config: AppConfig) -> Result<(), String> {
+    config.save().map_err(|err| format!("{:?}", err))
+}
+
 fn set_log_level(level_filter: LevelFilter) {
     unsafe {
         eprintln!("Setting log level to {:?}", level_filter);
@@ -126,7 +131,11 @@ fn main() -> anyhow::Result<()> {
                 _ => {}
             }
         })
-        .invoke_handler(tauri::generate_handler![get_config_schema, load_config])
+        .invoke_handler(tauri::generate_handler![
+            get_config_schema,
+            load_config,
+            save_config,
+        ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|_app_handle, event| {

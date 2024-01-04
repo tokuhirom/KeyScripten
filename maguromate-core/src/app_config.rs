@@ -1,8 +1,9 @@
 use crate::APP_NAME;
-use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs::File;
+use std::fs;
+use std::fs::{File, OpenOptions};
+use std::io::Write;
 use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -60,10 +61,18 @@ impl AppConfig {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn save(app_config: &AppConfig) -> anyhow::Result<()> {
-        confy::store_path(AppConfig::get_configuration_file_path(), app_config)
-            .map_err(|err| anyhow!("Cannot store configuration: {:?}", err))
+    pub fn save(&self) -> anyhow::Result<()> {
+        let path = AppConfig::get_configuration_file_path();
+        fs::create_dir_all(path.parent().unwrap())?;
+        let json = serde_json::to_string(self)?;
+
+        let mut f = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(path)?;
+        f.write_all(json.as_bytes())?;
+        Ok(())
     }
 }
 

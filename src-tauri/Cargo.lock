@@ -2658,7 +2658,6 @@ dependencies = [
  "boa_runtime",
  "chrono",
  "cocoa 0.25.0",
- "confy",
  "console",
  "dirs",
  "fern",
