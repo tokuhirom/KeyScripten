@@ -1,10 +1,13 @@
-# OneMoreTime.app
+# CodeKeys.app
 
 This app is the programmable keyboard macro system for Mac OSX.
+You can write any keyboard handler by JavaScript.
 
 This app contains some of the official plugins:
 
   * implementation of the [Toshiyuki Masui san's Dynamic Macro](https://gihyo.jp/dev/serial/01/masui-columbus/0006)
+
+(Current implementation doesn't support user's own javascript handler)
 
 ## How it works?
 
@@ -27,7 +30,7 @@ You need to allow the accessibility option here. Because this application captur
 
 ## Configuration
 
-This app loads the configuration file from `~/Library/Application Support/rs.onemoretime/default-config.toml`.
+This app loads the configuration file from `~/Library/Application Support/rs.codekeys/default-config.toml`.
 You can change the shortcut key by this file(I will add the shortcut key configuration in the future release).
 
 ## LICENSE

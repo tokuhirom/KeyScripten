@@ -55,7 +55,7 @@
 </script>
 
 <main class="container">
-    <h1>Configuration for MaguroMate</h1>
+    <h1>Configuration for CodeKeys</h1>
 
     <form on:submit={handleSubmit}>
         <h2>Global configuration</h2>

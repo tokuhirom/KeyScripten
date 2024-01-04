@@ -7,7 +7,7 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "onemoretime",
+    "productName": "codekeys",
     "version": "0.0.0"
   },
   "tauri": {
@@ -28,7 +28,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.github.tokuhirom.onemoretime",
+      "identifier": "com.github.tokuhirom.codekeys",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",

@@ -1,10 +1,10 @@
 [package]
-name = "onemoretime"
+name = "codekeys"
 version = "0.0.0"
 description = "A Tauri App"
 authors = ["Tokuhiro Matsuno"]
 license = "MIT"
-repository = "https://github.com/tokuhirom/onemoretime"
+repository = "https://github.com/tokuhirom/codekeys"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -31,7 +31,7 @@ confy = "0.5.1"
 
 dirs = "5.0.1"
 
-maguromate-core = {path = "../maguromate-core" }
+codekeys-core = {path = "../codekeys-core" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

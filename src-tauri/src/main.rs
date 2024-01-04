@@ -7,15 +7,15 @@ use anyhow::anyhow;
 
 use chrono::Local;
 use log::LevelFilter;
-use maguromate_core::app_config::AppConfig;
-use maguromate_core::grab::grab;
-use maguromate_core::js::{ConfigSchemaList, JS};
+use codekeys_core::app_config::AppConfig;
+use codekeys_core::grab::grab;
+use codekeys_core::js::{ConfigSchemaList, JS};
 use tauri::{
     CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
     WindowBuilder,
 };
 
-const APP_NAME: &str = "onemoretime";
+const APP_NAME: &str = "codekeys";
 
 static mut LOG_LEVEL: RwLock<LevelFilter> = RwLock::new(LevelFilter::Info);
 
@@ -63,7 +63,7 @@ fn logger() -> anyhow::Result<()> {
     let log_path = dirs::data_dir()
         .unwrap()
         .join(APP_NAME)
-        .join("onemoretime.log");
+        .join("codekeys.log");
     log::info!("Logging file is output to {:?}", log_path);
     fs::create_dir_all(log_path.parent().unwrap())
         .map_err(|err| anyhow!("Cannot create {:?}: {:?}", log_path, err))?;
