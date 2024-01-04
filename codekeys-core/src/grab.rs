@@ -1,7 +1,7 @@
 #![allow(improper_ctypes_definitions)]
 
 use crate::js::JS;
-use crate::send::USER_DATA_FOR_ONE_MORE_TIME;
+use crate::send::USER_DATA_FROM_THIS_APP;
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{
     kCFAllocatorDefault, kCFRunLoopCommonModes, CFMachPortCreateRunLoopSource, CFRunLoopAddSource,
@@ -23,7 +23,7 @@ extern "C" {}
 // This event is sent from this application itself.
 unsafe fn is_sent_from_this_app(cg_event: CGEventRef) -> bool {
     let user_data = CGEventGetIntegerValueField(cg_event, CGEventField_kCGEventSourceUserData);
-    user_data == USER_DATA_FOR_ONE_MORE_TIME
+    user_data == USER_DATA_FROM_THIS_APP
 }
 
 unsafe extern "C" fn raw_callback(

@@ -15,6 +15,7 @@
     onMount(async () => {
         const cs = await invoke("get_config_schema");
         const c = await invoke("load_config");
+        c.log_level ||= "info";
         c.plugins ||= [];
 
         cs.plugins.forEach(plugin => {
@@ -32,7 +33,7 @@
 
             console.log(plugin);
         })
-        console.log(c);
+        console.log(`config=${JSON.stringify(c)}`);
 
         config = c;
         config_schema = cs;

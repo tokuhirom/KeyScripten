@@ -80,7 +80,7 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             plugins: Some(HashMap::new()),
-            log_level: "INFO".to_string(),
+            log_level: "info".to_string(),
         }
     }
 }
