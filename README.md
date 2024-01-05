@@ -28,6 +28,11 @@ You need to allow the accessibility option here. Because this application captur
     npm install
     npm run tauri build
 
+## Release process
+
+ - Update version field in `src-tauri/tauri.conf.json5`.
+ - Create new GitHub release s in draft.
+
 ## Configuration
 
 This app loads the configuration file from `~/Library/Application Support/rs.codekeys/default-config.toml`.
