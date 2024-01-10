@@ -11,7 +11,8 @@ This app contains some of the official plugins:
 
 ## How it works?
 
-TBD
+There's a `CGEventTapCreate` function on mac osx. This function provides the feature to retrieve the user's input.
+This application forwards the event to JavaScript code.
 
 ## Accessibility permission
 
@@ -20,6 +21,8 @@ You need to allow the accessibility option here. Because this application captur
 ![img_1.png](img_1.png)
 
 ![img.png](img.png)
+
+If there's a problem, you may need to remove the application from the accessibility permission list.
 
 ## Hacking
 
