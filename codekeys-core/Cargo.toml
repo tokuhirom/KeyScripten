@@ -32,3 +32,4 @@ boa_runtime = { version = "0.17.3" }
 boa_gc = "0.17.3"
 console = "0.15.8"
 object = "0.32.2"
+time = "0.3.31"
