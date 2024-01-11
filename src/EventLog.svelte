@@ -1,6 +1,6 @@
 <script>
 
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import {invoke} from "@tauri-apps/api/tauri";
 
     let event_log = [];
@@ -11,9 +11,14 @@
         event_log = r;
     }
 
+    let intervalId;
+
     onMount(async () => {
         await updateEventLog();
-        setInterval(updateEventLog, 1000);
+        intervalId = setInterval(updateEventLog, 1000);
+    });
+    onDestroy(() => {
+        clearInterval(intervalId);
     });
 </script>
 <div>
