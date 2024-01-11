@@ -27,7 +27,7 @@ config = { version = "0.13.4", features = [] }
 
 anyhow = "1.0.79"
 
-confy = "0.5.1"
+confy = "0.6.0"
 
 dirs = "5.0.1"
 
