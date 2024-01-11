@@ -1,8 +1,8 @@
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{
-    CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskNonCoalesced,
-    CGEventGetFlags, CGEventGetIntegerValueField, CGEventRef, CGEventType,
-    CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp,
+    CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventRef,
+    CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown,
+    CGEventType_kCGEventKeyUp,
 };
 use boa_engine::{js_string, Context, JsObject, JsValue, NativeFunction, Source};
 use std::collections::{HashMap, VecDeque};
@@ -15,7 +15,7 @@ use boa_engine::object::builtins::JsFunction;
 use boa_engine::property::{Attribute, PropertyKey};
 use boa_engine::value::TryFromJs;
 
-use crate::event::{event_type, Event};
+use crate::event::Event;
 use boa_runtime::Console;
 use serde::{Deserialize, Serialize};
 
@@ -169,7 +169,7 @@ impl JS<'_> {
         if let Some(queue) = &self.monitoring_queue {
             match queue.write() {
                 Ok(mut queue) => {
-                    queue.push_back(event);
+                    queue.push_back(event.clone());
                     if queue.len() > 40 {
                         queue.pop_front();
                     }
@@ -180,8 +180,7 @@ impl JS<'_> {
             }
         }
 
-        // todo: use event object in build_key_event.
-        let js_key_event = self.build_key_event(cg_event_type, cg_event_ref)?;
+        let js_key_event = self.build_key_event(&event, cg_event_type)?;
         let result = invoke_event
             .call(
                 &JsValue::undefined(),
@@ -218,10 +217,11 @@ impl JS<'_> {
 
     fn build_key_event(
         &mut self,
+        event: &Event,
         cg_event_type: CGEventType,
-        cg_event_ref: CGEventRef,
     ) -> anyhow::Result<JsObject> {
         let key_event = JsObject::with_object_proto(self.context.intrinsics());
+
         fn set<K, V>(js: &mut JS<'_>, key_event: &JsObject, key: K, value: V) -> anyhow::Result<()>
         where
             K: Into<PropertyKey>,
@@ -233,22 +233,27 @@ impl JS<'_> {
             Ok(())
         }
 
-        unsafe {
+        set(
+            self,
+            &key_event,
+            js_string!("type"),
+            js_string!(event.event_type.as_str()),
+        )?;
+
+        set(
+            self,
+            &key_event,
+            js_string!("keycode"),
+            JsValue::from(event.keycode),
+        )?;
+
+        if cg_event_type == CGEventType_kCGEventFlagsChanged {
             set(
                 self,
                 &key_event,
-                js_string!("type"),
-                js_string!(event_type(cg_event_type)),
+                js_string!("flags"),
+                JsValue::from(event.flags),
             )?;
-
-            let code =
-                CGEventGetIntegerValueField(cg_event_ref, CGEventField_kCGKeyboardEventKeycode);
-            set(self, &key_event, js_string!("keycode"), JsValue::from(code))?;
-
-            if cg_event_type == CGEventType_kCGEventFlagsChanged {
-                let flags = CGEventGetFlags(cg_event_ref);
-                set(self, &key_event, js_string!("flags"), JsValue::from(flags))?;
-            }
         }
 
         Ok(key_event)
