@@ -23,7 +23,7 @@ const keyCodeMap = {
     123: "left_arrow",
     55: "meta_left",
     54: "meta_right",
-    36: "return",
+    // 36: "return",
     36: "enter",
     124: "right_arrow",
     56: "shift_left",
