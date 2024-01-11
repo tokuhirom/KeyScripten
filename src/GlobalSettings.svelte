@@ -1,14 +1,21 @@
 <script>
     import {invoke} from "@tauri-apps/api/tauri";
+    import {onMount} from "svelte";
 
     let config = {
-        logLevel: "info",
+        log_level: "info",
     };
 
+    onMount(async () => {
+        const c = await invoke("load_config");
+        c.log_level ||= "info";
+        config = c;
+    });
+
     async function handleChangeLogLevel() {
-        console.log(`You selected: ${config.logLevel}`);
+        console.log(`You selected: ${config.log_level}`);
         await invoke("update_log_level", {
-            log_level: config.logLevel,
+            logLevel: config.log_level,
         });
     }
 </script>
@@ -20,7 +27,7 @@
             <th>Log Level</th>
             <td>
                 <div>
-                    <select bind:value="{config.logLevel}" on:change={handleChangeLogLevel}>
+                    <select bind:value="{config.log_level}" on:change={handleChangeLogLevel}>
                         <option value="info">Info</option>
                         <option value="debug">Debug</option>
                     </select>

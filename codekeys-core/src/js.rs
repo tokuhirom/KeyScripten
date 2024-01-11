@@ -262,12 +262,12 @@ impl JS<'_> {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigSchemaList {
-    plugins: Vec<ConfigSchema>,
+    pub plugins: Vec<ConfigSchema>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigSchema {
-    id: String,
+    pub id: String,
     name: String,
     description: String,
     config: Vec<HashMap<String, String>>,

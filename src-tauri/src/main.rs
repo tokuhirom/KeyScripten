@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{fs, thread};
 
 use std::str::FromStr;
@@ -6,9 +7,9 @@ use std::sync::{mpsc, RwLock};
 use anyhow::anyhow;
 
 use chrono::Local;
-use codekeys_core::app_config::AppConfig;
+use codekeys_core::app_config::{AppConfig, PluginConfig};
 use codekeys_core::grab::{grab_run, grab_setup};
-use codekeys_core::js::{ConfigSchemaList, JS};
+use codekeys_core::js::{ConfigSchema, ConfigSchemaList, JS};
 use log::LevelFilter;
 use tauri::api::dialog;
 use tauri::{
@@ -27,15 +28,50 @@ fn get_config_schema() -> Result<ConfigSchemaList, String> {
 }
 
 #[tauri::command]
+fn get_config_schema_for_plugin(plugin_id: String) -> Result<ConfigSchema, String> {
+    let mut js = JS::new(None).map_err(|err| format!("{:?}", err))?;
+    let schema_list = js.get_config_schema().map_err(|err| format!("{:?}", err))?;
+    for plugin in schema_list.plugins {
+        if plugin.id == plugin_id {
+            return Ok(plugin);
+        }
+    }
+    Err(format!(
+        "Cannot load configuration schema for {}",
+        plugin_id
+    ))
+}
+
+#[tauri::command]
 fn load_config() -> Result<AppConfig, String> {
     AppConfig::load().map_err(|err| format!("{:?}", err))
 }
 
 #[tauri::command]
-fn save_config(config: AppConfig) -> Result<(), String> {
-    let result = config.save().map_err(|err| format!("{:?}", err));
-    set_log_level_by_config(&config);
-    result
+fn save_config_for_plugin(plugin_id: String, plugin_config: PluginConfig) -> Result<(), String> {
+    let mut config = AppConfig::load()
+        .map_err(|err| format!("An error occurred while loading configuration: {:?}", err))?;
+    config
+        .plugins
+        .get_or_insert(HashMap::new())
+        .insert(plugin_id.clone(), plugin_config);
+    config
+        .save()
+        .map_err(|err| format!("Cannot save configuration for {}: {:?}", plugin_id, err))?;
+    Ok(())
+}
+
+#[tauri::command]
+fn load_config_for_plugin(plugin_id: String) -> Result<PluginConfig, String> {
+    let config = AppConfig::load()
+        .map_err(|err| format!("An error occurred while loading configuration: {:?}", err))?;
+    match config.plugins {
+        Some(plugins) => match plugins.get(&plugin_id) {
+            Some(config) => Ok((*config).clone()),
+            None => Ok(PluginConfig::default()),
+        },
+        None => Ok(PluginConfig::default()),
+    }
 }
 
 #[tauri::command]
@@ -184,7 +220,9 @@ fn main() -> anyhow::Result<()> {
         .invoke_handler(tauri::generate_handler![
             get_config_schema,
             load_config,
-            save_config,
+            save_config_for_plugin,
+            load_config_for_plugin,
+            get_config_schema_for_plugin,
             update_log_level,
         ])
         .build(tauri::generate_context!())

@@ -14,7 +14,7 @@ pub struct AppConfig {
     pub log_level: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PluginConfig {
     pub enabled: bool,
     pub config: Option<HashMap<String, String>>,
@@ -24,7 +24,7 @@ impl Default for PluginConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            config: None,
+            config: Some(HashMap::new()),
         }
     }
 }

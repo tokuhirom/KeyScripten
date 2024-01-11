@@ -1,119 +1,58 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri"
-    import { appWindow } from '@tauri-apps/api/window';
-    import { emit } from '@tauri-apps/api/event'
     import {onMount} from "svelte";
-    import Settings from "./Settings.svelte";
+    import Settings from "./GlobalSettings.svelte";
+    import PluginSettings from "./PluginSettings.svelte";
+    import MenuList from "./MenuList.svelte";
 
-    let config = {
-        log_level: "info",
-        plugins: []
-    };
     let config_schema = {
         plugins: []
     };
+    let pane = "settings";
 
     onMount(async () => {
-        const cs = await invoke("get_config_schema");
-        const c = await invoke("load_config");
-        c.log_level ||= "info";
-        c.plugins ||= [];
-
-        cs.plugins.forEach(plugin => {
-            c.plugins[plugin.id] ||= {};
-            c.plugins[plugin.id].config ||= {};
-            if (!("enabled" in c.plugins[plugin.id])) {
-                c.plugins[plugin.id].enabled = true;
-            }
-            c.plugins[plugin.id].config ||= {};
-            for (let config_schema of plugin.config) {
-                if (!(config_schema.name in c.plugins[plugin.id].config)) {
-                    c.plugins[plugin.id].config[config_schema.name] = config_schema.default;
-                }
-            }
-
-            console.log(plugin);
-        })
-        console.log(`config=${JSON.stringify(c)}`);
-
-        config = c;
-        config_schema = cs;
+        config_schema = await invoke("get_config_schema");
     });
 
-    async function handleSubmit() {
-        await invoke("save_config", {config});
-        await emit('update-config', "hello from front");
-
-        try {
-            await appWindow.close();
-        } catch (error) {
-            console.error('Error closing window:', error);
-        }
+    /**
+     * @param {string} pane_
+     */
+    function onPaneChange(pane_) {
+        pane = pane_;
     }
 </script>
 
-<main class="container">
-    <h1>Configuration for CodeKeys</h1>
+<div>
+    <div class="container">
+        <div class="menu">
+            <MenuList pane={pane} plugins={config_schema.plugins} onPaneChange={onPaneChange} />
+        </div>
 
-    <form on:submit={handleSubmit}>
-        <Settings />
-
-        <h2>Plugin specific configuration</h2>
-        {#each config_schema.plugins as schema}
-            <div class="plugin-config">
-                <h3>{schema.name}(<span class="id">{schema.id}</span>)</h3>
-                <div class="description">{schema.description}</div>
-                <div>
-                    <label>
-                        Enabled:
-                        <input type="checkbox" bind:checked={config.plugins[schema.id].enabled}>
-                    </label>
-                </div>
-                {config.plugins[schema.id].enabled}
-                {#if config.plugins[schema.id].enabled}
-                    <table>
-                        {#each schema.config as schema_config}
-                            <tr class="config">
-                                <th>{schema_config.name}<br>(<span class="type">{schema_config.type}</span>)</th>
-                                <td>
-                                <input type="text" bind:value={config.plugins[schema.id].config[schema_config.name]}>
-                                    <div class="description">{schema_config.description}</div>
-                                    <div class="default">Default: {schema_config.default}</div>
-                                </td>
-                            </tr>
-                        {/each}
-                    </table>
-                {/if}
-            </div>
-        {/each}
-
-        <button type="submit">Save configuration</button>
-    </form>
-</main>
+        <div class="content">
+            {#if pane==="settings"}
+                <Settings />
+            {:else if pane.startsWith("plugin:")}
+                <PluginSettings pluginId={pane.replace("plugin:", "")} />
+            {/if}
+        </div>
+    </div>
+</div>
 
 <style>
     h2, h3 {
         text-align: left;
     }
 
-    .plugin-config {
-        margin-left: 17px;
+    .container {
+        display: flex;
     }
-    .plugin-config .id {
-        color: cadetblue;
+
+    .menu {
+        width: 190px;
     }
-    .plugin-config .description {
-        text-align: left;
-        color: darkgray;
-        font-size: 80%;
-    }
-    .plugin-config table {
-        margin-left: 8px;
-    }
-    .plugin-config tr .type {
-        color: #24c8db;
-    }
-    .plugin-config tr .default {
-        color: #24c8db;
+
+    .content {
+        margin-left: 10px;
+        flex-grow: 1;
     }
 </style>
