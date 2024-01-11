@@ -24,14 +24,14 @@ use crate::js_keycode::build_keycode;
 
 pub struct JS<'a> {
     context: Context<'a>,
-    rx: Option<Receiver<bool>>,
+    config_reload_rx: Option<Receiver<bool>>,
 }
 
 impl JS<'_> {
     pub fn new(rx: Option<Receiver<bool>>) -> anyhow::Result<Self> {
         let context = Context::default();
 
-        let mut js = JS { context, rx };
+        let mut js = JS { context, config_reload_rx: rx };
         js.init_console()?;
         js.init_hotkey()?;
         js.init_keycode()?;
@@ -172,7 +172,7 @@ impl JS<'_> {
     }
 
     fn needs_config_reload(&mut self) -> bool {
-        match &self.rx {
+        match &self.config_reload_rx {
             Some(rx) => match rx.try_recv() {
                 Ok(_) => true,
                 Err(err) => {

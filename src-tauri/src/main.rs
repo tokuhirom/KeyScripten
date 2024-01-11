@@ -138,12 +138,12 @@ fn main() -> anyhow::Result<()> {
     let app_config = AppConfig::load()?;
     set_log_level_by_config(&app_config);
 
-    let (tx, rx) = mpsc::channel::<bool>();
+    let (config_reload_tx, config_reload_rx) = mpsc::channel::<bool>();
     let (setup_tx, setup_rx) = mpsc::channel::<anyhow::Result<()>>();
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
-        let js = JS::new(Some(rx)).expect("Cannot create JS instance");
+        let js = JS::new(Some(config_reload_rx)).expect("Cannot create JS instance");
 
         let result = grab_setup(js);
         if let Err(err) = &result {
@@ -171,7 +171,7 @@ fn main() -> anyhow::Result<()> {
         .setup(move |app| {
             app.listen_global("update-config", move |event| {
                 log::info!("update-config: {:?}", event);
-                tx.send(true).expect("Send message");
+                config_reload_tx.send(true).expect("Send message");
             });
 
             log::info!("Waiting CGEventTapCreate");
