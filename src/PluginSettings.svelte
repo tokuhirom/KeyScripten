@@ -64,6 +64,14 @@
         border-top: 1px solid white;
         border-bottom: 1px solid white;
     }
+    table, th, td {
+        border: 1px solid white;
+        padding: 4px;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
 
     th {
         text-align: left;

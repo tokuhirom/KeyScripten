@@ -1,5 +1,5 @@
 pub mod app_config;
-mod event;
+pub mod event;
 pub mod grab;
 mod hotkey;
 pub mod js;

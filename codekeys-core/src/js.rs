@@ -5,16 +5,17 @@ use apple_sys::CoreGraphics::{
     CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown, CGEventType_kCGEventKeyUp,
 };
 use boa_engine::{js_string, Context, JsObject, JsValue, NativeFunction, Source};
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fmt::Debug;
 use std::sync::mpsc::{Receiver, TryRecvError};
+use std::sync::{Arc, RwLock};
 
 use boa_engine::native_function::NativeFunctionPointer;
 use boa_engine::object::builtins::JsFunction;
 use boa_engine::property::{Attribute, PropertyKey};
 use boa_engine::value::TryFromJs;
 
-use crate::event::event_type;
+use crate::event::{event_type, Event};
 use boa_runtime::Console;
 use serde::{Deserialize, Serialize};
 
@@ -25,13 +26,21 @@ use crate::js_keycode::build_keycode;
 pub struct JS<'a> {
     context: Context<'a>,
     config_reload_rx: Option<Receiver<bool>>,
+    monitoring_queue: Option<Arc<RwLock<VecDeque<Event>>>>,
 }
 
 impl JS<'_> {
-    pub fn new(rx: Option<Receiver<bool>>) -> anyhow::Result<Self> {
+    pub fn new(
+        config_reload_rx: Option<Receiver<bool>>,
+        monitoring_queue: Option<Arc<RwLock<VecDeque<Event>>>>,
+    ) -> anyhow::Result<Self> {
         let context = Context::default();
 
-        let mut js = JS { context, config_reload_rx: rx };
+        let mut js = JS {
+            context,
+            config_reload_rx,
+            monitoring_queue,
+        };
         js.init_console()?;
         js.init_hotkey()?;
         js.init_keycode()?;
@@ -156,12 +165,28 @@ impl JS<'_> {
 
         let needs_config_reload = self.needs_config_reload();
 
-        let key_event = self.build_key_event(cg_event_type, cg_event_ref)?;
+        let event = Event::from_cf(cg_event_type, cg_event_ref);
+        if let Some(queue) = &self.monitoring_queue {
+            match queue.write() {
+                Ok(mut queue) => {
+                    queue.push_back(event);
+                    if queue.len() > 40 {
+                        queue.pop_front();
+                    }
+                }
+                Err(err) => {
+                    log::error!("Cannot get lock for monitoring: {:?}", err)
+                }
+            }
+        }
+
+        // todo: use event object in build_key_event.
+        let js_key_event = self.build_key_event(cg_event_type, cg_event_ref)?;
         let result = invoke_event
             .call(
                 &JsValue::undefined(),
                 &[
-                    JsValue::from(key_event),
+                    JsValue::from(js_key_event),
                     JsValue::Boolean(needs_config_reload),
                 ],
                 &mut self.context,

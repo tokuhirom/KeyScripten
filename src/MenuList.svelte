@@ -3,6 +3,10 @@
     export let plugins;
     export let onPaneChange;
 
+    function showKeyEvents() {
+        pane = "keyEvents";
+        onPaneChange(pane);
+    }
     function showSettings() {
         pane = "settings";
         onPaneChange(pane);
@@ -20,6 +24,8 @@
 
 <div class="sidebar">
     <menu>
+        <li><button class:selected="{pane === 'keyEvents'}"
+                    on:click={showKeyEvents}>Key Events</button></li>
         <li><button class:selected="{pane === 'settings'}"
                     on:click={showSettings}>Settings</button></li>
         {#each plugins as plugin}

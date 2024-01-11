@@ -32,6 +32,7 @@ confy = "0.5.1"
 dirs = "5.0.1"
 
 codekeys-core = {path = "../codekeys-core" }
+lazy_static = { version = "1.4.0", features = [] }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

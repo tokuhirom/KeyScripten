@@ -1,15 +1,17 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::{fs, thread};
 
 use std::str::FromStr;
-use std::sync::{mpsc, RwLock};
+use std::sync::{mpsc, Arc, RwLock};
 
 use anyhow::anyhow;
 
 use chrono::Local;
 use codekeys_core::app_config::{AppConfig, PluginConfig};
+use codekeys_core::event::Event;
 use codekeys_core::grab::{grab_run, grab_setup};
 use codekeys_core::js::{ConfigSchema, ConfigSchemaList, JS};
+use lazy_static::lazy_static;
 use log::LevelFilter;
 use tauri::api::dialog;
 use tauri::{
@@ -21,15 +23,19 @@ const APP_NAME: &str = "codekeys";
 
 static mut LOG_LEVEL: RwLock<LevelFilter> = RwLock::new(LevelFilter::Info);
 
+lazy_static! {
+    static ref VEC_DEQUE: Arc<RwLock<VecDeque<Event>>> = Arc::new(RwLock::new(VecDeque::new()));
+}
+
 #[tauri::command]
 fn get_config_schema() -> Result<ConfigSchemaList, String> {
-    let mut js = JS::new(None).map_err(|err| format!("{:?}", err))?;
+    let mut js = JS::new(None, None).map_err(|err| format!("{:?}", err))?;
     js.get_config_schema().map_err(|err| format!("{:?}", err))
 }
 
 #[tauri::command]
 fn get_config_schema_for_plugin(plugin_id: String) -> Result<ConfigSchema, String> {
-    let mut js = JS::new(None).map_err(|err| format!("{:?}", err))?;
+    let mut js = JS::new(None, None).map_err(|err| format!("{:?}", err))?;
     let schema_list = js.get_config_schema().map_err(|err| format!("{:?}", err))?;
     for plugin in schema_list.plugins {
         if plugin.id == plugin_id {
@@ -82,6 +88,14 @@ fn update_log_level(log_level: String) -> Result<(), String> {
     config.save().map_err(|err| format!("{:?}", err))?;
     set_log_level_by_config(&config);
     Ok(())
+}
+
+#[tauri::command]
+fn get_event_log() -> Result<Vec<Event>, String> {
+    let result = VEC_DEQUE
+        .read()
+        .map_err(|err| format!("An error occurred while getting lock: {:?}", err))?;
+    Ok(result.iter().cloned().collect())
 }
 
 fn set_log_level_by_config(app_config: &AppConfig) {
@@ -143,7 +157,8 @@ fn main() -> anyhow::Result<()> {
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
-        let js = JS::new(Some(config_reload_rx)).expect("Cannot create JS instance");
+        let js = JS::new(Some(config_reload_rx), Some(Arc::clone(&VEC_DEQUE)))
+            .expect("Cannot create JS instance");
 
         let result = grab_setup(js);
         if let Err(err) = &result {
@@ -224,6 +239,7 @@ fn main() -> anyhow::Result<()> {
             load_config_for_plugin,
             get_config_schema_for_plugin,
             update_log_level,
+            get_event_log,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

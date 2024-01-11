@@ -4,6 +4,7 @@
     import Settings from "./GlobalSettings.svelte";
     import PluginSettings from "./PluginSettings.svelte";
     import MenuList from "./MenuList.svelte";
+    import EventLog from "./EventLog.svelte";
 
     let config_schema = {
         plugins: []
@@ -33,6 +34,8 @@
                 <Settings />
             {:else if pane.startsWith("plugin:")}
                 <PluginSettings pluginId={pane.replace("plugin:", "")} />
+            {:else if pane === "keyEvents"}
+                <EventLog />
             {/if}
         </div>
     </div>
