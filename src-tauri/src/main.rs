@@ -38,6 +38,16 @@ fn save_config(config: AppConfig) -> Result<(), String> {
     result
 }
 
+#[tauri::command]
+fn update_log_level(log_level: String) -> Result<(), String> {
+    let mut config = AppConfig::load()
+        .map_err(|err| format!("An error occurred while loading configuration: {:?}", err))?;
+    config.log_level = log_level;
+    config.save().map_err(|err| format!("{:?}", err))?;
+    set_log_level_by_config(&config);
+    Ok(())
+}
+
 fn set_log_level_by_config(app_config: &AppConfig) {
     let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
         Ok(level) => level,
@@ -175,6 +185,7 @@ fn main() -> anyhow::Result<()> {
             get_config_schema,
             load_config,
             save_config,
+            update_log_level,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

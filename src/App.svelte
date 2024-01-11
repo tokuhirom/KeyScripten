@@ -3,6 +3,7 @@
     import { appWindow } from '@tauri-apps/api/window';
     import { emit } from '@tauri-apps/api/event'
     import {onMount} from "svelte";
+    import Settings from "./Settings.svelte";
 
     let config = {
         log_level: "info",
@@ -39,10 +40,6 @@
         config_schema = cs;
     });
 
-    function handleChangeLogLevel() {
-        console.log(`You selected: ${config.log_level}`);
-    }
-
     async function handleSubmit() {
         await invoke("save_config", {config});
         await emit('update-config', "hello from front");
@@ -59,22 +56,7 @@
     <h1>Configuration for CodeKeys</h1>
 
     <form on:submit={handleSubmit}>
-        <h2>Global configuration</h2>
-        <table>
-            <tr>
-                <th>Log Level</th>
-                <td>
-                    <div>
-                        <select bind:value="{config.log_level}" on:change={handleChangeLogLevel}>
-                            <option value="info">Info</option>
-                            <option value="debug">Debug</option>
-                        </select>
-                    </div>
-                    If you set the log level to debug or lower, the log file may contain your personal information
-                    and/or credential info. Take carefully.
-                </td>
-            </tr>
-        </table>
+        <Settings />
 
         <h2>Plugin specific configuration</h2>
         {#each config_schema.plugins as schema}
