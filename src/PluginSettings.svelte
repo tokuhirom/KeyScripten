@@ -16,6 +16,12 @@
         console.log(pluginId);
         configSchema = await invoke("get_config_schema_for_plugin", {pluginId});
         pluginConfig = await invoke("load_config_for_plugin", {pluginId});
+        for (const option of configSchema.config) {
+            if (!(option.name in pluginConfig.config)) {
+                pluginConfig.config[option.name] = option.default;
+            }
+            console.log(pluginConfig)
+        }
     });
 
     async function onChange() {

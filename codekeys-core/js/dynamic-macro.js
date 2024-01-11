@@ -76,7 +76,7 @@ function checkRepeat(buffer) {
 }
 
 registerPlugin(
-    "com.github.tokuhirom.codekeys.dynamicmacro",
+    "builtin.dynamicmacro",
     "Dynamic Macro",
     `This plugin provides a dynamic macro generation feature, learning from the user's repetitive
     actions and automatically defining and executing them as macros. After a user repeatedly
