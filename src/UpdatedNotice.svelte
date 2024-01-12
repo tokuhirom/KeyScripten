@@ -6,8 +6,6 @@
 
     // メッセージが更新されたときにトリガーされる
     $: if (message) {
-        console.log("message changed");
-        console.log(showMessage);
         showMessage = true;
         setTimeout(() => {
             console.log("hide message");
