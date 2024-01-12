@@ -1,9 +1,10 @@
 <script>
     import {invoke} from "@tauri-apps/api/tauri";
-    import {onMount} from "svelte";
+    import {afterUpdate, beforeUpdate, onMount} from "svelte";
     import {emit} from "@tauri-apps/api/event";
 
     export let pluginId
+    let prevPluginId;
 
     let pluginConfig = {
         enabled: false,
@@ -12,8 +13,14 @@
     let configSchema = {
     };
 
-    onMount(async () => {
-        console.log(pluginId);
+    async function reload() {
+        if (pluginId === prevPluginId && !!prevPluginId) {
+            console.log(`No pluginId modification: ${pluginId}, ${prevPluginId}`)
+            return;
+        }
+
+        prevPluginId = pluginId;
+
         configSchema = await invoke("get_config_schema_for_plugin", {pluginId});
         pluginConfig = await invoke("load_config_for_plugin", {pluginId});
         for (const option of configSchema.config) {
@@ -22,6 +29,15 @@
             }
             console.log(pluginConfig)
         }
+    }
+
+    onMount(async () => {
+        console.log(pluginId);
+        await reload();
+    });
+
+    afterUpdate(async () => {
+        await reload();
     });
 
     async function onChange() {

@@ -28,15 +28,24 @@ lazy_static! {
     static ref VEC_DEQUE: Arc<RwLock<VecDeque<Event>>> = Arc::new(RwLock::new(VecDeque::new()));
 }
 
+fn build_js<'a>() -> Result<JS<'a>, String> {
+    let plugins = Plugins::new().map_err(|err| format!("Plugins::new: {:?}", err))?;
+    let mut js = JS::new(None, None, None, Some(plugins)).map_err(|err| format!("{:?}", err))?;
+    js.load_user_scripts()
+        .map_err(|err| format!("load_user_scripts: {:?}", err))?;
+    Ok(js)
+}
+
 #[tauri::command]
 fn get_config_schema() -> Result<ConfigSchemaList, String> {
-    let mut js = JS::new(None, None, None, None).map_err(|err| format!("{:?}", err))?;
-    js.get_config_schema().map_err(|err| format!("{:?}", err))
+    let mut js = build_js()?;
+    js.get_config_schema()
+        .map_err(|err| format!("get_config_schema: {:?}", err))
 }
 
 #[tauri::command]
 fn get_config_schema_for_plugin(plugin_id: String) -> Result<ConfigSchema, String> {
-    let mut js = JS::new(None, None, None, None).map_err(|err| format!("{:?}", err))?;
+    let mut js = build_js()?;
     let schema_list = js.get_config_schema().map_err(|err| format!("{:?}", err))?;
     for plugin in schema_list.plugins {
         if plugin.id == plugin_id {
