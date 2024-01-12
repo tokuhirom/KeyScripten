@@ -1,8 +1,8 @@
+use crate::APP_NAME;
 use anyhow::anyhow;
+use serde_json::json;
 use std::fs;
 use std::path::Path;
-use serde_json::json;
-use crate::APP_NAME;
 
 #[derive(Debug)]
 pub struct PluginSnippet {
@@ -65,7 +65,9 @@ impl Plugins {
         []
     )
     "#,
-            json!(plugin_id).to_string(), json!(name).to_string(), json!(description).to_string(),
+            json!(plugin_id).to_string(),
+            json!(name).to_string(),
+            json!(description).to_string(),
             "{\n}"
         );
         self.write(plugin_id, content)
@@ -78,7 +80,7 @@ impl Plugins {
                 .map_err(|err| anyhow!("Cannot create plugins directory: {:?}", err))?;
         }
         let pluginpath = plugins.join(format!("{}.js", plugin_id));
-        log::info!("Writing new plugin: {:?}", pluginpath);
+        log::info!("Writing plugin: {:?}", pluginpath);
         fs::write(pluginpath.as_path(), content).map_err(|err| {
             anyhow!(
                 "Cannot write new plugin: path={:?}, err={:?}",
@@ -92,16 +94,13 @@ impl Plugins {
     pub fn load(&self, plugin_id: String) -> anyhow::Result<PluginSnippet> {
         let plugins = Path::new(&self.basedir);
         if !plugins.exists() {
-            return Err(anyhow!("Missing plugin: {:?}", plugin_id))
+            return Err(anyhow!("Missing plugin: {:?}", plugin_id));
         }
 
         let pluginpath = plugins.join(format!("{}.js", plugin_id));
         log::info!("Reading plugin: {:?}", pluginpath);
         let src = fs::read_to_string(pluginpath.as_path())?;
-        Ok(PluginSnippet {
-            plugin_id,
-            src
-        })
+        Ok(PluginSnippet { plugin_id, src })
     }
 
     pub fn load_user_scripts(&self) -> anyhow::Result<Vec<PluginSnippet>> {
@@ -120,9 +119,7 @@ impl Plugins {
                 }
                 Ok(results)
             }
-            Err(err) => {
-                Err(anyhow!("Cannot get plugin list: {:?}", err))
-            }
+            Err(err) => Err(anyhow!("Cannot get plugin list: {:?}", err)),
         }
     }
 }
@@ -196,11 +193,7 @@ mod tests {
         assert_eq!(plugin_ids, vec!["plugin_one", "plugin_two"]);
 
         // Check that both plugin files exist
-        assert!(temp_path
-            .join("plugin_one.js")
-            .exists());
-        assert!(temp_path
-            .join("plugin_two.js")
-            .exists());
+        assert!(temp_path.join("plugin_one.js").exists());
+        assert!(temp_path.join("plugin_two.js").exists());
     }
 }

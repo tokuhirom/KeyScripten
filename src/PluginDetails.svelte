@@ -3,6 +3,7 @@
     import {afterUpdate, onMount} from "svelte";
     import {emit} from "@tauri-apps/api/event";
     import PluginSettings from "./PluginSettings.svelte";
+    import EditPluginCode from "./EditPluginCode.svelte";
 
     export let pluginId
     let prevPluginId;
@@ -15,6 +16,7 @@
     };
     let configSchema = {
         id: undefined,
+        config: [],
     };
 
     async function reload() {
@@ -76,7 +78,7 @@
     {#if tab === "settings"}
         <PluginSettings configSchema={configSchema} pluginId={pluginId} />
     {:else}
-        TODO: Editing
+        <EditPluginCode pluginId={pluginId} />
     {/if}
     </div>
 </div>

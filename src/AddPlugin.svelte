@@ -9,6 +9,7 @@
         await invoke("add_plugin", {
             pluginId, name, description
         });
+        await invoke("reload-plugins");
         return false;
     }
 </script>

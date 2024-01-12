@@ -124,6 +124,25 @@ fn list_plugins() -> Result<Vec<String>, String> {
         .map_err(|err| format!("Cannot add plugin: {:?}", err))
 }
 
+#[tauri::command]
+fn read_plugin_code(plugin_id: String) -> Result<String, String> {
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    let plugin_snippet = plugins
+        .load(plugin_id)
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    Ok(plugin_snippet.src)
+}
+
+#[tauri::command]
+fn write_plugin_code(plugin_id: String, code: String) -> Result<(), String> {
+    log::info!("tauri::command: write_plugin_code: {}", plugin_id);
+
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    plugins
+        .write(plugin_id, code)
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+}
+
 fn set_log_level_by_config(app_config: &AppConfig) {
     let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
         Ok(level) => level,
@@ -257,15 +276,24 @@ fn main() -> anyhow::Result<()> {
                     }
                     "configuration" => {
                         log::info!("Got configuration event");
-                        if let Err(err) = WindowBuilder::new(
+                        let window_label = "config-window".to_string();
+                        if let Some(window) = app.get_window(&window_label) {
+                            // If it exists, focus the existing window
+                            if let Err(err) = window.show() {
+                                log::error!("Cannot show configuration window: {:?}", err);
+                            }
+                            if let Err(err) = window.set_focus() {
+                                log::error!("Cannot focus on existing configuration window: {:?}", err);
+                            }
+                        } else if let Err(err) = WindowBuilder::new(
                             app,
                             "config-window".to_string(),
                             tauri::WindowUrl::App("index.html".into()),
                         )
-                        .build()
+                            .build()
                         {
                             log::error!("Cannot open configuration window: {:?}", err);
-                        };
+                        }
                     }
                     _ => {}
                 },
@@ -282,6 +310,8 @@ fn main() -> anyhow::Result<()> {
             get_event_log,
             add_plugin,
             list_plugins,
+            read_plugin_code,
+            write_plugin_code,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

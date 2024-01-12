@@ -3,8 +3,10 @@
     import {afterUpdate, onMount} from "svelte";
     import {emit} from "@tauri-apps/api/event";
 
-    export let pluginId
-    export let configSchema;
+    export let pluginId;
+    export let configSchema = {
+        config: []
+    };
     let prevPluginId;
 
     let pluginConfig = {
