@@ -107,6 +107,14 @@ fn add_plugin(plugin_id: String, name: String, description: String) -> Result<()
         .map_err(|err| format!("Cannot add plugin: {:?}", err))
 }
 
+#[tauri::command]
+fn list_plugins() -> Result<Vec<String>, String> {
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    plugins
+        .list()
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+}
+
 fn set_log_level_by_config(app_config: &AppConfig) {
     let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
         Ok(level) => level,
@@ -250,6 +258,7 @@ fn main() -> anyhow::Result<()> {
             update_log_level,
             get_event_log,
             add_plugin,
+            list_plugins,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
