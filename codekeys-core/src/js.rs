@@ -309,12 +309,9 @@ mod tests {
 
     #[test]
     fn test_get_config_schema() -> anyhow::Result<()> {
-        let mut js = JS::new(None)?;
+        let mut js = JS::new(None, None)?;
         let schema = js.get_config_schema()?;
-        assert_eq!(
-            schema.plugins.first().unwrap().id,
-            "com.github.tokuhirom.codekeys.dynamicmacro"
-        );
+        assert_eq!(schema.plugins.first().unwrap().id, "builtin.dynamicmacro");
         assert_eq!(schema.plugins.first().unwrap().name, "Dynamic Macro");
         log::info!("schema={:?}", schema);
         Ok(())
@@ -322,7 +319,7 @@ mod tests {
 
     #[test]
     fn test_eval() -> anyhow::Result<()> {
-        let mut js = JS::new(None)?;
+        let mut js = JS::new(None, None)?;
         let value = js.eval("3+4".to_string())?;
         let got = value.to_u32(&mut js.context).unwrap();
         assert_eq!(got, 7);

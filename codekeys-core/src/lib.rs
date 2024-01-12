@@ -8,5 +8,6 @@ mod js_hotkey;
 mod js_keycode;
 mod keycode;
 mod send;
+pub mod plugin;
 
 const APP_NAME: &str = "codekeys";

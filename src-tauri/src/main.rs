@@ -98,6 +98,12 @@ fn get_event_log() -> Result<Vec<Event>, String> {
     Ok(result.iter().cloned().collect())
 }
 
+#[tauri::command]
+fn add_plugin(name: String, plugin_id: String, description: String) -> Result<(), String> {
+    codekeys_core::plugin::add_plugin(name, plugin_id, description)
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+}
+
 fn set_log_level_by_config(app_config: &AppConfig) {
     let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
         Ok(level) => level,
@@ -240,6 +246,7 @@ fn main() -> anyhow::Result<()> {
             get_config_schema_for_plugin,
             update_log_level,
             get_event_log,
+            add_plugin,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
