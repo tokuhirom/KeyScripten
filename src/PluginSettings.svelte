@@ -4,13 +4,12 @@
     import {emit} from "@tauri-apps/api/event";
 
     export let pluginId
+    export let configSchema;
     let prevPluginId;
 
     let pluginConfig = {
         enabled: false,
         config: {},
-    };
-    let configSchema = {
     };
 
     async function reload() {
@@ -21,7 +20,6 @@
 
         prevPluginId = pluginId;
 
-        configSchema = await invoke("get_config_schema_for_plugin", {pluginId});
         pluginConfig = await invoke("load_config_for_plugin", {pluginId});
         for (const option of configSchema.config) {
             if (!(option.name in pluginConfig.config)) {
@@ -50,9 +48,6 @@
 </script>
 
 <div class="plugin-config">
-    <h2>{configSchema.name}</h2>
-    <div class="plugin-id">(<span class="id">{configSchema.id}</span>)</div>
-    <div class="description">{configSchema.description}</div>
     <div class="enabled">
         <label>
             Enabled:
@@ -94,12 +89,6 @@
 </div>
 
 <style>
-    .plugin-config > .description {
-        margin-bottom: 8px;
-        padding: 9px;
-        background-color: darkslategray;
-    }
-
     table.plugin-config-detail {
         border-collapse: collapse;
         border-radius: 8px;
@@ -111,10 +100,6 @@
 
     th {
         text-align: left;
-    }
-
-    .plugin-id {
-        color: darkgrey;
     }
 
     .hotkey-note {

@@ -2,10 +2,10 @@
     import { invoke } from "@tauri-apps/api/tauri"
     import {onMount} from "svelte";
     import Settings from "./GlobalSettings.svelte";
-    import PluginSettings from "./PluginSettings.svelte";
     import MenuList from "./MenuList.svelte";
     import EventLog from "./EventLog.svelte";
     import AddPlugin from "./AddPlugin.svelte";
+    import PluginDetails from "./PluginDetails.svelte";
 
     let config_schema = {
         plugins: []
@@ -34,7 +34,7 @@
             {#if pane==="settings"}
                 <Settings />
             {:else if pane.startsWith("plugin:")}
-                <PluginSettings pluginId={pane.replace("plugin:", "")} />
+                <PluginDetails pluginId={pane.replace("plugin:", "")} />
             {:else if pane === "keyEvents"}
                 <EventLog />
             {:else if pane === "addPlugin"}
