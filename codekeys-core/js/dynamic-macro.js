@@ -111,7 +111,7 @@ registerPlugin(
             "name": "hotkey",
             "type": "hotkey",
             "default": "C-t",
-            "description": "Repeat key",
+            "description": "Key sequence for repeating.",
         },
         {
             "name": "buffer_size",
