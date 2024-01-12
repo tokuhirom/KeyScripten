@@ -27,10 +27,10 @@
     });
 
     function formatEpochToHHMMSS(epochSeconds) {
-        let date = new Date(epochSeconds * 1000); // JavaScriptのDateオブジェクトはミリ秒を扱うため、秒をミリ秒に変換
-        let hours = date.getUTCHours().toString().padStart(2, '0');
-        let minutes = date.getUTCMinutes().toString().padStart(2, '0');
-        let seconds = date.getUTCSeconds().toString().padStart(2, '0');
+        let date = new Date(epochSeconds * 1000);
+        let hours = date.getHours().toString().padStart(2, '0');
+        let minutes = date.getMinutes().toString().padStart(2, '0');
+        let seconds = date.getSeconds().toString().padStart(2, '0');
 
         return `${hours}:${minutes}:${seconds}`;
     }
