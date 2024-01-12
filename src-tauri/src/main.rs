@@ -11,6 +11,7 @@ use codekeys_core::app_config::{AppConfig, PluginConfig};
 use codekeys_core::event::Event;
 use codekeys_core::grab::{grab_run, grab_setup};
 use codekeys_core::js::{ConfigSchema, ConfigSchemaList, JS};
+use codekeys_core::plugin::Plugins;
 use lazy_static::lazy_static;
 use log::LevelFilter;
 use tauri::api::dialog;
@@ -99,8 +100,10 @@ fn get_event_log() -> Result<Vec<Event>, String> {
 }
 
 #[tauri::command]
-fn add_plugin(name: String, plugin_id: String, description: String) -> Result<(), String> {
-    codekeys_core::plugin::add_plugin(name, plugin_id, description)
+fn add_plugin(plugin_id: String, name: String, description: String) -> Result<(), String> {
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    plugins
+        .add(plugin_id, name, description)
         .map_err(|err| format!("Cannot add plugin: {:?}", err))
 }
 

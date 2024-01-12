@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use std::fs;
 use std::path::Path;
 
-struct Plugins {
+pub struct Plugins {
     basedir: String,
 }
 impl Plugins {
