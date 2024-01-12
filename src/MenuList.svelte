@@ -18,7 +18,8 @@
     }
 
     function addPlugin() {
-        alert("Not implemented yet.");
+        pane = "addPlugin";
+        onPaneChange(pane);
     }
 </script>
 
@@ -32,11 +33,9 @@
             <li><button class:selected="{pane === 'plugin:' + plugin.id}" on:click={() => showPluginPane(plugin.id)}>{plugin.name}</button></li>
         {/each}
     </menu>
-    <!--
     <div class="add-plugin">
-        <button on:click={addPlugin}>Add plugin</button>
+        <button class:selected="{pane === 'addPlugin'}" on:click={addPlugin}>Add plugin</button>
     </div>
-    -->
 </div>
 
 <style>

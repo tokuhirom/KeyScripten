@@ -5,6 +5,7 @@
     import PluginSettings from "./PluginSettings.svelte";
     import MenuList from "./MenuList.svelte";
     import EventLog from "./EventLog.svelte";
+    import AddPlugin from "./AddPlugin.svelte";
 
     let config_schema = {
         plugins: []
@@ -36,16 +37,16 @@
                 <PluginSettings pluginId={pane.replace("plugin:", "")} />
             {:else if pane === "keyEvents"}
                 <EventLog />
+            {:else if pane === "addPlugin"}
+                <AddPlugin />
+            {:else}
+                Unknown pane: {pane}
             {/if}
         </div>
     </div>
 </div>
 
 <style>
-    h2, h3 {
-        text-align: left;
-    }
-
     .container {
         display: flex;
     }

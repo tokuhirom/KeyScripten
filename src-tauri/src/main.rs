@@ -30,13 +30,13 @@ lazy_static! {
 
 #[tauri::command]
 fn get_config_schema() -> Result<ConfigSchemaList, String> {
-    let mut js = JS::new(None, None).map_err(|err| format!("{:?}", err))?;
+    let mut js = JS::new(None, None, None, None).map_err(|err| format!("{:?}", err))?;
     js.get_config_schema().map_err(|err| format!("{:?}", err))
 }
 
 #[tauri::command]
 fn get_config_schema_for_plugin(plugin_id: String) -> Result<ConfigSchema, String> {
-    let mut js = JS::new(None, None).map_err(|err| format!("{:?}", err))?;
+    let mut js = JS::new(None, None, None, None).map_err(|err| format!("{:?}", err))?;
     let schema_list = js.get_config_schema().map_err(|err| format!("{:?}", err))?;
     for plugin in schema_list.plugins {
         if plugin.id == plugin_id {
@@ -170,14 +170,20 @@ fn main() -> anyhow::Result<()> {
     set_log_level_by_config(&app_config);
 
     let (config_reload_tx, config_reload_rx) = mpsc::channel::<bool>();
+    let (plugin_reload_tx, plugin_reload_rx) = mpsc::channel::<bool>();
     let (setup_tx, setup_rx) = mpsc::channel::<anyhow::Result<()>>();
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
         let plugins = Plugins::new().expect("Cannot load plugins");
-        let mut js = JS::new(Some(config_reload_rx), Some(Arc::clone(&VEC_DEQUE)))
-            .expect("Cannot create JS instance");
-        if let Err(err) = js.load_user_scripts(plugins) {
+        let mut js = JS::new(
+            Some(config_reload_rx),
+            Some(plugin_reload_rx),
+            Some(Arc::clone(&VEC_DEQUE)),
+            Some(plugins),
+        )
+        .expect("Cannot create JS instance");
+        if let Err(err) = js.load_user_scripts() {
             log::error!("Cannot load plugin: {:?}", err);
         }
 
@@ -208,6 +214,10 @@ fn main() -> anyhow::Result<()> {
             app.listen_global("update-config", move |event| {
                 log::info!("update-config: {:?}", event);
                 config_reload_tx.send(true).expect("Send message");
+            });
+            app.listen_global("reload-plugins", move |event| {
+                log::info!("reload-plugins: {:?}", event);
+                plugin_reload_tx.send(true).expect("Send message");
             });
 
             log::info!("Waiting CGEventTapCreate");

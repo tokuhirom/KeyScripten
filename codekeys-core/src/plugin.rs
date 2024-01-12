@@ -1,6 +1,14 @@
 use anyhow::anyhow;
 use std::fs;
 use std::path::Path;
+use serde_json::json;
+use crate::APP_NAME;
+
+#[derive(Debug)]
+pub struct PluginSnippet {
+    pub plugin_id: String,
+    pub src: String,
+}
 
 pub struct Plugins {
     basedir: String,
@@ -8,7 +16,7 @@ pub struct Plugins {
 impl Plugins {
     pub fn new() -> anyhow::Result<Plugins> {
         let configdir = dirs::config_dir().ok_or_else(|| anyhow!("Config directory not found"))?;
-        let plugins_dir = configdir.join("plugins");
+        let plugins_dir = configdir.join(APP_NAME).join("plugins");
         Ok(Self::new_with_basedir(
             plugins_dir.to_str().unwrap().to_string(),
         ))
@@ -50,12 +58,15 @@ impl Plugins {
         let content = format!(
             r#"
     registerPlugin(
-        "{}",
-        "{}",
-        `{}`,
+        {},
+        {},
+        {},
+        function () {},
+        []
     )
     "#,
-            plugin_id, name, description
+            json!(plugin_id).to_string(), json!(name).to_string(), json!(description).to_string(),
+            "{\n}"
         );
         self.write(plugin_id, content)
     }
@@ -78,16 +89,41 @@ impl Plugins {
         Ok(())
     }
 
-    pub fn load(&self, plugin_id: String) -> anyhow::Result<String> {
+    pub fn load(&self, plugin_id: String) -> anyhow::Result<PluginSnippet> {
         let plugins = Path::new(&self.basedir);
         if !plugins.exists() {
             return Err(anyhow!("Missing plugin: {:?}", plugin_id))
         }
 
         let pluginpath = plugins.join(format!("{}.js", plugin_id));
-        log::info!("Reading new plugin: {:?}", pluginpath);
+        log::info!("Reading plugin: {:?}", pluginpath);
         let src = fs::read_to_string(pluginpath.as_path())?;
-        Ok(src)
+        Ok(PluginSnippet {
+            plugin_id,
+            src
+        })
+    }
+
+    pub fn load_user_scripts(&self) -> anyhow::Result<Vec<PluginSnippet>> {
+        match self.list() {
+            Ok(plugin_ids) => {
+                let mut results = Vec::new();
+                for plugin_id in plugin_ids {
+                    match self.load(plugin_id.clone()) {
+                        Ok(snippet) => {
+                            results.push(snippet);
+                        }
+                        Err(err) => {
+                            log::error!("Cannot load {}: {:?}", plugin_id, err);
+                        }
+                    }
+                }
+                Ok(results)
+            }
+            Err(err) => {
+                Err(anyhow!("Cannot get plugin list: {:?}", err))
+            }
+        }
     }
 }
 

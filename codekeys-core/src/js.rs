@@ -27,20 +27,26 @@ use crate::plugin::Plugins;
 pub struct JS<'a> {
     context: Context<'a>,
     config_reload_rx: Option<Receiver<bool>>,
+    plugin_reload_rx: Option<Receiver<bool>>,
     monitoring_queue: Option<Arc<RwLock<VecDeque<Event>>>>,
+    plugins: Option<Plugins>,
 }
 
 impl JS<'_> {
     pub fn new(
         config_reload_rx: Option<Receiver<bool>>,
+        plugin_reload_rx: Option<Receiver<bool>>,
         monitoring_queue: Option<Arc<RwLock<VecDeque<Event>>>>,
+        plugins: Option<Plugins>,
     ) -> anyhow::Result<Self> {
         let context = Context::default();
 
         let mut js = JS {
             context,
             config_reload_rx,
+            plugin_reload_rx,
             monitoring_queue,
+            plugins,
         };
         js.init_console()?;
         js.init_hotkey()?;
@@ -164,6 +170,48 @@ impl JS<'_> {
         let invoke_event = JsFunction::try_from_js(&invoke_event, &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$invokeEvent as JsFunction: {:?}", err))?;
 
+        if let Some(rx) = &self.plugin_reload_rx {
+            match rx.try_recv() {
+                Ok(_) => {
+                    let plugin_snippets = if let Some(plugins) = &self.plugins {
+                        match plugins.load_user_scripts() {
+                            Ok(snippets) => {
+                                Some(snippets)
+                            }
+                            Err(err) => {
+                                log::error!("Cannot get plugin list: {:?}", err);
+                                None
+                            }
+                        }
+                    } else {
+                        None
+                    };
+                    if let Some(plugin_snippets) = plugin_snippets {
+                        for plugin_snippet in plugin_snippets {
+                            match self.eval(plugin_snippet.src) {
+                                Ok(value) => {
+                                    log::info!("Loaded {}: {:?}",plugin_snippet.plugin_id, value);
+                                }
+                                Err(err) => {
+                                    log::error!("Loaded {}: {:?}",
+                                        plugin_snippet.plugin_id, err);
+                                }
+                            }
+                        }
+                    }
+                }
+                Err(err) => {
+                    match err {
+                        TryRecvError::Empty => {
+                            log::debug!("needs_plugin_reload: empty")
+                        }
+                        TryRecvError::Disconnected => {
+                            log::warn!("needs_plugin_reload: disconnected")
+                        }
+                    }
+                }
+            }
+        }
         let needs_config_reload = self.needs_config_reload();
 
         let event = Event::from_cf(cg_event_type, cg_event_ref);
@@ -270,11 +318,12 @@ impl JS<'_> {
         self.eval(src.to_string())
     }
 
-    pub fn load_user_scripts(&mut self, plugins: Plugins) -> anyhow::Result<()> {
-        let plugin_ids = plugins.list()?;
-        for plugin_id in plugin_ids {
-            let src = plugins.load(plugin_id)?;
-            self.eval(src.to_string())?;
+    pub fn load_user_scripts(&mut self) -> anyhow::Result<()> {
+        if let Some(plugins) = &self.plugins {
+            let plugin_snippets = plugins.load_user_scripts()?;
+            for plugin_snippet in plugin_snippets {
+                self.eval(plugin_snippet.src)?;
+            }
         }
         Ok(())
     }
@@ -319,7 +368,7 @@ mod tests {
 
     #[test]
     fn test_get_config_schema() -> anyhow::Result<()> {
-        let mut js = JS::new(None, None)?;
+        let mut js = JS::new(None, None, None, None)?;
         let schema = js.get_config_schema()?;
         assert_eq!(schema.plugins.first().unwrap().id, "builtin.dynamicmacro");
         assert_eq!(schema.plugins.first().unwrap().name, "Dynamic Macro");
@@ -329,7 +378,7 @@ mod tests {
 
     #[test]
     fn test_eval() -> anyhow::Result<()> {
-        let mut js = JS::new(None, None)?;
+        let mut js = JS::new(None, None, None, None)?;
         let value = js.eval("3+4".to_string())?;
         let got = value.to_u32(&mut js.context).unwrap();
         assert_eq!(got, 7);

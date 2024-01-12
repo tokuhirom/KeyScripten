@@ -17,7 +17,7 @@ function registerPlugin(id, name, description, callback, config_schema) {
     $$CONFIG_SCHEMAS[id] = config_schema;
     $$CONFIG[id] = $$build_config(id, config_schema);
 
-    console.log(`Registered plugin: id=${id} config=${JSON.stringify($$CONFIG[id])}`);
+    console.log(`Registered plugin: id=${id} name=${name} config=${JSON.stringify($$CONFIG[id])}`);
 }
 
 function reloadConfig() {
