@@ -22,6 +22,7 @@ use serde::{Deserialize, Serialize};
 use crate::js_builtin::JsBuiltin;
 use crate::js_hotkey::JsHotKey;
 use crate::js_keycode::build_keycode;
+use crate::plugin::Plugins;
 
 pub struct JS<'a> {
     context: Context<'a>,
@@ -267,6 +268,15 @@ impl JS<'_> {
     fn load_bundled(&mut self) -> anyhow::Result<JsValue> {
         let src = include_str!("../js/dynamic-macro.js");
         self.eval(src.to_string())
+    }
+
+    pub fn load_user_scripts(&mut self, plugins: Plugins) -> anyhow::Result<()> {
+        let plugin_ids = plugins.list()?;
+        for plugin_id in plugin_ids {
+            let src = plugins.load(plugin_id)?;
+            self.eval(src.to_string())?;
+        }
+        Ok(())
     }
 
     pub fn get_config_schema(&mut self) -> anyhow::Result<ConfigSchemaList> {

@@ -77,6 +77,18 @@ impl Plugins {
         })?;
         Ok(())
     }
+
+    pub fn load(&self, plugin_id: String) -> anyhow::Result<String> {
+        let plugins = Path::new(&self.basedir);
+        if !plugins.exists() {
+            return Err(anyhow!("Missing plugin: {:?}", plugin_id))
+        }
+
+        let pluginpath = plugins.join(format!("{}.js", plugin_id));
+        log::info!("Reading new plugin: {:?}", pluginpath);
+        let src = fs::read_to_string(pluginpath.as_path())?;
+        Ok(src)
+    }
 }
 
 #[cfg(test)]

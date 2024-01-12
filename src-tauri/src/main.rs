@@ -174,8 +174,12 @@ fn main() -> anyhow::Result<()> {
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
-        let js = JS::new(Some(config_reload_rx), Some(Arc::clone(&VEC_DEQUE)))
+        let plugins = Plugins::new().expect("Cannot load plugins");
+        let mut js = JS::new(Some(config_reload_rx), Some(Arc::clone(&VEC_DEQUE)))
             .expect("Cannot create JS instance");
+        if let Err(err) = js.load_user_scripts(plugins) {
+            log::error!("Cannot load plugin: {:?}", err);
+        }
 
         let result = grab_setup(js);
         if let Err(err) = &result {
