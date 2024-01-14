@@ -1,4 +1,5 @@
 use std::collections::{HashMap, VecDeque};
+use std::path::PathBuf;
 use std::{fs, thread};
 
 use std::str::FromStr;
@@ -176,6 +177,13 @@ fn set_log_level(level_filter: LevelFilter) {
     }
 }
 
+fn build_log_path() -> PathBuf {
+    dirs::data_dir()
+        .unwrap()
+        .join(APP_NAME)
+        .join("keyscripten.log.")
+}
+
 fn logger() -> anyhow::Result<()> {
     let log_path = dirs::data_dir()
         .unwrap()
@@ -184,6 +192,10 @@ fn logger() -> anyhow::Result<()> {
     log::info!("Logging file is output to {:?}", log_path);
     fs::create_dir_all(log_path.parent().unwrap())
         .map_err(|err| anyhow!("Cannot create {:?}: {:?}", log_path, err))?;
+
+    let log_prefix = build_log_path();
+    let log_prefix = log_prefix.to_str().unwrap();
+    log::info!("Log file prefix is: {:?}", log_prefix);
 
     fern::Dispatch::new()
         .format(|out, message, record| {
@@ -197,6 +209,7 @@ fn logger() -> anyhow::Result<()> {
         })
         .filter(|metadata| unsafe { metadata.level() <= *LOG_LEVEL.read().unwrap() })
         .chain(std::io::stdout())
+        .chain(fern::DateBased::new(log_prefix, "%Y-%m-%d"))
         .chain(fern::log_file(log_path)?)
         .apply()?;
     Ok(())
