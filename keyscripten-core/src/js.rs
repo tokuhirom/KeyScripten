@@ -1,7 +1,11 @@
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{
-    CGEventField_kCGKeyboardEventKeycode, CGEventFlags, CGEventFlags_kCGEventFlagMaskNonCoalesced,
-    CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown,
+    CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskAlphaShift,
+    CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand,
+    CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskHelp,
+    CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventFlags_kCGEventFlagMaskNumericPad,
+    CGEventFlags_kCGEventFlagMaskSecondaryFn, CGEventFlags_kCGEventFlagMaskShift, CGEventRef,
+    CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown,
     CGEventType_kCGEventKeyUp,
 };
 use boa_engine::{js_string, Context, JsObject, JsValue, NativeFunction, Source};
@@ -123,10 +127,6 @@ impl JS<'_> {
         self.register_constant(
             "kCGEventFlagMaskNumericPad",
             CGEventFlags_kCGEventFlagMaskNumericPad,
-        )?;
-        self.register_constant(
-            "kCGEventFlagMaskNonCoalesced",
-            CGEventFlags_kCGEventFlagMaskNonCoalesced,
         )?;
 
         Ok(())

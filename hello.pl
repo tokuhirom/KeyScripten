@@ -5,7 +5,7 @@ while (<DATA>) {
     #    say qq!self.register_constant("$2", $1)?;!;
     }
 }
-say join(", ", map {"`$_`"} @f);
+say join(", ", map {"$_"} @f);
 
 __DATA__
 pub const CGEventFlags_kCGEventFlagMaskAlphaShift: CGEventFlags = 65536;

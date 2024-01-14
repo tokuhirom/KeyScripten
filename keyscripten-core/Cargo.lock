@@ -386,31 +386,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "keyscripten-core"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "apple-sys",
- "boa_engine",
- "boa_gc",
- "boa_runtime",
- "chrono",
- "cocoa",
- "console",
- "dirs",
- "env_logger",
- "fern",
- "log",
- "matches",
- "object",
- "serde",
- "serde_json",
- "tempdir",
- "tempfile",
- "time",
-]
-
-[[package]]
 name = "console"
 version = "0.15.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -913,6 +888,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cee9c64da59eae3b50095c18d3e74f8b73c0b86d2792824ff01bbce68ba229ca"
 dependencies = [
  "wasm-bindgen",
+]
+
+[[package]]
+name = "keyscripten-core"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "apple-sys",
+ "boa_engine",
+ "boa_gc",
+ "boa_runtime",
+ "chrono",
+ "cocoa",
+ "console",
+ "dirs",
+ "env_logger",
+ "fern",
+ "log",
+ "matches",
+ "object",
+ "serde",
+ "serde_json",
+ "tempdir",
+ "tempfile",
+ "time",
 ]
 
 [[package]]
