@@ -15,7 +15,7 @@ use keyscripten_core::js::{ConfigSchema, ConfigSchemaList, JS};
 use keyscripten_core::js_operation::JsOperation;
 use keyscripten_core::plugin::Plugins;
 use lazy_static::lazy_static;
-use log::LevelFilter;
+use log::{LevelFilter, Record};
 use tauri::api::dialog;
 use tauri::{
     CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
@@ -28,6 +28,9 @@ static mut LOG_LEVEL: RwLock<LevelFilter> = RwLock::new(LevelFilter::Info);
 
 lazy_static! {
     static ref VEC_DEQUE: Arc<RwLock<VecDeque<Event>>> = Arc::new(RwLock::new(VecDeque::new()));
+}
+lazy_static! {
+    static ref LOG_BUFFER: RwLock<VecDeque<String>> = RwLock::new(VecDeque::new());
 }
 
 fn build_js<'a>() -> Result<JS<'a>, String> {
@@ -155,6 +158,16 @@ fn delete_plugin(plugin_id: String) -> Result<(), String> {
         .map_err(|err| format!("Cannot add plugin: {:?}", err))
 }
 
+#[tauri::command]
+fn read_logs() -> Result<Vec<String>, String> {
+    log::debug!("tauri::command: read_logs");
+
+    let buffer = LOG_BUFFER
+        .read()
+        .map_err(|err| format!("Cannot get lock: {:?}", err))?;
+    Ok(buffer.iter().cloned().collect())
+}
+
 fn set_log_level_by_config(app_config: &AppConfig) {
     let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
         Ok(level) => level,
@@ -211,6 +224,13 @@ fn logger() -> anyhow::Result<()> {
         .chain(std::io::stdout())
         .chain(fern::DateBased::new(log_prefix, "%Y-%m-%d"))
         .chain(fern::log_file(log_path)?)
+        .chain(fern::Output::call(move |record: &Record| {
+            let mut buffer = LOG_BUFFER.write().unwrap();
+            if buffer.len() >= 40 {
+                buffer.pop_front();
+            }
+            buffer.push_back(format!("{}", record.args()));
+        }))
         .apply()?;
     Ok(())
 }
@@ -335,6 +355,7 @@ fn main() -> anyhow::Result<()> {
             read_plugin_code,
             write_plugin_code,
             delete_plugin,
+            read_logs,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

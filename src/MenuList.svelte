@@ -24,6 +24,10 @@
         pane = "keyEvents";
         onPaneChange(pane);
     }
+    function showLogViewer() {
+        pane = "logViewer";
+        onPaneChange(pane);
+    }
     function showSettings() {
         pane = "settings";
         onPaneChange(pane);
@@ -44,6 +48,8 @@
     <menu>
         <li><button class:selected="{pane === 'keyEvents'}"
                     on:click={showKeyEvents}>Key Events</button></li>
+        <li><button class:selected="{pane === 'logViewer'}"
+                    on:click={showLogViewer}>Log Viewer</button></li>
         <li><button class:selected="{pane === 'settings'}"
                     on:click={showSettings}>Settings</button></li>
         {#each plugins as plugin}

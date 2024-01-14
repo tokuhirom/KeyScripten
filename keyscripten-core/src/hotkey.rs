@@ -25,7 +25,7 @@ impl HotKey {
         let mut flags = 0;
 
         while s.len() - start >= 2 {
-            let part = &s[start..start + 2];
+            let part = &s[start..start + 2]; // this may fail if the 's' variable contains multibyte character
             if let Some(code) = map.get(part) {
                 flags |= *code;
                 start += 2;
