@@ -8,6 +8,7 @@
         config: []
     };
     let prevPluginId;
+    let prevConfigSchema;
 
     let pluginConfig = {
         enabled: false,
@@ -15,12 +16,14 @@
     };
 
     async function reload() {
-        if (pluginId === prevPluginId && !!prevPluginId) {
+        if (pluginId === prevPluginId && configSchema === prevConfigSchema && !!prevPluginId) {
             console.log(`No pluginId modification: ${pluginId}, ${prevPluginId}`)
             return;
         }
+        console.log(`Loading plugin configuration: ${pluginId}`)
 
         prevPluginId = pluginId;
+        prevConfigSchema = configSchema;
 
         pluginConfig = await invoke("load_config_for_plugin", {pluginId});
         for (const option of configSchema.config) {
@@ -29,6 +32,7 @@
             }
             console.log(pluginConfig)
         }
+        console.log(`Loaded plugin configuration: pluginId=${pluginId}, pluginConfig=${JSON.stringify(pluginConfig)}, configSchema=${JSON.stringify(configSchema)}`)
     }
 
     onMount(async () => {
