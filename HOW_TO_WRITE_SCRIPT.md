@@ -64,7 +64,31 @@ Parameters
 * `callback` (Function): The function that will be called when the plugin is executed. The function receives event and config parameters, where event contains details about the current event and config contains the plugin's configuration.
 * `config_schema` (Array): An array of configuration parameters that define the structure of the plugin's configuration. Each parameter in the array should be an object specifying the name, type, default value, and description of a configuration parameter.
 
-Details of `config_schema`:
+### Details of `callback`:
+
+```javascript
+function callback(event, config) {
+    // Plugin logic goes here
+}
+```
+
+#### Parameters
+
+* `event` (Object): An object representing the event that triggered the callback. This object contains details about the event, such as its type and any relevant data associated with it.
+* `config` (Object): An object containing the current configuration settings for the plugin, as defined by the config_schema. This allows the callback function to access and react to user-defined settings.
+
+#### Functionality
+
+The callback function is invoked whenever a relevant event occurs. The specific events that trigger the callback depend on how the **KeyScripten** system is designed and what events it supports. The function must process the `event` object, perform the necessary actions based on the event type and data, and respect the configurations specified in `config`.
+
+#### Return value
+
+The callback function should return a boolean value:
+
+* `true`: Indicates that the event was not handled by the plugin and should be processed further or passed to other plugins or the system.
+* `false`: Indicates that the event was fully handled and consumed by the plugin, and no further processing is needed for this event.
+
+### Details of `config_schema`:
 
 The config_schema parameter in the registerPlugin function is an array of objects that define the configuration options for your plugin. Each object in the array represents a single configuration option and specifies its properties and default values.
 
@@ -99,7 +123,7 @@ sendFlagsChangedEvent(flags);
 
 * `flags` (Integer): An integer representing the current state of the flags. This is typically a bitmask of the flags.
 
-TBD about constants
+Available for bit flags: `kCGEventFlagMaskAlphaShift`, `kCGEventFlagMaskShift`, `kCGEventFlagMaskControl`, `kCGEventFlagMaskAlternate`, `kCGEventFlagMaskCommand`, `kCGEventFlagMaskHelp`, `kCGEventFlagMaskSecondaryFn`, `kCGEventFlagMaskNumericPad`, `kCGEventFlagMaskNonCoalesced`
 
 #### Return Value
 
@@ -145,22 +169,71 @@ Certainly, documenting constants is essential for users to understand and effect
 
 In **KeyScripten**, several constants are registered for use in scripting. These constants typically represent specific values related to keyboard events and their properties. Understanding these constants is crucial for handling keyboard events correctly.
 
-### `kCGEventKeyDown`
+### Key event constants
+
+Maybe, there's no use cases.
+
+#### `kCGEventKeyDown`
 
 - **Description**: Represents a key-down event in the system. This constant is used to identify events where a key is pressed.
 
-### `kCGEventKeyUp`
+#### `kCGEventKeyUp`
 
 - **Description**: Represents a key-up event. Use this constant to identify events where a key is released.
 
-### `kCGEventFlagsChanged`
+#### `kCGEventFlagsChanged`
 
 - **Description**: Indicates an event where the modifier flags (like Shift, Control, etc.) have changed. This is crucial for detecting state changes in modifier keys.
 
-### `kCGKeyboardEventKeycode`
+#### `kCGKeyboardEventKeycode`
 
 - **Description**: Used to access the keycode field in a keyboard event. This constant allows you to determine which key was pressed or released.
 
-### `kCGEventFlagMaskNonCoalesced`
+#### `kCGEventFlagMaskNonCoalesced`
 
 - **Description**: This constant is used to identify non-coalesced events. Non-coalesced events are those that report individual movements rather than the final position in a series of movements, providing finer granularity in event handling.
+
+### `CGEventFlags` - Keyboard Event Flag Constants 
+
+Absolutely, I'll document these constants in the same format as the previous ones, assuming they are registered using a similar method in your **KeyScripten** environment.
+
+In **KeyScripten**, several constants related to keyboard event flags are registered for use in scripting. These constants represent specific modifier keys and other keyboard-related states.
+
+#### `kCGEventFlagMaskAlphaShift`
+
+- **Description**: Represents the alpha shift (Caps Lock) modifier key. This constant is used to identify events where the Caps Lock key's state is involved.
+
+#### `kCGEventFlagMaskShift`
+
+- **Description**: Represents the Shift key modifier. Use this constant to detect if the Shift key was pressed during an event.
+
+#### `kCGEventFlagMaskControl`
+
+- **Description**: Identifies the Control key modifier. This constant is crucial for detecting events where the Control key is involved.
+
+#### `kCGEventFlagMaskAlternate`
+
+- **Description**: Represents the Alternate (or Option) key modifier. Use this to detect events involving the Alternate key.
+
+#### `kCGEventFlagMaskCommand`
+
+- **Description**: Indicates the Command key modifier. This constant is used for identifying events where the Command key is used.
+
+#### `kCGEventFlagMaskHelp`
+
+- **Description**: Represents the Help key modifier. Use this constant to identify events involving the Help key.
+
+#### `kCGEventFlagMaskSecondaryFn`
+
+- **Description**: Indicates the secondary function (Fn) key modifier. This is used for events where the
+
+Fn key plays a role, particularly on keyboards where the Fn key modifies the behavior of other keys.
+
+#### `kCGEventFlagMaskNumericPad`
+
+- **Description**: Represents events involving keys on the numeric pad. This constant is useful for differentiating between numeric pad input and other keyboard inputs.
+
+#### `kCGEventFlagMaskNonCoalesced`
+
+- **Description**: This constant is used to identify non-coalesced events in the context of keyboard inputs. Non-coalesced events provide more detailed and individual reporting of input events, offering finer control in handling these inputs.
+

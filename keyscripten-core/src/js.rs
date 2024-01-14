@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{
-    CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventRef,
-    CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown,
+    CGEventField_kCGKeyboardEventKeycode, CGEventFlags, CGEventFlags_kCGEventFlagMaskNonCoalesced,
+    CGEventRef, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown,
     CGEventType_kCGEventKeyUp,
 };
 use boa_engine::{js_string, Context, JsObject, JsValue, NativeFunction, Source};
@@ -96,6 +96,39 @@ impl JS<'_> {
             "kCGEventFlagMaskNonCoalesced",
             CGEventFlags_kCGEventFlagMaskNonCoalesced,
         )?;
+
+        // CGEventFlags
+        self.register_constant(
+            "kCGEventFlagMaskAlphaShift",
+            CGEventFlags_kCGEventFlagMaskAlphaShift,
+        )?;
+        self.register_constant("kCGEventFlagMaskShift", CGEventFlags_kCGEventFlagMaskShift)?;
+        self.register_constant(
+            "kCGEventFlagMaskControl",
+            CGEventFlags_kCGEventFlagMaskControl,
+        )?;
+        self.register_constant(
+            "kCGEventFlagMaskAlternate",
+            CGEventFlags_kCGEventFlagMaskAlternate,
+        )?;
+        self.register_constant(
+            "kCGEventFlagMaskCommand",
+            CGEventFlags_kCGEventFlagMaskCommand,
+        )?;
+        self.register_constant("kCGEventFlagMaskHelp", CGEventFlags_kCGEventFlagMaskHelp)?;
+        self.register_constant(
+            "kCGEventFlagMaskSecondaryFn",
+            CGEventFlags_kCGEventFlagMaskSecondaryFn,
+        )?;
+        self.register_constant(
+            "kCGEventFlagMaskNumericPad",
+            CGEventFlags_kCGEventFlagMaskNumericPad,
+        )?;
+        self.register_constant(
+            "kCGEventFlagMaskNonCoalesced",
+            CGEventFlags_kCGEventFlagMaskNonCoalesced,
+        )?;
+
         Ok(())
     }
 
