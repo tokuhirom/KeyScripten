@@ -6,7 +6,7 @@ let $$DESCRIPTIONS = [];
 let $$CALLBACKS = {};
 let $$CONFIG_SCHEMAS = {};
 let $$CONFIG = {};
-let app_config = JSON.parse(loadAppConfigJson());
+let app_config = JSON.parse($$loadAppConfigJson());
 
 // public API
 function registerPlugin(id, name, description, callback, config_schema) {

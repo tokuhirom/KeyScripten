@@ -173,7 +173,7 @@ impl JS<'_> {
         )?;
         register(
             &mut self.context,
-            "loadAppConfigJson",
+            "$$loadAppConfigJson",
             JsBuiltin::load_app_config_json,
         )?;
         Ok(())
