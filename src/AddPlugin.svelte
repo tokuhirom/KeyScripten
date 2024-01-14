@@ -1,5 +1,6 @@
 <script>
     import {invoke} from "@tauri-apps/api/tauri";
+    import {emit} from "@tauri-apps/api/event";
 
     let name;
     let pluginId;
@@ -9,7 +10,9 @@
         await invoke("add_plugin", {
             pluginId, name, description
         });
-        await invoke("reload-plugins");
+        await emit('js-operation', {
+            "ReloadPlugins": null
+        });
         return false;
     }
 </script>

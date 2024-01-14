@@ -47,14 +47,6 @@
         await reload();
     });
 
-    async function onChange() {
-        await invoke("save_config_for_plugin", {
-            pluginId,
-            pluginConfig,
-        })
-        await emit('update-config', "hello from front");
-    }
-
     function showEdit() {
         tab = "edit";
     }

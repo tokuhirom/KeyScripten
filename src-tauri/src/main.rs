@@ -11,6 +11,7 @@ use codekeys_core::app_config::{AppConfig, PluginConfig};
 use codekeys_core::event::Event;
 use codekeys_core::grab::{grab_run, grab_setup};
 use codekeys_core::js::{ConfigSchema, ConfigSchemaList, JS};
+use codekeys_core::js_operation::JsOperation;
 use codekeys_core::plugin::Plugins;
 use lazy_static::lazy_static;
 use log::LevelFilter;
@@ -30,7 +31,7 @@ lazy_static! {
 
 fn build_js<'a>() -> Result<JS<'a>, String> {
     let plugins = Plugins::new().map_err(|err| format!("Plugins::new: {:?}", err))?;
-    let mut js = JS::new(None, None, None, Some(plugins)).map_err(|err| format!("{:?}", err))?;
+    let mut js = JS::new(None, None, Some(plugins)).map_err(|err| format!("{:?}", err))?;
     js.load_user_scripts()
         .map_err(|err| format!("load_user_scripts: {:?}", err))?;
     Ok(js)
@@ -207,16 +208,14 @@ fn main() -> anyhow::Result<()> {
     let app_config = AppConfig::load()?;
     set_log_level_by_config(&app_config);
 
-    let (config_reload_tx, config_reload_rx) = mpsc::channel::<bool>();
-    let (plugin_reload_tx, plugin_reload_rx) = mpsc::channel::<bool>();
+    let (js_operation_tx, js_operation_rx) = mpsc::channel::<JsOperation>();
     let (setup_tx, setup_rx) = mpsc::channel::<anyhow::Result<()>>();
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
         let plugins = Plugins::new().expect("Cannot load plugins");
         let mut js = JS::new(
-            Some(config_reload_rx),
-            Some(plugin_reload_rx),
+            Some(js_operation_rx),
             Some(Arc::clone(&VEC_DEQUE)),
             Some(plugins),
         )
@@ -249,14 +248,16 @@ fn main() -> anyhow::Result<()> {
     tauri::Builder::default()
         .plugin(tauri_plugin_positioner::init())
         .setup(move |app| {
-            app.listen_global("update-config", move |event| {
-                log::info!("update-config: {:?}", event);
-                config_reload_tx.send(true).expect("Send message");
+            app.listen_global("js-operation", move |event| {
+                // update-config
+                log::info!("js-operation: {:?}", event);
+                let js_operation: JsOperation = serde_json::from_str(event.payload().unwrap())
+                    .expect("Deserialize js-operation");
+                js_operation_tx.send(js_operation)
+                    .expect("Send message");
             });
-            app.listen_global("reload-plugins", move |event| {
-                log::info!("reload-plugins: {:?}", event);
-                plugin_reload_tx.send(true).expect("Send message");
-            });
+            // reload-plugins
+            // config-reload
 
             log::info!("Waiting CGEventTapCreate");
             let setup_result = setup_rx.recv().expect("Setup message received");

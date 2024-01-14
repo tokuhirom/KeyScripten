@@ -45,7 +45,9 @@
             pluginId,
             pluginConfig,
         })
-        await emit('update-config', "hello from front");
+        await emit('js-operation', {
+            "ReloadConfig": null
+        });
     }
 </script>
 

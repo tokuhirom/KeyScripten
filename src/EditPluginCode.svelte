@@ -26,7 +26,9 @@
 
     async function submit() {
         await invoke("write_plugin_code", {pluginId, code});
-        await emit("reload-plugins");
+        await emit('js-operation', {
+            "ReloadPlugins": null
+        });
         message = `saved ${pluginId} at ${getCurrentTimeInHHMMSS()}`;
         showMessage = true;
         return false;

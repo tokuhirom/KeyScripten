@@ -866,6 +866,7 @@ dependencies = [
  "env_logger",
  "fern",
  "log",
+ "matches",
  "object",
  "serde",
  "serde_json",

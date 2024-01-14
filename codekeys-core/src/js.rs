@@ -22,20 +22,19 @@ use serde::{Deserialize, Serialize};
 use crate::js_builtin::JsBuiltin;
 use crate::js_hotkey::JsHotKey;
 use crate::js_keycode::build_keycode;
+use crate::js_operation::JsOperation;
 use crate::plugin::Plugins;
 
 pub struct JS<'a> {
     context: Context<'a>,
-    config_reload_rx: Option<Receiver<bool>>,
-    plugin_reload_rx: Option<Receiver<bool>>,
+    js_operation_rx: Option<Receiver<JsOperation>>,
     monitoring_queue: Option<Arc<RwLock<VecDeque<Event>>>>,
     plugins: Option<Plugins>,
 }
 
 impl JS<'_> {
     pub fn new(
-        config_reload_rx: Option<Receiver<bool>>,
-        plugin_reload_rx: Option<Receiver<bool>>,
+        js_operation_rx: Option<Receiver<JsOperation>>,
         monitoring_queue: Option<Arc<RwLock<VecDeque<Event>>>>,
         plugins: Option<Plugins>,
     ) -> anyhow::Result<Self> {
@@ -43,8 +42,7 @@ impl JS<'_> {
 
         let mut js = JS {
             context,
-            config_reload_rx,
-            plugin_reload_rx,
+            js_operation_rx,
             monitoring_queue,
             plugins,
         };
@@ -170,46 +168,16 @@ impl JS<'_> {
         let invoke_event = JsFunction::try_from_js(&invoke_event, &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$invokeEvent as JsFunction: {:?}", err))?;
 
-        if let Some(rx) = &self.plugin_reload_rx {
-            match rx.try_recv() {
-                Ok(_) => {
-                    log::info!("Trying to load plugins");
-
-                    let plugin_snippets = if let Some(plugins) = &self.plugins {
-                        match plugins.load_user_scripts() {
-                            Ok(snippets) => Some(snippets),
-                            Err(err) => {
-                                log::error!("Cannot get plugin list: {:?}", err);
-                                None
-                            }
-                        }
-                    } else {
-                        None
-                    };
-                    if let Some(plugin_snippets) = plugin_snippets {
-                        for plugin_snippet in plugin_snippets {
-                            match self.eval(plugin_snippet.src) {
-                                Ok(value) => {
-                                    log::info!("Loaded {}: {:?}", plugin_snippet.plugin_id, value);
-                                }
-                                Err(err) => {
-                                    log::error!("Loaded {}: {:?}", plugin_snippet.plugin_id, err);
-                                }
-                            }
-                        }
-                    }
+        let mut needs_config_reload = false;
+        let operations = self.get_js_operations();
+        for op in operations {
+            match op {
+                JsOperation::ReloadConfig => {
+                    needs_config_reload = true;
                 }
-                Err(err) => match err {
-                    TryRecvError::Empty => {
-                        log::debug!("needs_plugin_reload: empty")
-                    }
-                    TryRecvError::Disconnected => {
-                        log::warn!("needs_plugin_reload: disconnected")
-                    }
-                },
+                JsOperation::ReloadPlugins => self.reload_plugins(),
             }
         }
-        let needs_config_reload = self.needs_config_reload();
 
         let event = Event::from_cf(cg_event_type, cg_event_ref);
         if let Some(queue) = &self.monitoring_queue {
@@ -241,23 +209,56 @@ impl JS<'_> {
         Ok(result)
     }
 
-    fn needs_config_reload(&mut self) -> bool {
-        match &self.config_reload_rx {
-            Some(rx) => match rx.try_recv() {
-                Ok(_) => true,
-                Err(err) => {
-                    match err {
+    fn get_js_operations(&mut self) -> Vec<JsOperation> {
+        let mut result = Vec::new();
+        if let Some(rx) = &self.js_operation_rx {
+            'out: loop {
+                match rx.try_recv() {
+                    Ok(op) => {
+                        log::info!("Received operation: {:?}", op);
+                        result.push(op);
+                    }
+                    Err(err) => match err {
                         TryRecvError::Empty => {
-                            log::debug!("needs_config_reload: empty")
+                            log::debug!("needs_plugin_reload: empty");
+                            break 'out;
                         }
                         TryRecvError::Disconnected => {
-                            log::warn!("needs_config_reload: disconnected")
+                            log::warn!("needs_plugin_reload: disconnected");
+                            break 'out;
                         }
-                    }
-                    false
+                    },
                 }
-            },
-            None => false,
+            }
+        }
+        return result;
+    }
+
+    fn reload_plugins(&mut self) {
+        log::info!("Trying to load plugins");
+
+        let plugin_snippets = if let Some(plugins) = &self.plugins {
+            match plugins.load_user_scripts() {
+                Ok(snippets) => Some(snippets),
+                Err(err) => {
+                    log::error!("Cannot get plugin list: {:?}", err);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+        if let Some(plugin_snippets) = plugin_snippets {
+            for plugin_snippet in plugin_snippets {
+                match self.eval(plugin_snippet.src) {
+                    Ok(value) => {
+                        log::info!("Loaded {}: {:?}", plugin_snippet.plugin_id, value);
+                    }
+                    Err(err) => {
+                        log::error!("Loaded {}: {:?}", plugin_snippet.plugin_id, err);
+                    }
+                }
+            }
         }
     }
 
@@ -369,7 +370,7 @@ mod tests {
 
     #[test]
     fn test_get_config_schema() -> anyhow::Result<()> {
-        let mut js = JS::new(None, None, None, None)?;
+        let mut js = JS::new(None, None, None)?;
         let schema = js.get_config_schema()?;
         assert_eq!(schema.plugins.first().unwrap().id, "builtin.dynamicmacro");
         assert_eq!(schema.plugins.first().unwrap().name, "Dynamic Macro");
@@ -379,7 +380,7 @@ mod tests {
 
     #[test]
     fn test_eval() -> anyhow::Result<()> {
-        let mut js = JS::new(None, None, None, None)?;
+        let mut js = JS::new(None, None, None)?;
         let value = js.eval("3+4".to_string())?;
         let got = value.to_u32(&mut js.context).unwrap();
         assert_eq!(got, 7);
