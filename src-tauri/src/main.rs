@@ -256,8 +256,6 @@ fn main() -> anyhow::Result<()> {
                 js_operation_tx.send(js_operation)
                     .expect("Send message");
             });
-            // reload-plugins
-            // config-reload
 
             log::info!("Waiting CGEventTapCreate");
             let setup_result = setup_rx.recv().expect("Setup message received");
