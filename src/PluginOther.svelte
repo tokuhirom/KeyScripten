@@ -8,8 +8,11 @@
 
     async function deletePlugin() {
         await invoke("delete_plugin", {pluginId});
-        // TODO There's no way to unload plugin at this time.
-        await emit("reload-plugins", {pluginId});
+        await emit('js-operation', {
+            "UnloadPlugin": {
+                plugin_id: pluginId
+            }
+        });
         return false;
     }
 </script>

@@ -176,6 +176,11 @@ impl JS<'_> {
                     needs_config_reload = true;
                 }
                 JsOperation::ReloadPlugins => self.reload_plugins(),
+                JsOperation::UnloadPlugin { plugin_id, .. } => {
+                    if let Err(err) = self.unload_plugin(plugin_id.clone()) {
+                        log::error!("cannot unload plugin({}): {:?}", plugin_id, err)
+                    }
+                }
             }
         }
 
@@ -260,6 +265,26 @@ impl JS<'_> {
                 }
             }
         }
+    }
+
+    fn unload_plugin(&mut self, plugin_id: String) -> anyhow::Result<()> {
+        log::info!("Trying to unload plugin: {}", plugin_id);
+
+        let unload_plugin = self
+            .context
+            .global_object()
+            .get("$$unloadPlugin", &mut self.context)
+            .map_err(|err| anyhow!("Cannot get $$unloadPlugin: {:?}", err))?;
+        let unload_plugin = JsFunction::try_from_js(&unload_plugin, &mut self.context)
+            .map_err(|err| anyhow!("Cannot get $$unloadPlugin as JsFunction: {:?}", err))?;
+        unload_plugin
+            .call(
+                &JsValue::undefined(),
+                &[JsValue::from(plugin_id)],
+                &mut self.context,
+            )
+            .map_err(|err| anyhow!("Cannot call $$unloadPlugin as JsFunction: {:?}", err))?;
+        Ok(())
     }
 
     fn build_key_event(
