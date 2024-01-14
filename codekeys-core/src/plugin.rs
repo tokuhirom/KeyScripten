@@ -56,19 +56,46 @@ impl Plugins {
 
     pub fn add(&self, plugin_id: String, name: String, description: String) -> anyhow::Result<()> {
         let content = format!(
-            r#"
-    registerPlugin(
-        {},
-        {},
-        {},
-        function () {},
-        []
-    )
-    "#,
+            r##"
+    (function () {{
+        const id = {};
+        let latest_flags = undefined;
+        registerPlugin(
+            id,
+            {},
+            {},
+            function (event, config) {{
+                if (event.type === "flagsChanged") {{
+                    console.log(`[${{id}}] flagsChanged: ${{event.flags}}`);
+                    latest_flags = event.flags;
+                }} else if (event.type === "keyDown") {{
+                    console.log(`[${{id}}] keyDown: ${{event.keycode}}`);
+                    if (config.hotkey.matches(latest_flags, event.keycode)) {{
+                        return !run_dynamic_macro();
+                    }}
+                }}
+                return true; /* true means, CodeKeys should send the keycode to the application. */
+            }},
+            [ /* configuration parameters */
+                {{
+                    "name": "hotkey",
+                    "type": "hotkey",
+                    "default": "C-t",
+                    "description": "Key sequence for something.",
+                }},
+                {{
+                    "name": "size",
+                    "type": "integer",
+                    "description": "Size of something.",
+                    "default": "64"
+                }}
+            ]
+        )
+    }})();
+    "##,
             json!(plugin_id).to_string(),
             json!(name).to_string(),
             json!(description).to_string(),
-            "{\n}"
         );
         self.write(plugin_id, content)
     }

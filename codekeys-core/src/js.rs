@@ -173,11 +173,10 @@ impl JS<'_> {
         if let Some(rx) = &self.plugin_reload_rx {
             match rx.try_recv() {
                 Ok(_) => {
+                    log::info!("Trying to load plugins");
                     let plugin_snippets = if let Some(plugins) = &self.plugins {
                         match plugins.load_user_scripts() {
-                            Ok(snippets) => {
-                                Some(snippets)
-                            }
+                            Ok(snippets) => Some(snippets),
                             Err(err) => {
                                 log::error!("Cannot get plugin list: {:?}", err);
                                 None
@@ -190,26 +189,23 @@ impl JS<'_> {
                         for plugin_snippet in plugin_snippets {
                             match self.eval(plugin_snippet.src) {
                                 Ok(value) => {
-                                    log::info!("Loaded {}: {:?}",plugin_snippet.plugin_id, value);
+                                    log::info!("Loaded {}: {:?}", plugin_snippet.plugin_id, value);
                                 }
                                 Err(err) => {
-                                    log::error!("Loaded {}: {:?}",
-                                        plugin_snippet.plugin_id, err);
+                                    log::error!("Loaded {}: {:?}", plugin_snippet.plugin_id, err);
                                 }
                             }
                         }
                     }
                 }
-                Err(err) => {
-                    match err {
-                        TryRecvError::Empty => {
-                            log::debug!("needs_plugin_reload: empty")
-                        }
-                        TryRecvError::Disconnected => {
-                            log::warn!("needs_plugin_reload: disconnected")
-                        }
+                Err(err) => match err {
+                    TryRecvError::Empty => {
+                        log::debug!("needs_plugin_reload: empty")
                     }
-                }
+                    TryRecvError::Disconnected => {
+                        log::warn!("needs_plugin_reload: disconnected")
+                    }
+                },
             }
         }
         let needs_config_reload = self.needs_config_reload();
@@ -319,10 +315,14 @@ impl JS<'_> {
     }
 
     pub fn load_user_scripts(&mut self) -> anyhow::Result<()> {
+        log::info!("Trying to load plugins");
+
         if let Some(plugins) = &self.plugins {
             let plugin_snippets = plugins.load_user_scripts()?;
             for plugin_snippet in plugin_snippets {
-                self.eval(plugin_snippet.src)?;
+                if let Err(err) = self.eval(plugin_snippet.src) {
+                    log::error!("Cannot load {}: {:?}", plugin_snippet.plugin_id, err)
+                }
             }
         }
         Ok(())
