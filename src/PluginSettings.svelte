@@ -1,20 +1,27 @@
 <script>
     import {invoke} from "@tauri-apps/api/tauri";
-    import {onMount} from "svelte";
+    import {afterUpdate, onMount} from "svelte";
     import {emit} from "@tauri-apps/api/event";
 
-    export let pluginId
+    export let pluginId;
+    export let configSchema = {
+        config: []
+    };
+    let prevPluginId;
 
     let pluginConfig = {
         enabled: false,
         config: {},
     };
-    let configSchema = {
-    };
 
-    onMount(async () => {
-        console.log(pluginId);
-        configSchema = await invoke("get_config_schema_for_plugin", {pluginId});
+    async function reload() {
+        if (pluginId === prevPluginId && !!prevPluginId) {
+            console.log(`No pluginId modification: ${pluginId}, ${prevPluginId}`)
+            return;
+        }
+
+        prevPluginId = pluginId;
+
         pluginConfig = await invoke("load_config_for_plugin", {pluginId});
         for (const option of configSchema.config) {
             if (!(option.name in pluginConfig.config)) {
@@ -22,6 +29,15 @@
             }
             console.log(pluginConfig)
         }
+    }
+
+    onMount(async () => {
+        console.log(pluginId);
+        await reload();
+    });
+
+    afterUpdate(async () => {
+        await reload();
     });
 
     async function onChange() {
@@ -29,14 +45,13 @@
             pluginId,
             pluginConfig,
         })
-        await emit('update-config', "hello from front");
+        await emit('js-operation', {
+            "ReloadConfig": null
+        });
     }
 </script>
 
 <div class="plugin-config">
-    <h2>{configSchema.name}</h2>
-    <div class="plugin-id">(<span class="id">{configSchema.id}</span>)</div>
-    <div class="description">{configSchema.description}</div>
     <div class="enabled">
         <label>
             Enabled:
@@ -78,12 +93,6 @@
 </div>
 
 <style>
-    .plugin-config > .description {
-        margin-bottom: 8px;
-        padding: 9px;
-        background-color: darkslategray;
-    }
-
     table.plugin-config-detail {
         border-collapse: collapse;
         border-radius: 8px;
@@ -95,10 +104,6 @@
 
     th {
         text-align: left;
-    }
-
-    .plugin-id {
-        color: darkgrey;
     }
 
     .hotkey-note {

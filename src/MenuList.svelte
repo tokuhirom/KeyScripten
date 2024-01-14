@@ -1,7 +1,24 @@
 <script>
+    import {afterUpdate} from "svelte";
+
     export let pane = "settings";
     export let plugins;
     export let onPaneChange;
+
+    afterUpdate(() => {
+        if (pane.startsWith("plugin:")) {
+            let pluginId = pane.replace("plugin:", "");
+            for (let plugin of plugins) {
+                if (pluginId === plugin.id) {
+                    return;
+                }
+            }
+
+            console.log("the selected plugin is no longer available.");
+            pane = "settings";
+            onPaneChange(pane);
+        }
+    });
 
     function showKeyEvents() {
         pane = "keyEvents";
@@ -18,7 +35,8 @@
     }
 
     function addPlugin() {
-        alert("Not implemented yet.");
+        pane = "addPlugin";
+        onPaneChange(pane);
     }
 </script>
 
@@ -32,11 +50,9 @@
             <li><button class:selected="{pane === 'plugin:' + plugin.id}" on:click={() => showPluginPane(plugin.id)}>{plugin.name}</button></li>
         {/each}
     </menu>
-    <!--
     <div class="add-plugin">
-        <button on:click={addPlugin}>Add plugin</button>
+        <button class:selected="{pane === 'addPlugin'}" on:click={addPlugin}>Add plugin</button>
     </div>
-    -->
 </div>
 
 <style>

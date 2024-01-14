@@ -11,6 +11,8 @@ use codekeys_core::app_config::{AppConfig, PluginConfig};
 use codekeys_core::event::Event;
 use codekeys_core::grab::{grab_run, grab_setup};
 use codekeys_core::js::{ConfigSchema, ConfigSchemaList, JS};
+use codekeys_core::js_operation::JsOperation;
+use codekeys_core::plugin::Plugins;
 use lazy_static::lazy_static;
 use log::LevelFilter;
 use tauri::api::dialog;
@@ -27,15 +29,24 @@ lazy_static! {
     static ref VEC_DEQUE: Arc<RwLock<VecDeque<Event>>> = Arc::new(RwLock::new(VecDeque::new()));
 }
 
+fn build_js<'a>() -> Result<JS<'a>, String> {
+    let plugins = Plugins::new().map_err(|err| format!("Plugins::new: {:?}", err))?;
+    let mut js = JS::new(None, None, Some(plugins)).map_err(|err| format!("{:?}", err))?;
+    js.load_user_scripts()
+        .map_err(|err| format!("load_user_scripts: {:?}", err))?;
+    Ok(js)
+}
+
 #[tauri::command]
 fn get_config_schema() -> Result<ConfigSchemaList, String> {
-    let mut js = JS::new(None, None).map_err(|err| format!("{:?}", err))?;
-    js.get_config_schema().map_err(|err| format!("{:?}", err))
+    let mut js = build_js()?;
+    js.get_config_schema()
+        .map_err(|err| format!("get_config_schema: {:?}", err))
 }
 
 #[tauri::command]
 fn get_config_schema_for_plugin(plugin_id: String) -> Result<ConfigSchema, String> {
-    let mut js = JS::new(None, None).map_err(|err| format!("{:?}", err))?;
+    let mut js = build_js()?;
     let schema_list = js.get_config_schema().map_err(|err| format!("{:?}", err))?;
     for plugin in schema_list.plugins {
         if plugin.id == plugin_id {
@@ -98,6 +109,51 @@ fn get_event_log() -> Result<Vec<Event>, String> {
     Ok(result.iter().cloned().collect())
 }
 
+#[tauri::command]
+fn add_plugin(plugin_id: String, name: String, description: String) -> Result<(), String> {
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    plugins
+        .add(plugin_id, name, description)
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+}
+
+#[tauri::command]
+fn list_plugins() -> Result<Vec<String>, String> {
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    plugins
+        .list()
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+}
+
+#[tauri::command]
+fn read_plugin_code(plugin_id: String) -> Result<String, String> {
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    let plugin_snippet = plugins
+        .load(plugin_id)
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    Ok(plugin_snippet.src)
+}
+
+#[tauri::command]
+fn write_plugin_code(plugin_id: String, code: String) -> Result<(), String> {
+    log::info!("tauri::command: write_plugin_code: {}", plugin_id);
+
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    plugins
+        .write(plugin_id, code)
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+}
+
+#[tauri::command]
+fn delete_plugin(plugin_id: String) -> Result<(), String> {
+    log::info!("tauri::command: delete_plugin: {}", plugin_id);
+
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    plugins
+        .delete(plugin_id)
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+}
+
 fn set_log_level_by_config(app_config: &AppConfig) {
     let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
         Ok(level) => level,
@@ -152,13 +208,21 @@ fn main() -> anyhow::Result<()> {
     let app_config = AppConfig::load()?;
     set_log_level_by_config(&app_config);
 
-    let (config_reload_tx, config_reload_rx) = mpsc::channel::<bool>();
+    let (js_operation_tx, js_operation_rx) = mpsc::channel::<JsOperation>();
     let (setup_tx, setup_rx) = mpsc::channel::<anyhow::Result<()>>();
 
     thread::spawn(move || {
         log::debug!("Starting handler thread: {:?}", thread::current().id());
-        let js = JS::new(Some(config_reload_rx), Some(Arc::clone(&VEC_DEQUE)))
-            .expect("Cannot create JS instance");
+        let plugins = Plugins::new().expect("Cannot load plugins");
+        let mut js = JS::new(
+            Some(js_operation_rx),
+            Some(Arc::clone(&VEC_DEQUE)),
+            Some(plugins),
+        )
+        .expect("Cannot create JS instance");
+        if let Err(err) = js.load_user_scripts() {
+            log::error!("Cannot load plugin: {:?}", err);
+        }
 
         let result = grab_setup(js);
         if let Err(err) = &result {
@@ -184,10 +248,16 @@ fn main() -> anyhow::Result<()> {
     tauri::Builder::default()
         .plugin(tauri_plugin_positioner::init())
         .setup(move |app| {
-            app.listen_global("update-config", move |event| {
-                log::info!("update-config: {:?}", event);
-                config_reload_tx.send(true).expect("Send message");
+            app.listen_global("js-operation", move |event| {
+                // update-config
+                log::info!("js-operation: {:?}", event);
+                let js_operation: JsOperation = serde_json::from_str(event.payload().unwrap())
+                    .expect("Deserialize js-operation");
+                js_operation_tx.send(js_operation)
+                    .expect("Send message");
             });
+            // reload-plugins
+            // config-reload
 
             log::info!("Waiting CGEventTapCreate");
             let setup_result = setup_rx.recv().expect("Setup message received");
@@ -217,15 +287,24 @@ fn main() -> anyhow::Result<()> {
                     }
                     "configuration" => {
                         log::info!("Got configuration event");
-                        if let Err(err) = WindowBuilder::new(
+                        let window_label = "config-window".to_string();
+                        if let Some(window) = app.get_window(&window_label) {
+                            // If it exists, focus the existing window
+                            if let Err(err) = window.show() {
+                                log::error!("Cannot show configuration window: {:?}", err);
+                            }
+                            if let Err(err) = window.set_focus() {
+                                log::error!("Cannot focus on existing configuration window: {:?}", err);
+                            }
+                        } else if let Err(err) = WindowBuilder::new(
                             app,
                             "config-window".to_string(),
                             tauri::WindowUrl::App("index.html".into()),
                         )
-                        .build()
+                            .build()
                         {
                             log::error!("Cannot open configuration window: {:?}", err);
-                        };
+                        }
                     }
                     _ => {}
                 },
@@ -240,6 +319,11 @@ fn main() -> anyhow::Result<()> {
             get_config_schema_for_plugin,
             update_log_level,
             get_event_log,
+            add_plugin,
+            list_plugins,
+            read_plugin_code,
+            write_plugin_code,
+            delete_plugin,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

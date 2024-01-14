@@ -2,9 +2,11 @@
     import { invoke } from "@tauri-apps/api/tauri"
     import {onMount} from "svelte";
     import Settings from "./GlobalSettings.svelte";
-    import PluginSettings from "./PluginSettings.svelte";
     import MenuList from "./MenuList.svelte";
     import EventLog from "./EventLog.svelte";
+    import AddPlugin from "./AddPlugin.svelte";
+    import PluginDetails from "./PluginDetails.svelte";
+    import {listen} from "@tauri-apps/api/event";
 
     let config_schema = {
         plugins: []
@@ -13,6 +15,9 @@
 
     onMount(async () => {
         config_schema = await invoke("get_config_schema");
+        await listen('config_schema-reload', async () => {
+            config_schema = await invoke("get_config_schema");
+        })
     });
 
     /**
@@ -33,19 +38,19 @@
             {#if pane==="settings"}
                 <Settings />
             {:else if pane.startsWith("plugin:")}
-                <PluginSettings pluginId={pane.replace("plugin:", "")} />
+                <PluginDetails pluginId={pane.replace("plugin:", "")} />
             {:else if pane === "keyEvents"}
                 <EventLog />
+            {:else if pane === "addPlugin"}
+                <AddPlugin />
+            {:else}
+                Unknown pane: {pane}
             {/if}
         </div>
     </div>
 </div>
 
 <style>
-    h2, h3 {
-        text-align: left;
-    }
-
     .container {
         display: flex;
     }

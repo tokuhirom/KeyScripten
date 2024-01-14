@@ -17,7 +17,7 @@ function registerPlugin(id, name, description, callback, config_schema) {
     $$CONFIG_SCHEMAS[id] = config_schema;
     $$CONFIG[id] = $$build_config(id, config_schema);
 
-    console.log(`Registered plugin: id=${id} config=${JSON.stringify($$CONFIG[id])}`);
+    console.log(`Registered plugin: id=${id} name=${name} config=${JSON.stringify($$CONFIG[id])}`);
 }
 
 function reloadConfig() {
@@ -98,4 +98,24 @@ function $$getConfigSchema(event) {
     });
     console.log(`json=${json}`);
     return json;
+}
+
+function $$unloadPlugin(plugin_id) {
+    if (!$$IDS.includes(plugin_id)) {
+        console.log(`Plugin with id=${plugin_id} is not registered.`);
+        return;
+    }
+
+    const index = $$IDS.indexOf(plugin_id);
+    if (index > -1) {
+        $$IDS.splice(index, 1);
+    }
+
+    delete $$NAMES[plugin_id];
+    delete $$DESCRIPTIONS[plugin_id];
+    delete $$CALLBACKS[plugin_id];
+    delete $$CONFIG_SCHEMAS[plugin_id];
+    delete $$CONFIG[plugin_id];
+
+    console.log(`Unloaded plugin: id=${plugin_id}`);
 }
