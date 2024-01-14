@@ -115,6 +115,18 @@ The `event` object has following fields:
 * `flags` (Number): Bit field of the flags. It's based on `CGEventFlags`. See `Constants` section.
 * `keycode` (Number): KeyCode.
 
+### The `hotkey` object
+
+If the configuration field is typed as a `hotkey`, it would be a `hotkey` object.
+`hotkey` object has following methods:
+
+#### `hotkey.matches(flags, keycode)`
+
+Parameters are `flags` and `keycode`.
+`flags` contains the information about pressing modifier keys. it's taken from the `flagsChanged` event.
+
+Return value is boolean, it returns true i hotkey matches the flags and keycode.
+
 ## Functions
 
 There are some functions to implement your own great script.
