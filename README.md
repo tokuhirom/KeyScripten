@@ -1,4 +1,4 @@
-# CodeKeys.app
+# KeyScripten.app
 
 This app is the programmable keyboard macro system for Mac OSX.
 You can write any keyboard handler by JavaScript.
@@ -38,7 +38,7 @@ If there's a problem, you may need to remove the application from the accessibil
 
 ## Configuration
 
-This app loads the configuration file from `~/Library/Application Support/rs.codekeys/default-config.toml`.
+This app loads the configuration file from `~/Library/Application Support/rs.keyscripten/default-config.toml`.
 You can change the shortcut key by this file(I will add the shortcut key configuration in the future release).
 
 ## LICENSE

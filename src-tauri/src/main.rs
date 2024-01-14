@@ -7,12 +7,12 @@ use std::sync::{mpsc, Arc, RwLock};
 use anyhow::anyhow;
 
 use chrono::Local;
-use codekeys_core::app_config::{AppConfig, PluginConfig};
-use codekeys_core::event::Event;
-use codekeys_core::grab::{grab_run, grab_setup};
-use codekeys_core::js::{ConfigSchema, ConfigSchemaList, JS};
-use codekeys_core::js_operation::JsOperation;
-use codekeys_core::plugin::Plugins;
+use keyscripten_core::app_config::{AppConfig, PluginConfig};
+use keyscripten_core::event::Event;
+use keyscripten_core::grab::{grab_run, grab_setup};
+use keyscripten_core::js::{ConfigSchema, ConfigSchemaList, JS};
+use keyscripten_core::js_operation::JsOperation;
+use keyscripten_core::plugin::Plugins;
 use lazy_static::lazy_static;
 use log::LevelFilter;
 use tauri::api::dialog;
@@ -21,7 +21,7 @@ use tauri::{
     WindowBuilder, Wry,
 };
 
-const APP_NAME: &str = "codekeys";
+const APP_NAME: &str = "keyscripten";
 
 static mut LOG_LEVEL: RwLock<LevelFilter> = RwLock::new(LevelFilter::Info);
 
@@ -180,7 +180,7 @@ fn logger() -> anyhow::Result<()> {
     let log_path = dirs::data_dir()
         .unwrap()
         .join(APP_NAME)
-        .join("codekeys.log");
+        .join("keyscripten.log");
     log::info!("Logging file is output to {:?}", log_path);
     fs::create_dir_all(log_path.parent().unwrap())
         .map_err(|err| anyhow!("Cannot create {:?}: {:?}", log_path, err))?;
@@ -265,9 +265,9 @@ fn main() -> anyhow::Result<()> {
                 log::error!("Cannot run handler: {:?}", err);
                 dialog::message::<Wry>(
                     None,
-                    "CodeKeys",
+                    "KeyScripten",
                     format!(
-                        "Cannot setup CGEventTapCreate: {:?}\nPlease read the document for more details: https://github.com/tokuhirom/CodeKeys/blob/main/README.md",
+                        "Cannot setup CGEventTapCreate: {:?}\nPlease read the document for more details: https://github.com/tokuhirom/KeyScripten/blob/main/README.md",
                         err
                     ),
                 );

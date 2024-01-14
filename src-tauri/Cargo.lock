@@ -831,48 +831,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "codekeys"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "chrono",
- "codekeys-core",
- "config",
- "dirs",
- "fern",
- "lazy_static",
- "log",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-positioner",
-]
-
-[[package]]
-name = "codekeys-core"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "apple-sys",
- "boa_engine",
- "boa_gc",
- "boa_runtime",
- "chrono",
- "cocoa 0.25.0",
- "console",
- "dirs",
- "env_logger",
- "fern",
- "log",
- "matches",
- "object",
- "serde",
- "serde_json",
- "time",
-]
-
-[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2516,6 +2474,48 @@ dependencies = [
  "pest",
  "pest_derive",
  "serde",
+]
+
+[[package]]
+name = "keyscripten"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "config",
+ "dirs",
+ "fern",
+ "keyscripten-core",
+ "lazy_static",
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-positioner",
+]
+
+[[package]]
+name = "keyscripten-core"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "apple-sys",
+ "boa_engine",
+ "boa_gc",
+ "boa_runtime",
+ "chrono",
+ "cocoa 0.25.0",
+ "console",
+ "dirs",
+ "env_logger",
+ "fern",
+ "log",
+ "matches",
+ "object",
+ "serde",
+ "serde_json",
+ "time",
 ]
 
 [[package]]

@@ -1,10 +1,10 @@
 [package]
-name = "codekeys"
+name = "keyscripten"
 version = "0.0.0"
 description = "A Tauri App"
 authors = ["Tokuhiro Matsuno"]
 license = "MIT"
-repository = "https://github.com/tokuhirom/codekeys"
+repository = "https://github.com/tokuhirom/keyscripten"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -29,7 +29,7 @@ anyhow = "1.0.79"
 
 dirs = "5.0.1"
 
-codekeys-core = {path = "../codekeys-core" }
+keyscripten-core = {path = "../keyscripten-core" }
 lazy_static = { version = "1.4.0", features = [] }
 
 [features]

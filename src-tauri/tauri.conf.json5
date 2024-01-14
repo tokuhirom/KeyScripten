@@ -7,7 +7,7 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "codekeys",
+    "productName": "keyscripten",
     "version": "0.0.3"
   },
   "tauri": {
@@ -28,7 +28,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.github.tokuhirom.codekeys",
+      "identifier": "com.github.tokuhirom.keyscripten",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
