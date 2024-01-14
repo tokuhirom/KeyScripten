@@ -10,7 +10,10 @@ let app_config = JSON.parse(loadAppConfigJson());
 
 // public API
 function registerPlugin(id, name, description, callback, config_schema) {
-    $$IDS.push(id); // to be unique?
+    if (! $$IDS.includes(id)) {
+        $$IDS.push(id);
+    }
+
     $$NAMES[id] = name;
     $$DESCRIPTIONS[id] = description;
     $$CALLBACKS[id] = callback;
