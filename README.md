@@ -38,7 +38,7 @@ If there's a problem, you may need to remove the application from the accessibil
 
 ## Configuration
 
-This app loads the configuration file from `~/Library/Application Support/rs.keyscripten/default-config.toml`.
+This app loads the configuration file from `~/Library/Application Support/keyscripten/config.json`.
 You can change the shortcut key by this file(I will add the shortcut key configuration in the future release).
 
 ## LICENSE
@@ -71,7 +71,7 @@ I refer the rdev to implement this application: https://github.com/Narsil/rdev/b
 
 ## LIMITATIONS
 
-  - If you want to use symbols as a shortcut key with JIS keyboard, maybe there's an issue...
+  - If you want to use symbols as a shortcut key with JIS keyboard, maybe there's an issue on some keys...
     - I don't have a JIS keyboard. patches welcome.
 
 ## SEE ALSO
