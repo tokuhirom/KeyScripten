@@ -15,18 +15,18 @@ function registerPlugin(id, name, description, callback, config_schema) {
     $$DESCRIPTIONS[id] = description;
     $$CALLBACKS[id] = callback;
     $$CONFIG_SCHEMAS[id] = config_schema;
-    $$CONFIG[id] = $$build_config(id, config_schema);
+    $$CONFIG[id] = buildConfig(id, config_schema);
 
     console.log(`Registered plugin: id=${id} name=${name} config=${JSON.stringify($$CONFIG[id])}`);
 }
 
-function reloadConfig() {
+const reloadConfig = function () {
     for (const id of Object.keys($$CONFIG)) {
-        $$CONFIG[id] = $$build_config(id, $$CONFIG_SCHEMAS[id]);
+        $$CONFIG[id] = buildConfig(id, $$CONFIG_SCHEMAS[id]);
     }
-}
+};
 
-function $$build_config(id, config_schema) {
+const buildConfig = function (id, config_schema) {
     const config = {};
     for (const item of config_schema) {
         const value = (((app_config.plugins || {})[id] || {}).config || {})[item.name] || item.default;
@@ -50,7 +50,7 @@ function $$build_config(id, config_schema) {
     }
     console.log(JSON.stringify(config));
     return config;
-}
+};
 
 // called by js.rs
 function $$invokeEvent(event, needsConfigReload) {
@@ -77,6 +77,7 @@ function $$invokeEvent(event, needsConfigReload) {
     return true;
 }
 
+// called by js.rs
 function $$getConfigSchema(event) {
     const result = [];
 
@@ -100,6 +101,7 @@ function $$getConfigSchema(event) {
     return json;
 }
 
+// called by js.rs
 function $$unloadPlugin(plugin_id) {
     if (!$$IDS.includes(plugin_id)) {
         console.log(`Plugin with id=${plugin_id} is not registered.`);
