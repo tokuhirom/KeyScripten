@@ -25,6 +25,7 @@ pub struct Event {
     pub timestamp: u64,
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 impl Event {
     pub fn from_cf(cg_event_type: CGEventType, cg_event_ref: CGEventRef) -> Self {
         unsafe {
