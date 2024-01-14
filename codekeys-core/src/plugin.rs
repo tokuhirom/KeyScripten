@@ -149,6 +149,19 @@ impl Plugins {
             Err(err) => Err(anyhow!("Cannot get plugin list: {:?}", err)),
         }
     }
+
+    pub fn delete(&self, plugin_id: String) -> anyhow::Result<()> {
+        let plugins = Path::new(&self.basedir);
+        if !plugins.exists() {
+            return Err(anyhow!("Missing plugin: {:?}", plugin_id));
+        }
+
+        let pluginpath = plugins.join(format!("{}.js", plugin_id));
+        let pluginpath = pluginpath.as_path();
+        log::info!("Deleting plugin: {:?}", pluginpath);
+        fs::remove_file(pluginpath)
+            .map_err(|err| anyhow!("Cannot remove file({:?}): {:?}", pluginpath, err))
+    }
 }
 
 #[cfg(test)]

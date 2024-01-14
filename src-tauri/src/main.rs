@@ -143,6 +143,16 @@ fn write_plugin_code(plugin_id: String, code: String) -> Result<(), String> {
         .map_err(|err| format!("Cannot add plugin: {:?}", err))
 }
 
+#[tauri::command]
+fn delete_plugin(plugin_id: String) -> Result<(), String> {
+    log::info!("tauri::command: delete_plugin: {}", plugin_id);
+
+    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    plugins
+        .delete(plugin_id)
+        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+}
+
 fn set_log_level_by_config(app_config: &AppConfig) {
     let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
         Ok(level) => level,
@@ -312,6 +322,7 @@ fn main() -> anyhow::Result<()> {
             list_plugins,
             read_plugin_code,
             write_plugin_code,
+            delete_plugin,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

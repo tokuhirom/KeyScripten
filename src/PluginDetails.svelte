@@ -4,6 +4,7 @@
     import {emit} from "@tauri-apps/api/event";
     import PluginSettings from "./PluginSettings.svelte";
     import EditPluginCode from "./EditPluginCode.svelte";
+    import PluginOther from "./PluginOther.svelte";
 
     export let pluginId
     let prevPluginId;
@@ -60,6 +61,9 @@
     function showSettings() {
         tab = "settings";
     }
+    function showOther() {
+        tab = "other";
+    }
 </script>
 
 <div class="plugin-config">
@@ -72,13 +76,17 @@
                     on:click={showSettings}>Settings</button></li>
         <li><button class:selected="{tab === 'edit'}"
                     on:click={showEdit}>Edit</button></li>
+        <li><button class:selected="{tab === 'other'}"
+                    on:click={showOther}>Other</button></li>
     </menu>
     {/if}
     <div class="tab-content">
     {#if tab === "settings"}
         <PluginSettings configSchema={configSchema} pluginId={pluginId} />
-    {:else}
+    {:else if tab === "edit"}
         <EditPluginCode pluginId={pluginId} />
+    {:else}
+        <PluginOther pluginId={pluginId} />
     {/if}
     </div>
 </div>
