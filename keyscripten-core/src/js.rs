@@ -269,7 +269,7 @@ impl JS<'_> {
                 }
             }
         }
-        return result;
+        result
     }
 
     fn reload_plugins(&mut self) {

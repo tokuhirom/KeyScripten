@@ -25,7 +25,7 @@ mod tests {
         let op: JsOperation = serde_json::from_str(json).unwrap();
         match op {
             JsOperation::UnloadPlugin {
-                plugin_id: plugin_id,
+                plugin_id,
             } => assert_eq!(plugin_id, "example-plugin"),
             _ => panic!("Expected UnloadPlugin"),
         }

@@ -65,7 +65,7 @@ impl Plugins {
     pub fn write(&self, plugin_id: String, content: String) -> anyhow::Result<()> {
         let plugins = Path::new(&self.basedir);
         if !plugins.exists() {
-            fs::create_dir_all(&plugins)
+            fs::create_dir_all(plugins)
                 .map_err(|err| anyhow!("Cannot create plugins directory: {:?}", err))?;
         }
         let pluginpath = plugins.join(format!("{}.js", plugin_id));
