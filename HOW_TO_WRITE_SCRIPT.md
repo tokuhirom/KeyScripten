@@ -138,3 +138,29 @@ Returns `undefined`. In case of an error, it throws a TypeError with a message d
 ```javascript
 sendKeyboardEvent(13, 0x101, true); // Keycode 13 (Enter key), with flags, being pressed
 ```
+
+Certainly, documenting constants is essential for users to understand and effectively use them in their scripts. Below is a documentation section for the constants registered in your code:
+
+## Constants
+
+In **KeyScripten**, several constants are registered for use in scripting. These constants typically represent specific values related to keyboard events and their properties. Understanding these constants is crucial for handling keyboard events correctly.
+
+### `kCGEventKeyDown`
+
+- **Description**: Represents a key-down event in the system. This constant is used to identify events where a key is pressed.
+
+### `kCGEventKeyUp`
+
+- **Description**: Represents a key-up event. Use this constant to identify events where a key is released.
+
+### `kCGEventFlagsChanged`
+
+- **Description**: Indicates an event where the modifier flags (like Shift, Control, etc.) have changed. This is crucial for detecting state changes in modifier keys.
+
+### `kCGKeyboardEventKeycode`
+
+- **Description**: Used to access the keycode field in a keyboard event. This constant allows you to determine which key was pressed or released.
+
+### `kCGEventFlagMaskNonCoalesced`
+
+- **Description**: This constant is used to identify non-coalesced events. Non-coalesced events are those that report individual movements rather than the final position in a series of movements, providing finer granularity in event handling.
