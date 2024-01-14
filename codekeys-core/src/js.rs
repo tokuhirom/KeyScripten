@@ -174,6 +174,7 @@ impl JS<'_> {
             match rx.try_recv() {
                 Ok(_) => {
                     log::info!("Trying to load plugins");
+
                     let plugin_snippets = if let Some(plugins) = &self.plugins {
                         match plugins.load_user_scripts() {
                             Ok(snippets) => Some(snippets),
