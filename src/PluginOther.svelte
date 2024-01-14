@@ -13,6 +13,7 @@
                 plugin_id: pluginId
             }
         });
+        await emit("config_schema-reload");
         return false;
     }
 </script>

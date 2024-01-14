@@ -6,6 +6,7 @@
     import EventLog from "./EventLog.svelte";
     import AddPlugin from "./AddPlugin.svelte";
     import PluginDetails from "./PluginDetails.svelte";
+    import {listen} from "@tauri-apps/api/event";
 
     let config_schema = {
         plugins: []
@@ -14,6 +15,9 @@
 
     onMount(async () => {
         config_schema = await invoke("get_config_schema");
+        await listen('config_schema-reload', async () => {
+            config_schema = await invoke("get_config_schema");
+        })
     });
 
     /**

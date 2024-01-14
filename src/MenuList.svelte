@@ -1,7 +1,24 @@
 <script>
+    import {afterUpdate} from "svelte";
+
     export let pane = "settings";
     export let plugins;
     export let onPaneChange;
+
+    afterUpdate(() => {
+        if (pane.startsWith("plugin:")) {
+            let pluginId = pane.replace("plugin:", "");
+            for (let plugin of plugins) {
+                if (pluginId === plugin.id) {
+                    return;
+                }
+            }
+
+            console.log("the selected plugin is no longer available.");
+            pane = "settings";
+            onPaneChange(pane);
+        }
+    });
 
     function showKeyEvents() {
         pane = "keyEvents";
