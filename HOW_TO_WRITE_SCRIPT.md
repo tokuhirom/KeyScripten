@@ -103,6 +103,18 @@ Each object within the config_schema array should have the following properties:
 
 Hotkey type is emacs like notation. e.g. `C-t`
 
+## Objects
+
+### The `event` object
+
+This is passed to the callback function.
+The `event` object has following fields:
+
+
+* `type` (String): The field indicates the event type. One of the `flagsChanged`, `keyUp` or `keyDown`.
+* `flags` (Number): Bit field of the flags. It's based on `CGEventFlags`. See `Constants` section.
+* `keycode` (Number): KeyCode.
+
 ## Functions
 
 There are some functions to implement your own great script.
