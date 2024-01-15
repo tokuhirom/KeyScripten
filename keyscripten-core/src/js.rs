@@ -20,7 +20,7 @@ use boa_engine::property::{Attribute, PropertyKey};
 use boa_engine::value::TryFromJs;
 
 use crate::event::Event;
-use boa_runtime::Console;
+use crate::js_console::Console;
 use serde::{Deserialize, Serialize};
 
 use crate::js_builtin::JsBuiltin;

@@ -902,6 +902,7 @@ dependencies = [
  "log",
  "matches",
  "object",
+ "rustc-hash",
  "serde",
  "serde_json",
  "tempfile",
