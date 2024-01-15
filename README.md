@@ -21,7 +21,7 @@ You need to allow the accessibility option here. Because this application captur
 
 ![img_3.png](img_3.png)
 
-![img_1.png](img_1.png)
+![img_4.png](img_4.png)
 
 If there's a problem, you may need to remove the application from the accessibility permission list.
 
