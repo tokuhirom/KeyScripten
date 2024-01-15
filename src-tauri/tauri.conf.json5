@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "KeyScripten",
-    "version": "0.0.3"
+    "version": "0.1.0"
   },
   "tauri": {
     "systemTray": {
