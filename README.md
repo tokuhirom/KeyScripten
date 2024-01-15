@@ -19,9 +19,9 @@ This application run on the system tray. You can configure/add new script on thi
 
 You need to allow the accessibility option here. Because this application captures all keyboard input.
 
-![img_1.png](img_1.png)
+![img_3.png](img_3.png)
 
-![img.png](img.png)
+![img_1.png](img_1.png)
 
 If there's a problem, you may need to remove the application from the accessibility permission list.
 
