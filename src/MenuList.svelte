@@ -15,31 +15,13 @@
             }
 
             console.log("the selected plugin is no longer available.");
-            pane = "settings";
-            onPaneChange(pane);
+            showPane("settings");
         }
     });
 
-    function showKeyEvents() {
-        pane = "keyEvents";
-        onPaneChange(pane);
-    }
-    function showLogViewer() {
-        pane = "logViewer";
-        onPaneChange(pane);
-    }
-    function showSettings() {
-        pane = "settings";
-        onPaneChange(pane);
-    }
     function showPane(p) {
         pane = p;
         onPaneChange(pane);
-    }
-    function showPluginPane(id) {
-        pane = "plugin:" + id;
-        onPaneChange(pane);
-        return false;
     }
 
     function addPlugin() {
@@ -51,15 +33,16 @@
 <div class="sidebar">
     <menu>
         <li><button class:selected="{pane === 'keyEvents'}"
-                    on:click={showKeyEvents}>Key Events</button></li>
+                    on:click={() => showPane("keyEvents")}>Key Events</button></li>
         <li><button class:selected="{pane === 'logViewer'}"
-                    on:click={showLogViewer}>System Log Viewer</button></li>
+                    on:click={() => showPane("logViewer")}>System Log Viewer</button></li>
         <li><button class:selected="{pane === 'console'}"
                     on:click={() => showPane("console")}>Console</button></li>
-        <li><button class:selected="{pane === 'settings'}"
-                    on:click={showSettings}>Settings</button></li>
+        <li class="general-menu"><button class:selected="{pane === 'settings'}"
+                    on:click={() => showPane("settings")}>Settings</button></li>
         {#each plugins as plugin}
-            <li><button class:selected="{pane === 'plugin:' + plugin.id}" on:click={() => showPluginPane(plugin.id)}>{plugin.name}</button></li>
+            <li class="plugin-menu"><button class:selected="{pane === 'plugin:' + plugin.id}"
+                        on:click={() => showPane("plugin:" + plugin.id)}>{plugin.name}</button></li>
         {/each}
     </menu>
     <div class="add-plugin">
@@ -91,6 +74,10 @@
     }
     menu .selected {
         background-color: #396cd8;
+    }
+
+    menu .general-menu {
+        margin-bottom: 18px;
     }
 
     .add-plugin {

@@ -2,8 +2,6 @@
 
     import {onDestroy, onMount} from "svelte";
     import {invoke} from "@tauri-apps/api/tauri";
-    import {getKeyName} from "./keycode.js";
-    import {flagsToString} from "./flags.js";
 
     let console_log = [];
 
