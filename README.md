@@ -3,11 +3,9 @@
 This app is the programmable keyboard macro system for Mac OSX.
 You can write any keyboard handler by JavaScript.
 
-This app contains some of the official plugins:
+This app contains some of the bundled plugins:
 
   * implementation of the [Toshiyuki Masui san's Dynamic Macro](https://gihyo.jp/dev/serial/01/masui-columbus/0006)
-
-(Current implementation doesn't support user's own javascript handler)
 
 ## How it works?
 
@@ -74,24 +72,6 @@ I refer the rdev to implement this application: https://github.com/Narsil/rdev/b
   - If you want to use symbols as a shortcut key with JIS keyboard, maybe there's an issue on some keys...
     - I don't have a JIS keyboard. patches welcome.
 
-## SEE ALSO
-
-https://qiita.com/hanspond/items/7e23d4853ab22968500c
-
-There's a keyboard input related apps written in rust.
-
-- [Tickeys](https://github.com/yingDev/Tickeys)
-  - Instant audio feedback for typing. macOS version. (Rust)
-- [modelm](https://github.com/millerjs/modelm)
-  - Mechanical keyboard sound simulator in Rust
-- [rustdesk](https://github.com/rustdesk/rustdesk)
-  - An open-source remote desktop, and alternative to TeamViewer.
-- [makepad](https://github.com/makepad/makepad)
-  - Makepad is a creative software development platform for Rust that compiles to wasm/webGL, osx/metal, windows/dx11 linux/opengl
-- [enigo](https://github.com/enigo-rs/enigo)
-  - Cross platform input simulation in Rust
-- [mouce](https://github.com/fufesou/mouce)
-  - Rust library to control the mouse
 
 ### Dynamic macro related links
 

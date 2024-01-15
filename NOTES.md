@@ -6,6 +6,20 @@
   - キーロガー的な挙動と、キーの送出ができれば良い。
 - rdev を利用して実装を開始した。
   - rdev を見なければ、開発を開始していなかっただろう。感謝。
+- https://qiita.com/hanspond/items/7e23d4853ab22968500c
+- There's a keyboard input related apps written in rust.
+  - [Tickeys](https://github.com/yingDev/Tickeys)
+    - Instant audio feedback for typing. macOS version. (Rust)
+  - [modelm](https://github.com/millerjs/modelm)
+    - Mechanical keyboard sound simulator in Rust
+  - [rustdesk](https://github.com/rustdesk/rustdesk)
+    - An open-source remote desktop, and alternative to TeamViewer.
+  - [makepad](https://github.com/makepad/makepad)
+    - Makepad is a creative software development platform for Rust that compiles to wasm/webGL, osx/metal, windows/dx11 linux/opengl
+  - [enigo](https://github.com/enigo-rs/enigo)
+    - Cross platform input simulation in Rust
+  - [mouce](https://github.com/fufesou/mouce)
+    - Rust library to control the mouse
 - しかし、rdev の挙動では、いくつか、このアプリケーションを実現するにあたって実現不可能な挙動があった
   - OSごとの差異を隠蔽するようにしている結果、本来はOSXのAPIで実現可能な動作ができなくなっていた
   - 具体的には例えばキーショートカットが Ctrl-T となっている場合、その状態でキーを送出すると、Ctrlが押下された状態でキー入力したことになってしまうのだ。
