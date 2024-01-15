@@ -21,27 +21,31 @@ impl HotKey {
         map.insert("M-", CGEventFlags_kCGEventFlagMaskCommand);
         map.insert("A-", CGEventFlags_kCGEventFlagMaskAlternate);
 
-        let mut start = 0;
+        let mut chars = s.chars().peekable();
         let mut flags = 0;
 
-        while s.len() - start >= 2 {
-            let part = &s[start..start + 2]; // this may fail if the 's' variable contains multibyte character
-            if let Some(code) = map.get(part) {
-                flags |= *code;
-                start += 2;
+        let mut part = String::new();
+
+        loop {
+            if let Some(c) = chars.next() {
+                part.push(c);
             } else {
                 break;
             }
+
+            if let Some(code) = map.get(&part[..]) {
+                flags |= *code;
+                part.clear();
+            }
         }
 
-        if start >= s.len() {
-            Err(anyhow!("Cannot parse shortcut: `{:?}`", s))
-        } else {
-            let keyname = &s[start..];
-            match keycode::get_keycode(keyname) {
-                Some(keycode) => Ok(HotKey { flags, keycode }),
-                None => Err(anyhow!("Unknown key: `{:?}`", s)),
-            }
+        if part.is_empty() {
+            return Err(anyhow!("Cannot parse shortcut: `{:?}`", s));
+        }
+
+        match keycode::get_keycode(&part) {
+            Some(keycode) => Ok(HotKey { flags, keycode }),
+            None => Err(anyhow!("Unknown key: `{:?}`", s)),
         }
     }
 
@@ -96,6 +100,7 @@ mod tests {
         assert!(HotKey::from_str("").is_err());
         assert!(HotKey::from_str("C-").is_err());
         assert!(HotKey::from_str("unknown").is_err());
+        assert!(HotKey::from_str("ほげ").is_err());
 
         Ok(())
     }
