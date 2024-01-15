@@ -12,6 +12,7 @@ use keyscripten_core::app_config::{AppConfig, PluginConfig};
 use keyscripten_core::event::Event;
 use keyscripten_core::grab::{grab_run, grab_setup};
 use keyscripten_core::js::{ConfigSchema, ConfigSchemaList, JS};
+use keyscripten_core::js_console::TimedLogMessage;
 use keyscripten_core::js_operation::JsOperation;
 use keyscripten_core::plugin::Plugins;
 use lazy_static::lazy_static;
@@ -166,6 +167,14 @@ fn read_logs() -> Result<Vec<String>, String> {
         .read()
         .map_err(|err| format!("Cannot get lock: {:?}", err))?;
     Ok(buffer.iter().cloned().collect())
+}
+
+#[tauri::command]
+fn read_console_logs() -> Result<Vec<TimedLogMessage>, String> {
+    log::debug!("tauri::command: read_console_logs");
+
+    let buffer = keyscripten_core::js_console::get_console_logs();
+    Ok(buffer)
 }
 
 fn set_log_level_by_config(app_config: &AppConfig) {
@@ -356,6 +365,7 @@ fn main() -> anyhow::Result<()> {
             write_plugin_code,
             delete_plugin,
             read_logs,
+            read_console_logs,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

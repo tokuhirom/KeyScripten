@@ -32,6 +32,10 @@
         pane = "settings";
         onPaneChange(pane);
     }
+    function showPane(p) {
+        pane = p;
+        onPaneChange(pane);
+    }
     function showPluginPane(id) {
         pane = "plugin:" + id;
         onPaneChange(pane);
@@ -49,7 +53,9 @@
         <li><button class:selected="{pane === 'keyEvents'}"
                     on:click={showKeyEvents}>Key Events</button></li>
         <li><button class:selected="{pane === 'logViewer'}"
-                    on:click={showLogViewer}>Log Viewer</button></li>
+                    on:click={showLogViewer}>System Log Viewer</button></li>
+        <li><button class:selected="{pane === 'console'}"
+                    on:click={() => showPane("console")}>Console</button></li>
         <li><button class:selected="{pane === 'settings'}"
                     on:click={showSettings}>Settings</button></li>
         {#each plugins as plugin}

@@ -1,3 +1,10 @@
+/*
+ * This file is mostly same as https://github.com/boa-dev/boa/blob/main/core/runtime/src/console/mod.rs.
+ * but this file will capture he output to the buffer.
+ *
+ * Currently, BoaJS' doesn't customize the output method. https://github.com/boa-dev/boa/issues/3582
+ */
+
 //! Boa's implementation of JavaScript's `console` Web API object.
 //!
 //! The `console` object can be accessed from any global object.
@@ -19,7 +26,12 @@ use boa_engine::{
 };
 use boa_gc::{Finalize, Trace};
 // use boa_profiler::Profiler;
+use lazy_static::lazy_static;
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
+use std::sync::RwLock;
+use std::time::UNIX_EPOCH;
 use std::{cell::RefCell, rc::Rc, time::SystemTime};
 
 /// This represents the different types of log messages.
@@ -31,18 +43,64 @@ enum LogMessage {
     Error(String),
 }
 
+impl LogMessage {
+    fn level(&self) -> &'static str {
+        match self {
+            LogMessage::Log(_) => "log",
+            LogMessage::Info(_) => "info",
+            LogMessage::Warn(_) => "warn",
+            LogMessage::Error(_) => "error",
+        }
+    }
+
+    fn message(&self) -> String {
+        match self {
+            LogMessage::Error(ref msg)
+            | LogMessage::Log(ref msg)
+            | LogMessage::Info(ref msg)
+            | LogMessage::Warn(ref msg) => msg.to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TimedLogMessage {
+    time_seconds: u64, // in epoch seconds
+    level: String,
+    message: String,
+}
+
+lazy_static! {
+    static ref CONSOLE_LOG_BUFFER: RwLock<VecDeque<TimedLogMessage>> = RwLock::new(VecDeque::new());
+}
+
+pub fn get_console_logs() -> Vec<TimedLogMessage> {
+    let logs = CONSOLE_LOG_BUFFER.read().expect("Get console log buffer");
+    logs.iter().cloned().collect()
+}
+
 /// Helper function for logging messages.
 fn logger(msg: LogMessage, console_state: &Console) {
     let indent = 2 * console_state.groups.len();
 
     match msg {
-        LogMessage::Error(msg) => {
+        LogMessage::Error(ref msg) => {
             eprintln!("{msg:>indent$}");
         }
-        LogMessage::Log(msg) | LogMessage::Info(msg) | LogMessage::Warn(msg) => {
+        LogMessage::Log(ref msg) | LogMessage::Info(ref msg) | LogMessage::Warn(ref msg) => {
             println!("{msg:>indent$}");
         }
     }
+
+    let mut buffer = CONSOLE_LOG_BUFFER.write().expect("Get log buffer");
+    buffer.push_back(TimedLogMessage {
+        time_seconds: match SystemTime::now().duration_since(UNIX_EPOCH) {
+            Ok(n) => n.as_secs(),
+            Err(_) => 0,
+        },
+        level: msg.level().to_string(),
+        message: msg.message(),
+    });
 }
 
 /// This represents the `console` formatter.

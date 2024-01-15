@@ -899,6 +899,7 @@ dependencies = [
  "dirs",
  "env_logger",
  "fern",
+ "lazy_static",
  "log",
  "matches",
  "object",

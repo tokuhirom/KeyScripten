@@ -8,6 +8,7 @@
     import PluginDetails from "./PluginDetails.svelte";
     import {listen} from "@tauri-apps/api/event";
     import LogViewer from "./LogViewer.svelte";
+    import ConsoleLog from "./ConsoleLog.svelte";
 
     let config_schema = {
         plugins: []
@@ -42,6 +43,8 @@
                 <PluginDetails pluginId={pane.replace("plugin:", "")} />
             {:else if pane === "logViewer"}
                 <LogViewer />
+            {:else if pane === "console"}
+                <ConsoleLog />
             {:else if pane === "keyEvents"}
                 <EventLog />
             {:else if pane === "addPlugin"}

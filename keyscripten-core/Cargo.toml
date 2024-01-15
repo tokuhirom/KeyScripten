@@ -41,3 +41,4 @@ env_logger = "0.10.1"
 matches = { version = "0.1.10", features = [] }
 
 rustc-hash = { version = "1.1.0", features = ["std"] }
+lazy_static = { version = "1.4.0", features = [] }

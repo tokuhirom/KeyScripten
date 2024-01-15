@@ -4,7 +4,7 @@ pub mod grab;
 mod hotkey;
 pub mod js;
 mod js_builtin;
-mod js_console;
+pub mod js_console;
 mod js_hotkey;
 mod js_keycode;
 pub mod js_operation;
