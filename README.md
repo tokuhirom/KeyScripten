@@ -7,20 +7,30 @@ This app contains some of the bundled plugins:
 
   * implementation of the [Toshiyuki Masui san's Dynamic Macro](https://gihyo.jp/dev/serial/01/masui-columbus/0006)
 
-## How it works?
+## How do I use this?
 
-There's a `CGEventTapCreate` function on mac osx. This function provides the feature to retrieve the user's input.
-This application forwards the event to JavaScript code.
+### SystemTray
 
-## Accessibility permission
+This application run on the system tray. You can configure/add new script on this configuration window.
 
-You need to allow the accessibility option here. Because this application captures all keyboard input. 
+![img_2.png](img_2.png)
+
+### Accessibility permission
+
+You need to allow the accessibility option here. Because this application captures all keyboard input.
 
 ![img_1.png](img_1.png)
 
 ![img.png](img.png)
 
 If there's a problem, you may need to remove the application from the accessibility permission list.
+
+## How it works?
+
+There's a `CGEventTapCreate` function on mac osx. This function provides the feature to retrieve the user's input.
+This application forwards the event to JavaScript code.
+And so, your javascript code can send any keyboard events to the OS.
+
 
 ## Hacking
 
@@ -33,11 +43,6 @@ If there's a problem, you may need to remove the application from the accessibil
 
  - Update version field in `src-tauri/tauri.conf.json5`.
  - Create new GitHub release s in draft.
-
-## Configuration
-
-This app loads the configuration file from `~/Library/Application Support/keyscripten/config.json`.
-You can change the shortcut key by this file(I will add the shortcut key configuration in the future release).
 
 ## LICENSE
 
@@ -72,8 +77,3 @@ I refer the rdev to implement this application: https://github.com/Narsil/rdev/b
   - If you want to use symbols as a shortcut key with JIS keyboard, maybe there's an issue on some keys...
     - I don't have a JIS keyboard. patches welcome.
 
-
-### Dynamic macro related links
-
-- [DynamicMacroAHK](https://forestail.com/programing/dynamic-macro-autohotkey/)
-- [Dynamic Macro](http://www.pitecan.com/papers/JSSSTDmacro/JSSSTDmacro.html)

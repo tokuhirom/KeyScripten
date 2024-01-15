@@ -20,6 +20,9 @@
     - Cross platform input simulation in Rust
   - [mouce](https://github.com/fufesou/mouce)
     - Rust library to control the mouse
+- Dynamic macro related links
+  - [DynamicMacroAHK](https://forestail.com/programing/dynamic-macro-autohotkey/)
+  - [Dynamic Macro](http://www.pitecan.com/papers/JSSSTDmacro/JSSSTDmacro.html)
 - しかし、rdev の挙動では、いくつか、このアプリケーションを実現するにあたって実現不可能な挙動があった
   - OSごとの差異を隠蔽するようにしている結果、本来はOSXのAPIで実現可能な動作ができなくなっていた
   - 具体的には例えばキーショートカットが Ctrl-T となっている場合、その状態でキーを送出すると、Ctrlが押下された状態でキー入力したことになってしまうのだ。
