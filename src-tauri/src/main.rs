@@ -124,7 +124,7 @@ fn add_plugin(plugin_id: String, name: String, description: String) -> Result<()
 
 #[tauri::command]
 fn list_plugins() -> Result<Vec<String>, String> {
-    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    let plugins = Plugins::new().map_err(|err| format!("Cannot list plugin: {:?}", err))?;
     plugins
         .list()
         .map_err(|err| format!("Cannot add plugin: {:?}", err))
@@ -132,10 +132,10 @@ fn list_plugins() -> Result<Vec<String>, String> {
 
 #[tauri::command]
 fn read_plugin_code(plugin_id: String) -> Result<String, String> {
-    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    let plugins = Plugins::new().map_err(|err| format!("Cannot read plugin: {:?}", err))?;
     let plugin_snippet = plugins
         .load(plugin_id)
-        .map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+        .map_err(|err| format!("Cannot read plugin: {:?}", err))?;
     Ok(plugin_snippet.src)
 }
 
@@ -143,20 +143,20 @@ fn read_plugin_code(plugin_id: String) -> Result<String, String> {
 fn write_plugin_code(plugin_id: String, code: String) -> Result<(), String> {
     log::info!("tauri::command: write_plugin_code: {}", plugin_id);
 
-    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    let plugins = Plugins::new().map_err(|err| format!("Cannot write plugin: {:?}", err))?;
     plugins
         .write(plugin_id, code)
-        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+        .map_err(|err| format!("Cannot write plugin: {:?}", err))
 }
 
 #[tauri::command]
 fn delete_plugin(plugin_id: String) -> Result<(), String> {
     log::info!("tauri::command: delete_plugin: {}", plugin_id);
 
-    let plugins = Plugins::new().map_err(|err| format!("Cannot add plugin: {:?}", err))?;
+    let plugins = Plugins::new().map_err(|err| format!("Cannot delte plugin: {:?}", err))?;
     plugins
         .delete(plugin_id)
-        .map_err(|err| format!("Cannot add plugin: {:?}", err))
+        .map_err(|err| format!("Cannot delete plugin: {:?}", err))
 }
 
 #[tauri::command]
