@@ -85,10 +85,13 @@ fn logger(msg: LogMessage, console_state: &Console) {
 
     match msg {
         LogMessage::Error(ref msg) => {
-            eprintln!("{msg:>indent$}");
+            log::error!("[console] {msg:>indent$}");
         }
-        LogMessage::Log(ref msg) | LogMessage::Info(ref msg) | LogMessage::Warn(ref msg) => {
-            println!("{msg:>indent$}");
+        LogMessage::Log(ref msg) | LogMessage::Info(ref msg) => {
+            log::info!("[console] {msg:>indent$}");
+        }
+        LogMessage::Warn(ref msg) => {
+            log::warn!("[console] {msg:>indent$}");
         }
     }
 
