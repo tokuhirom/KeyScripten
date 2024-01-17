@@ -25,6 +25,12 @@ You need to allow the accessibility option here. Because this application captur
 
 If there's a problem, you may need to remove the application from the accessibility permission list.
 
+## How do I implement my own script?
+
+Here's a script implementation guide:
+
+https://github.com/tokuhirom/KeyScripten/blob/main/HOW_TO_WRITE_SCRIPT.md
+
 ## How it works?
 
 There's a `CGEventTapCreate` function on mac osx. This function provides the feature to retrieve the user's input.
