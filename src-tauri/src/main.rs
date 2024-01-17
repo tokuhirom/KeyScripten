@@ -358,14 +358,21 @@ fn main() -> anyhow::Result<()> {
                             if let Err(err) = window.set_focus() {
                                 log::error!("Cannot focus on existing configuration window: {:?}", err);
                             }
-                        } else if let Err(err) = WindowBuilder::new(
-                            app,
-                            "config-window".to_string(),
-                            tauri::WindowUrl::App("index.html".into()),
-                        )
-                            .build()
-                        {
-                            log::error!("Cannot open configuration window: {:?}", err);
+                        } else {
+                            match WindowBuilder::new(
+                                app,
+                                "config-window".to_string(),
+                                tauri::WindowUrl::App("index.html".into()),
+                            ).build() {
+                                Ok(window) => {
+                                    if let Err(err) = window.set_title("KeyScripten") {
+                                        log::error!("Cannot set window title: {:?}", err);
+                                    }
+                                }
+                                Err(err) => {
+                                    log::error!("Cannot open configuration window: {:?}", err);
+                                }
+                            }
                         }
                     }
                     _ => {}
