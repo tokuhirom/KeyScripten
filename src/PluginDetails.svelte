@@ -8,6 +8,7 @@
 
     export let pluginId
     let prevPluginId;
+    let filename = undefined;
 
     let tab = "settings";
 
@@ -30,6 +31,9 @@
 
         configSchema = await invoke("get_config_schema_for_plugin", {pluginId});
         pluginConfig = await invoke("load_config_for_plugin", {pluginId});
+        if (!pluginId.startsWith("bundled.")) {
+            filename = await invoke("get_plugin_filename", {pluginId});
+        }
         for (const option of configSchema.config) {
             if (!(option.name in pluginConfig.config)) {
                 pluginConfig.config[option.name] = option.default;
@@ -61,6 +65,9 @@
 <div class="plugin-config">
     <h2>{configSchema.name}</h2>
     <div class="plugin-id">(<span class="id">{configSchema.id}</span>)</div>
+    {#if filename}
+        <div class="plugin-filename">{filename}</div>
+    {/if}
     <div class="description">{configSchema.description}</div>
     {#if configSchema.id && !configSchema.id.startsWith("builtin.")}
     <menu>

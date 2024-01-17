@@ -22,7 +22,6 @@ use tauri::{
     CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
     WindowBuilder, Wry,
 };
-use thread_id;
 
 const APP_NAME: &str = "keyscripten";
 
@@ -41,6 +40,16 @@ fn build_js<'a>() -> Result<JS<'a>, String> {
     js.load_user_scripts()
         .map_err(|err| format!("load_user_scripts: {:?}", err))?;
     Ok(js)
+}
+
+fn get_filename_by_plugin_id(plugin_id: String) -> Result<String, String> {
+    let js = build_js().map_err(|err| format!("Cannot build js: {:?}", err))?;
+    if let Some(filename) = js.get_filename_by_plugin_id(&plugin_id) {
+        Ok(filename)
+    } else {
+        log::error!("There's no plugin file found for {}", plugin_id);
+        Err(format!("There's no plugin file found for {}", plugin_id))
+    }
 }
 
 #[tauri::command]
@@ -132,10 +141,18 @@ fn list_plugins() -> Result<Vec<String>, String> {
 }
 
 #[tauri::command]
+fn get_plugin_filename(plugin_id: String) -> Result<String, String> {
+    let filename = get_filename_by_plugin_id(plugin_id)?;
+    Ok(filename)
+}
+
+#[tauri::command]
 fn read_plugin_code(plugin_id: String) -> Result<String, String> {
+    let filename = get_filename_by_plugin_id(plugin_id)?;
+
     let plugins = Plugins::new().map_err(|err| format!("Cannot read plugin: {:?}", err))?;
     let plugin_snippet = plugins
-        .load(plugin_id)
+        .read(filename)
         .map_err(|err| format!("Cannot read plugin: {:?}", err))?;
     Ok(plugin_snippet.src)
 }
@@ -144,9 +161,10 @@ fn read_plugin_code(plugin_id: String) -> Result<String, String> {
 fn write_plugin_code(plugin_id: String, code: String) -> Result<(), String> {
     log::info!("tauri::command: write_plugin_code: {}", plugin_id);
 
+    let filename = get_filename_by_plugin_id(plugin_id)?;
     let plugins = Plugins::new().map_err(|err| format!("Cannot write plugin: {:?}", err))?;
     plugins
-        .write(plugin_id, code)
+        .write(filename, code)
         .map_err(|err| format!("Cannot write plugin: {:?}", err))
 }
 
@@ -154,9 +172,11 @@ fn write_plugin_code(plugin_id: String, code: String) -> Result<(), String> {
 fn delete_plugin(plugin_id: String) -> Result<(), String> {
     log::info!("tauri::command: delete_plugin: {}", plugin_id);
 
-    let plugins = Plugins::new().map_err(|err| format!("Cannot delte plugin: {:?}", err))?;
+    let filename = get_filename_by_plugin_id(plugin_id)?;
+    let plugins =
+        Plugins::new().map_err(|err| format!("Cannot construct Plugins instance: {:?}", err))?;
     plugins
-        .delete(plugin_id)
+        .delete(filename)
         .map_err(|err| format!("Cannot delete plugin: {:?}", err))
 }
 
@@ -368,6 +388,7 @@ fn main() -> anyhow::Result<()> {
             delete_plugin,
             read_logs,
             read_console_logs,
+            get_plugin_filename,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

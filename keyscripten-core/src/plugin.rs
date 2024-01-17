@@ -6,7 +6,7 @@ use std::path::Path;
 
 #[derive(Debug)]
 pub struct PluginSnippet {
-    pub plugin_id: String,
+    pub filename: String,
     pub src: String,
 }
 
@@ -33,7 +33,7 @@ impl Plugins {
             return Ok(vec![]);
         }
 
-        let mut plugin_ids = Vec::new();
+        let mut filenames = Vec::new();
         for entry in fs::read_dir(plugins_dir)? {
             let entry = entry?;
             let path = entry.path();
@@ -41,9 +41,9 @@ impl Plugins {
             if path.is_file() {
                 if let Some(ext) = path.extension() {
                     if ext == "js" {
-                        if let Some(file_stem) = path.file_stem() {
-                            if let Some(file_stem_str) = file_stem.to_str() {
-                                plugin_ids.push(file_stem_str.to_string());
+                        if let Some(file_name) = path.file_name() {
+                            if let Some(file_name_str) = file_name.to_str() {
+                                filenames.push(file_name_str.to_string());
                             }
                         }
                     }
@@ -51,7 +51,7 @@ impl Plugins {
             }
         }
 
-        Ok(plugin_ids)
+        Ok(filenames)
     }
 
     pub fn add(&self, plugin_id: String, name: String, description: String) -> anyhow::Result<()> {
@@ -59,16 +59,16 @@ impl Plugins {
             .replace("/*ID*/{}", &json!(plugin_id).to_string())
             .replace("/*NAME*/{}", &json!(name).to_string())
             .replace("/*DESC*/{}", &json!(description).to_string());
-        self.write(plugin_id, content)
+        self.write(format!("{}.js", plugin_id), content)
     }
 
-    pub fn write(&self, plugin_id: String, content: String) -> anyhow::Result<()> {
+    pub fn write(&self, filename: String, content: String) -> anyhow::Result<()> {
         let plugins = Path::new(&self.basedir);
         if !plugins.exists() {
             fs::create_dir_all(plugins)
                 .map_err(|err| anyhow!("Cannot create plugins directory: {:?}", err))?;
         }
-        let pluginpath = plugins.join(format!("{}.js", plugin_id));
+        let pluginpath = plugins.join(filename);
         log::info!("Writing plugin: {:?}", pluginpath);
         fs::write(pluginpath.as_path(), content).map_err(|err| {
             anyhow!(
@@ -80,29 +80,29 @@ impl Plugins {
         Ok(())
     }
 
-    pub fn load(&self, plugin_id: String) -> anyhow::Result<PluginSnippet> {
+    pub fn read(&self, filename: String) -> anyhow::Result<PluginSnippet> {
         let plugins = Path::new(&self.basedir);
         if !plugins.exists() {
-            return Err(anyhow!("Missing plugin: {:?}", plugin_id));
+            return Err(anyhow!("Missing plugin: {:?}", filename));
         }
 
-        let pluginpath = plugins.join(format!("{}.js", plugin_id));
+        let pluginpath = plugins.join(filename.clone());
         log::info!("Reading plugin: {:?}", pluginpath);
         let src = fs::read_to_string(pluginpath.as_path())?;
-        Ok(PluginSnippet { plugin_id, src })
+        Ok(PluginSnippet { filename, src })
     }
 
-    pub fn load_user_scripts(&self) -> anyhow::Result<Vec<PluginSnippet>> {
+    pub fn read_user_scripts(&self) -> anyhow::Result<Vec<PluginSnippet>> {
         match self.list() {
-            Ok(plugin_ids) => {
+            Ok(filenames) => {
                 let mut results = Vec::new();
-                for plugin_id in plugin_ids {
-                    match self.load(plugin_id.clone()) {
+                for filename in filenames {
+                    match self.read(filename.clone()) {
                         Ok(snippet) => {
                             results.push(snippet);
                         }
                         Err(err) => {
-                            log::error!("Cannot load {}: {:?}", plugin_id, err);
+                            log::error!("Cannot load {}: {:?}", filename, err);
                         }
                     }
                 }
@@ -112,13 +112,13 @@ impl Plugins {
         }
     }
 
-    pub fn delete(&self, plugin_id: String) -> anyhow::Result<()> {
+    pub fn delete(&self, filename: String) -> anyhow::Result<()> {
         let plugins = Path::new(&self.basedir);
         if !plugins.exists() {
-            return Err(anyhow!("Missing plugin: {:?}", plugin_id));
+            return Err(anyhow!("Cannot instantiate Path object: {:?}", filename));
         }
 
-        let pluginpath = plugins.join(format!("{}.js", plugin_id));
+        let pluginpath = plugins.join(filename);
         let pluginpath = pluginpath.as_path();
         log::info!("Deleting plugin: {:?}", pluginpath);
         fs::remove_file(pluginpath)
@@ -197,5 +197,58 @@ mod tests {
         // Check that both plugin files exist
         assert!(temp_path.join("plugin_one.js").exists());
         assert!(temp_path.join("plugin_two.js").exists());
+    }
+
+    #[test]
+    fn test_write() {
+        initialize_logger();
+
+        let temp_dir = TempDir::with_prefix("write").unwrap();
+        let temp_path = temp_dir.path();
+        let plugins = Plugins::new_with_basedir(temp_path.to_str().unwrap().to_string());
+
+        plugins
+            .write("hello.js".to_string(), "code".to_string())
+            .unwrap();
+
+        assert!(temp_path.join("hello.js").exists());
+    }
+
+    #[test]
+    fn test_read() {
+        initialize_logger();
+
+        let temp_dir = TempDir::with_prefix("write").unwrap();
+        let temp_path = temp_dir.path();
+        let plugins = Plugins::new_with_basedir(temp_path.to_str().unwrap().to_string());
+
+        plugins
+            .write("hello.js".to_string(), "code".to_string())
+            .unwrap();
+        let snippet = plugins.read("hello.js".to_string()).expect("read code");
+        assert_eq!(snippet.filename, "hello.js");
+        assert_eq!(snippet.src, "code");
+    }
+
+    #[test]
+    fn test_delete() {
+        initialize_logger();
+
+        let temp_dir = TempDir::with_prefix("write").unwrap();
+        let temp_path = temp_dir.path();
+        let plugins = Plugins::new_with_basedir(temp_path.to_str().unwrap().to_string());
+
+        plugins
+            .write("hello.js".to_string(), "code".to_string())
+            .unwrap();
+
+        assert!(temp_path.join("hello.js").exists());
+
+        plugins
+            .delete("hello.js".to_string())
+            .expect("delete successfully");
+
+        // removed
+        assert!(!temp_path.join("hello.js").exists());
     }
 }

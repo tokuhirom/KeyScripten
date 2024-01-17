@@ -9,7 +9,7 @@ use apple_sys::CoreGraphics::{
     CGEventType_kCGEventKeyUp,
 };
 use boa_engine::{js_string, Context, JsObject, JsValue, NativeFunction, Source};
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::Debug;
 use std::sync::mpsc::{Receiver, TryRecvError};
 use std::sync::{Arc, RwLock};
@@ -34,6 +34,7 @@ pub struct JS<'a> {
     js_operation_rx: Option<Receiver<JsOperation>>,
     monitoring_queue: Option<Arc<RwLock<VecDeque<Event>>>>,
     plugins: Option<Plugins>,
+    plugin_id2filename: HashMap<String, String>,
 }
 
 impl JS<'_> {
@@ -49,6 +50,7 @@ impl JS<'_> {
             js_operation_rx,
             monitoring_queue,
             plugins,
+            plugin_id2filename: HashMap::new(),
         };
         js.init_console()?;
         js.init_hotkey()?;
@@ -58,6 +60,18 @@ impl JS<'_> {
         js.load_driver()?;
         js.load_bundled()?;
         Ok(js)
+    }
+
+    pub fn get_filename_by_plugin_id(&self, plugin_id: &String) -> Option<String> {
+        let result = self.plugin_id2filename.get(plugin_id).cloned();
+        if result == None {
+            log::info!(
+                "unknown plugin_id({})... current filename map is {:?}",
+                plugin_id,
+                self.plugin_id2filename
+            );
+        }
+        result
     }
 
     fn init_console(&mut self) -> anyhow::Result<()> {
@@ -208,7 +222,11 @@ impl JS<'_> {
                 JsOperation::ReloadConfig => {
                     needs_config_reload = true;
                 }
-                JsOperation::ReloadPlugins => self.reload_plugins(),
+                JsOperation::ReloadPlugins => {
+                    if let Err(err) = self.reload_plugins() {
+                        log::error!("cannot reload plugin: {:?}", err)
+                    }
+                }
                 JsOperation::UnloadPlugin { plugin_id, .. } => {
                     if let Err(err) = self.unload_plugin(plugin_id.clone()) {
                         log::error!("cannot unload plugin({}): {:?}", plugin_id, err)
@@ -270,34 +288,6 @@ impl JS<'_> {
             }
         }
         result
-    }
-
-    fn reload_plugins(&mut self) {
-        log::info!("Trying to load plugins");
-
-        let plugin_snippets = if let Some(plugins) = &self.plugins {
-            match plugins.load_user_scripts() {
-                Ok(snippets) => Some(snippets),
-                Err(err) => {
-                    log::error!("Cannot get plugin list: {:?}", err);
-                    None
-                }
-            }
-        } else {
-            None
-        };
-        if let Some(plugin_snippets) = plugin_snippets {
-            for plugin_snippet in plugin_snippets {
-                match self.eval(plugin_snippet.src) {
-                    Ok(value) => {
-                        log::info!("Loaded {}: {:?}", plugin_snippet.plugin_id, value);
-                    }
-                    Err(err) => {
-                        log::error!("Loaded {}: {:?}", plugin_snippet.plugin_id, err);
-                    }
-                }
-            }
-        }
     }
 
     fn unload_plugin(&mut self, plugin_id: String) -> anyhow::Result<()> {
@@ -374,18 +364,48 @@ impl JS<'_> {
         self.eval(src.to_string())
     }
 
+    fn reload_plugins(&mut self) -> anyhow::Result<()> {
+        log::info!("JS::reload_plugins");
+        self.load_user_scripts()
+    }
+
     pub fn load_user_scripts(&mut self) -> anyhow::Result<()> {
         log::info!("Trying to load plugins");
 
         if let Some(plugins) = &self.plugins {
-            let plugin_snippets = plugins.load_user_scripts()?;
+            let plugin_snippets = plugins.read_user_scripts()?;
+
+            let mut last_loaded_plugins = self.loaded_plugins()?;
+
             for plugin_snippet in plugin_snippets {
+                let filename = plugin_snippet.filename.as_str();
+
                 if let Err(err) = self.eval(plugin_snippet.src) {
-                    log::error!("Cannot load {}: {:?}", plugin_snippet.plugin_id, err)
+                    log::error!("Cannot load {}: {:?}", plugin_snippet.filename, err)
                 }
+
+                let current_loaded_plugins = self.loaded_plugins()?;
+
+                let diff = current_loaded_plugins.difference(&last_loaded_plugins);
+                for plugin_id in diff {
+                    self.plugin_id2filename
+                        .insert(plugin_id.to_string(), filename.to_string());
+                }
+
+                last_loaded_plugins = current_loaded_plugins;
             }
         }
         Ok(())
+    }
+
+    pub fn loaded_plugins(&mut self) -> anyhow::Result<HashSet<String>> {
+        let config_schema_list = self.get_config_schema()?;
+        let result: HashSet<String> = config_schema_list
+            .plugins
+            .iter()
+            .map(|f| f.id.to_string())
+            .collect();
+        Ok(result)
     }
 
     pub fn get_config_schema(&mut self) -> anyhow::Result<ConfigSchemaList> {
