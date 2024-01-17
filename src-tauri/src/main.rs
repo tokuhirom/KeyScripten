@@ -7,7 +7,7 @@ use std::sync::{mpsc, Arc, RwLock};
 
 use anyhow::anyhow;
 
-use chrono::Local;
+use chrono::{Local, SecondsFormat};
 use keyscripten_core::app_config::{AppConfig, PluginConfig};
 use keyscripten_core::event::Event;
 use keyscripten_core::grab::{grab_run, grab_setup};
@@ -22,6 +22,7 @@ use tauri::{
     CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
     WindowBuilder, Wry,
 };
+use thread_id;
 
 const APP_NAME: &str = "keyscripten";
 
@@ -222,8 +223,9 @@ fn logger() -> anyhow::Result<()> {
     fern::Dispatch::new()
         .format(|out, message, record| {
             out.finish(format_args!(
-                "[{} {} {}] {}",
-                Local::now().to_rfc3339(),
+                "[{} {} {} {}] {}",
+                Local::now().to_rfc3339_opts(SecondsFormat::Secs, false),
+                thread_id::get(),
                 record.level(),
                 record.target(),
                 message
