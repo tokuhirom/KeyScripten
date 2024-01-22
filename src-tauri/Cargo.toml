@@ -21,7 +21,7 @@ serde_json = "1.0"
 
 log = { version = "0.4.20", features = [] }
 fern = { version = "0.6.2", features = ["date-based"] }
-chrono = "0.4.31"
+chrono = "0.4.32"
 
 config = { version = "0.13.4", features = [] }
 
