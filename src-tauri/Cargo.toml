@@ -25,7 +25,7 @@ chrono = "0.4.34"
 
 config = { version = "0.14.0", features = [] }
 
-anyhow = "1.0.79"
+anyhow = "1.0.80"
 
 dirs = "5.0.1"
 
