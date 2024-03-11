@@ -29,15 +29,15 @@ use crate::js_keycode::build_keycode;
 use crate::js_operation::JsOperation;
 use crate::plugin::Plugins;
 
-pub struct JS<'a> {
-    context: Context<'a>,
+pub struct JS {
+    context: Context,
     js_operation_rx: Option<Receiver<JsOperation>>,
     monitoring_queue: Option<Arc<RwLock<VecDeque<Event>>>>,
     plugins: Option<Plugins>,
     plugin_id2filename: HashMap<String, String>,
 }
 
-impl JS<'_> {
+impl JS {
     pub fn new(
         js_operation_rx: Option<Receiver<JsOperation>>,
         monitoring_queue: Option<Arc<RwLock<VecDeque<Event>>>>,
@@ -98,48 +98,48 @@ impl JS<'_> {
     fn init_keycode(&mut self) -> anyhow::Result<()> {
         let keycode = build_keycode(&mut self.context)
             .map_err(|err| anyhow!("Cannot build keycode object: {:?}", err))?;
-        self.register_constant("Key", keycode)?;
+        self.register_constant(js_string!("Key"), keycode)?;
         Ok(())
     }
 
     fn register_constants(&mut self) -> anyhow::Result<()> {
-        self.register_constant("kCGEventKeyDown", CGEventType_kCGEventKeyDown)?;
-        self.register_constant("kCGEventKeyUp", CGEventType_kCGEventKeyUp)?;
-        self.register_constant("kCGEventFlagsChanged", CGEventType_kCGEventFlagsChanged)?;
+        self.register_constant(js_string!("kCGEventKeyDown"), CGEventType_kCGEventKeyDown)?;
+        self.register_constant(js_string!("kCGEventKeyUp"), CGEventType_kCGEventKeyUp)?;
+        self.register_constant(js_string!("kCGEventFlagsChanged"), CGEventType_kCGEventFlagsChanged)?;
         self.register_constant(
-            "kCGKeyboardEventKeycode",
+            js_string!("kCGKeyboardEventKeycode"),
             CGEventField_kCGKeyboardEventKeycode,
         )?;
         self.register_constant(
-            "kCGEventFlagMaskNonCoalesced",
+            js_string!("kCGEventFlagMaskNonCoalesced"),
             CGEventFlags_kCGEventFlagMaskNonCoalesced,
         )?;
 
         // CGEventFlags
         self.register_constant(
-            "kCGEventFlagMaskAlphaShift",
+            js_string!("kCGEventFlagMaskAlphaShift"),
             CGEventFlags_kCGEventFlagMaskAlphaShift,
         )?;
-        self.register_constant("kCGEventFlagMaskShift", CGEventFlags_kCGEventFlagMaskShift)?;
+        self.register_constant(js_string!("kCGEventFlagMaskShift"), CGEventFlags_kCGEventFlagMaskShift)?;
         self.register_constant(
-            "kCGEventFlagMaskControl",
+            js_string!("kCGEventFlagMaskControl"),
             CGEventFlags_kCGEventFlagMaskControl,
         )?;
         self.register_constant(
-            "kCGEventFlagMaskAlternate",
+            js_string!("kCGEventFlagMaskAlternate"),
             CGEventFlags_kCGEventFlagMaskAlternate,
         )?;
         self.register_constant(
-            "kCGEventFlagMaskCommand",
+            js_string!("kCGEventFlagMaskCommand"),
             CGEventFlags_kCGEventFlagMaskCommand,
         )?;
-        self.register_constant("kCGEventFlagMaskHelp", CGEventFlags_kCGEventFlagMaskHelp)?;
+        self.register_constant(js_string!("kCGEventFlagMaskHelp"), CGEventFlags_kCGEventFlagMaskHelp)?;
         self.register_constant(
-            "kCGEventFlagMaskSecondaryFn",
+            js_string!("kCGEventFlagMaskSecondaryFn"),
             CGEventFlags_kCGEventFlagMaskSecondaryFn,
         )?;
         self.register_constant(
-            "kCGEventFlagMaskNumericPad",
+            js_string!("kCGEventFlagMaskNumericPad"),
             CGEventFlags_kCGEventFlagMaskNumericPad,
         )?;
 
@@ -147,15 +147,15 @@ impl JS<'_> {
     }
 
     fn register_constant<K, V>(&mut self, key: K, value: V) -> anyhow::Result<()>
-    where
-        K: Into<PropertyKey> + Debug + Copy,
-        V: Into<JsValue>,
+        where
+            K: Into<PropertyKey> + Debug,
+            V: Into<JsValue>,
     {
         if let Err(err) = self
             .context
             .register_global_property(key, value, Attribute::READONLY)
         {
-            return Err(anyhow!("Cannot register constant: {:?}, {:?}", key, err));
+            return Err(anyhow!("Cannot register constant: {:?}", err));
         }
         Ok(())
     }
@@ -167,7 +167,7 @@ impl JS<'_> {
             fn_ptr: NativeFunctionPointer,
         ) -> anyhow::Result<()> {
             if let Err(err) =
-                context.register_global_callable(name, 1, NativeFunction::from_fn_ptr(fn_ptr))
+                context.register_global_callable(js_string!(name), 1, NativeFunction::from_fn_ptr(fn_ptr))
             {
                 return Err(anyhow!("Cannot register `{}` function: {:?}", name, err));
             }
@@ -210,7 +210,7 @@ impl JS<'_> {
         let invoke_event = self
             .context
             .global_object()
-            .get("$$invokeEvent", &mut self.context)
+            .get(js_string!("$$invokeEvent"), &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$invokeEvent: {:?}", err))?;
         let invoke_event = JsFunction::try_from_js(&invoke_event, &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$invokeEvent as JsFunction: {:?}", err))?;
@@ -296,14 +296,14 @@ impl JS<'_> {
         let unload_plugin = self
             .context
             .global_object()
-            .get("$$unloadPlugin", &mut self.context)
+            .get(js_string!("$$unloadPlugin"), &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$unloadPlugin: {:?}", err))?;
         let unload_plugin = JsFunction::try_from_js(&unload_plugin, &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$unloadPlugin as JsFunction: {:?}", err))?;
         unload_plugin
             .call(
                 &JsValue::undefined(),
-                &[JsValue::from(plugin_id)],
+                &[JsValue::from(js_string!(plugin_id))],
                 &mut self.context,
             )
             .map_err(|err| anyhow!("Cannot call $$unloadPlugin as JsFunction: {:?}", err))?;
@@ -317,10 +317,10 @@ impl JS<'_> {
     ) -> anyhow::Result<JsObject> {
         let key_event = JsObject::with_object_proto(self.context.intrinsics());
 
-        fn set<K, V>(js: &mut JS<'_>, key_event: &JsObject, key: K, value: V) -> anyhow::Result<()>
-        where
-            K: Into<PropertyKey>,
-            V: Into<JsValue>,
+        fn set<K, V>(js: &mut JS, key_event: &JsObject, key: K, value: V) -> anyhow::Result<()>
+            where
+                K: Into<PropertyKey>,
+                V: Into<JsValue>,
         {
             if let Err(err) = key_event.set(key, value, false, &mut js.context) {
                 return Err(anyhow!("Cannot set name: {:?}", err));
@@ -412,7 +412,7 @@ impl JS<'_> {
         let get_config_schema = self
             .context
             .global_object()
-            .get("$$getConfigSchema", &mut self.context)
+            .get(js_string!("$$getConfigSchema"), &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$getConfigSchema: {:?}", err))?;
         let get_config_schema = JsFunction::try_from_js(&get_config_schema, &mut self.context)
             .map_err(|err| anyhow!("Cannot get $$getConfigSchema as JsFunction: {:?}", err))?;

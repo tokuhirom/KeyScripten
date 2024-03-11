@@ -54,7 +54,7 @@ unsafe extern "C" fn raw_callback(
     cg_event
 }
 
-pub fn grab_setup(js: JS<'static>) -> anyhow::Result<()> {
+pub fn grab_setup(js: JS) -> anyhow::Result<()> {
     unsafe {
         let _pool = NSAutoreleasePool::new(nil);
         log::debug!("Calling CGEventTapCreate");

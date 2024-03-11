@@ -18,12 +18,7 @@
 //! [spec]: https://console.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
-use boa_engine::{
-    native_function::NativeFunction,
-    object::{JsObject, ObjectInitializer},
-    value::{JsValue, Numeric},
-    Context, JsArgs, JsResult, JsString,
-};
+use boa_engine::{native_function::NativeFunction, object::{JsObject, ObjectInitializer}, value::{JsValue, Numeric}, Context, JsArgs, JsResult, JsString, js_string};
 use boa_gc::{Finalize, Trace};
 // use boa_profiler::Profiler;
 use lazy_static::lazy_static;
@@ -33,6 +28,8 @@ use std::collections::VecDeque;
 use std::sync::RwLock;
 use std::time::UNIX_EPOCH;
 use std::{cell::RefCell, rc::Rc, time::SystemTime};
+use boa_engine::string::utf16;
+use boa_engine::JsData;
 
 /// This represents the different types of log messages.
 #[derive(Debug)]
@@ -65,7 +62,8 @@ impl LogMessage {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimedLogMessage {
-    time_seconds: u64, // in epoch seconds
+    time_seconds: u64,
+    // in epoch seconds
     level: String,
     message: String,
 }
@@ -107,7 +105,7 @@ fn logger(msg: LogMessage, console_state: &Console) {
 }
 
 /// This represents the `console` formatter.
-fn formatter(data: &[JsValue], context: &mut Context<'_>) -> JsResult<String> {
+fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
     match data {
         [] => Ok(String::new()),
         [val] => Ok(val.to_string(context)?.to_std_string_escaped()),
@@ -179,7 +177,7 @@ fn formatter(data: &[JsValue], context: &mut Context<'_>) -> JsResult<String> {
 }
 
 /// This is the internal console object state.
-#[derive(Debug, Default, Trace, Finalize)]
+#[derive(Debug, Default, Trace, Finalize, JsData)]
 pub struct Console {
     count_map: FxHashMap<JsString, u32>,
     timer_map: FxHashMap<JsString, u128>,
@@ -191,9 +189,9 @@ impl Console {
     pub const NAME: &'static str = "console";
 
     /// Initializes the `console` built-in object.
-    pub fn init(context: &mut Context<'_>) -> JsObject {
+    pub fn init(context: &mut Context) -> JsObject {
         fn console_method(
-            f: fn(&JsValue, &[JsValue], &Console, &mut Context<'_>) -> JsResult<JsValue>,
+            f: fn(&JsValue, &[JsValue], &Console, &mut Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
@@ -204,7 +202,7 @@ impl Console {
             }
         }
         fn console_method_mut(
-            f: fn(&JsValue, &[JsValue], &mut Console, &mut Context<'_>) -> JsResult<JsValue>,
+            f: fn(&JsValue, &[JsValue], &mut Console, &mut Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
@@ -218,41 +216,93 @@ impl Console {
 
         let state = Rc::new(RefCell::new(Self::default()));
 
-        ObjectInitializer::with_native(Self::default(), context)
-            .function(console_method(Self::assert, state.clone()), "assert", 0)
-            .function(console_method_mut(Self::clear, state.clone()), "clear", 0)
-            .function(console_method(Self::debug, state.clone()), "debug", 0)
-            .function(console_method(Self::error, state.clone()), "error", 0)
-            .function(console_method(Self::info, state.clone()), "info", 0)
-            .function(console_method(Self::log, state.clone()), "log", 0)
-            .function(console_method(Self::trace, state.clone()), "trace", 0)
-            .function(console_method(Self::warn, state.clone()), "warn", 0)
-            .function(console_method_mut(Self::count, state.clone()), "count", 0)
+        ObjectInitializer::with_native_data(Self::default(), context)
             .function(
-                console_method_mut(Self::count_reset, state.clone()),
-                "countReset",
+                console_method(Self::assert, state.clone()),
+                js_string!("assert"),
                 0,
             )
-            .function(console_method_mut(Self::group, state.clone()), "group", 0)
+            .function(
+                console_method_mut(Self::clear, state.clone()),
+                js_string!("clear"),
+                0,
+            )
+            .function(
+                console_method(Self::debug, state.clone()),
+                js_string!("debug"),
+                0,
+            )
+            .function(
+                console_method(Self::error, state.clone()),
+                js_string!("error"),
+                0,
+            )
+            .function(
+                console_method(Self::info, state.clone()),
+                js_string!("info"),
+                0,
+            )
+            .function(
+                console_method(Self::log, state.clone()),
+                js_string!("log"),
+                0,
+            )
+            .function(
+                console_method(Self::trace, state.clone()),
+                js_string!("trace"),
+                0,
+            )
+            .function(
+                console_method(Self::warn, state.clone()),
+                js_string!("warn"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::count, state.clone()),
+                js_string!("count"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::count_reset, state.clone()),
+                js_string!("countReset"),
+                0,
+            )
             .function(
                 console_method_mut(Self::group, state.clone()),
-                "groupCollapsed",
+                js_string!("group"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::group, state.clone()),
+                js_string!("groupCollapsed"),
                 0,
             )
             .function(
                 console_method_mut(Self::group_end, state.clone()),
-                "groupEnd",
+                js_string!("groupEnd"),
                 0,
             )
-            .function(console_method_mut(Self::time, state.clone()), "time", 0)
-            .function(console_method(Self::time_log, state.clone()), "timeLog", 0)
+            .function(
+                console_method_mut(Self::time, state.clone()),
+                js_string!("time"),
+                0,
+            )
+            .function(
+                console_method(Self::time_log, state.clone()),
+                js_string!("timeLog"),
+                0,
+            )
             .function(
                 console_method_mut(Self::time_end, state.clone()),
-                "timeEnd",
+                js_string!("timeEnd"),
                 0,
             )
-            .function(console_method(Self::dir, state.clone()), "dir", 0)
-            .function(console_method(Self::dir, state), "dirxml", 0)
+            .function(
+                console_method(Self::dir, state.clone()),
+                js_string!("dir"),
+                0,
+            )
+            .function(console_method(Self::dir, state), js_string!("dirxml"), 0)
             .build()
     }
 
@@ -271,19 +321,20 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        let assertion = args.get(0).map_or(false, JsValue::to_boolean);
+        let assertion = args.first().map_or(false, JsValue::to_boolean);
 
         if !assertion {
             let mut args: Vec<JsValue> = args.iter().skip(1).cloned().collect();
-            let message = "Assertion failed".to_string();
+            let message = js_string!("Assertion failed");
             if args.is_empty() {
                 args.push(JsValue::new(message));
             } else if !args[0].is_string() {
                 args.insert(0, JsValue::new(message));
             } else {
-                let concat = format!("{message}: {}", args[0].display());
+                let value: Vec<u16> = args[0].display().to_string().encode_utf16().collect();
+                let concat = js_string!(&message, utf16!(": "), &value);
                 args[0] = JsValue::new(concat);
             }
 
@@ -308,7 +359,7 @@ impl Console {
         _: &JsValue,
         _: &[JsValue],
         console: &mut Self,
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         console.groups.clear();
         Ok(JsValue::undefined())
@@ -328,7 +379,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Log(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -348,7 +399,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Error(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -368,7 +419,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Info(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -388,7 +439,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Log(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -408,21 +459,21 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         if !args.is_empty() {
             logger(LogMessage::Log(formatter(args, context)?), console);
-
-            let stack_trace_dump = context
-                .stack_trace()
-                .map(|frame| frame.code_block().name())
-                .collect::<Vec<_>>()
-                .into_iter()
-                .map(|s| context.interner().resolve_expect(s).to_string())
-                .collect::<Vec<_>>()
-                .join("\n");
-            logger(LogMessage::Log(stack_trace_dump), console);
         }
+
+        let stack_trace_dump = context
+            .stack_trace()
+            .map(|frame| frame.code_block().name())
+            .collect::<Vec<_>>()
+            .into_iter()
+            .map(JsString::to_std_string_escaped)
+            .collect::<Vec<_>>()
+            .join("\n");
+        logger(LogMessage::Log(stack_trace_dump), console);
 
         Ok(JsValue::undefined())
     }
@@ -441,7 +492,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Warn(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -461,7 +512,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -490,7 +541,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -529,7 +580,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -566,7 +617,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -610,7 +661,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -657,7 +708,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let group_label = formatter(args, context)?;
 
@@ -682,7 +733,7 @@ impl Console {
         _: &JsValue,
         _: &[JsValue],
         console: &mut Self,
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         console.groups.pop();
 
@@ -704,7 +755,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         logger(
             LogMessage::Info(args.get_or_undefined(0).display_obj(true)),

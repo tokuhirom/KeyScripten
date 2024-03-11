@@ -1,7 +1,7 @@
 use crate::app_config::AppConfig;
 use crate::send::{send_flags_changed_event, send_keyboard_event};
 use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
-use boa_engine::{Context, JsArgs, JsError, JsNativeError, JsResult, JsString, JsValue};
+use boa_engine::{Context, js_string, JsArgs, JsError, JsNativeError, JsResult, JsString, JsValue};
 
 pub struct JsBuiltin {}
 
@@ -9,7 +9,7 @@ impl JsBuiltin {
     pub fn send_flags_changed_event(
         _this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let flags: &JsValue = args.get_or_undefined(0);
 
@@ -25,7 +25,7 @@ impl JsBuiltin {
     pub fn send_keyboard_event(
         _this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let keycode: &JsValue = args.get_or_undefined(0);
         let flags: &JsValue = args.get_or_undefined(1);
@@ -47,7 +47,7 @@ impl JsBuiltin {
     pub fn load_app_config_json(
         _this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
         match AppConfig::load() {
             Ok(config) => match serde_json::to_string(&config) {
@@ -55,11 +55,11 @@ impl JsBuiltin {
                     return Ok(JsValue::String(JsString::from(json.as_str())));
                 }
                 Err(err) => Err(JsError::from_opaque(
-                    format!("Cannot make json: {:?}", err).into(),
+                    js_string!(format!("Cannot make json: {:?}", err)).into(),
                 )),
             },
             Err(err) => Err(JsError::from_opaque(
-                format!("Cannot load configuration: {:?}", err).into(),
+                js_string!(format!("Cannot load configuration: {:?}", err)).into(),
             )),
         }
     }
