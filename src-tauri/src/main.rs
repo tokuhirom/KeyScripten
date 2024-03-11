@@ -34,7 +34,7 @@ lazy_static! {
     static ref LOG_BUFFER: RwLock<VecDeque<String>> = RwLock::new(VecDeque::new());
 }
 
-fn build_js<'a>() -> Result<JS<'a>, String> {
+fn build_js<'a>() -> Result<JS, String> {
     let plugins = Plugins::new().map_err(|err| format!("Plugins::new: {:?}", err))?;
     let mut js = JS::new(None, None, Some(plugins)).map_err(|err| format!("{:?}", err))?;
     js.load_user_scripts()
@@ -212,6 +212,7 @@ fn set_log_level_by_config(app_config: &AppConfig) {
     };
     set_log_level(level_filter);
 }
+
 fn set_log_level(level_filter: LevelFilter) {
     unsafe {
         eprintln!("Setting log level to {:?}", level_filter);
@@ -283,7 +284,7 @@ fn main() -> anyhow::Result<()> {
             Some(Arc::clone(&VEC_DEQUE)),
             Some(plugins),
         )
-        .expect("Cannot create JS instance");
+            .expect("Cannot create JS instance");
         if let Err(err) = js.load_user_scripts() {
             log::error!("Cannot load plugin: {:?}", err);
         }
