@@ -23,7 +23,7 @@ log = { version = "0.4.21", features = [] }
 fern = "0.6.2"
 chrono = "0.4.35"
 
-anyhow = "1.0.80"
+anyhow = "1.0.81"
 
 cocoa = "0.25.0"
 
