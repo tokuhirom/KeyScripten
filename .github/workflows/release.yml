@@ -27,7 +27,13 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: install frontend dependencies
-        run: yarn install # change this to npm or pnpm depending on which one you use
+        run: npm install
+
+      - name: update tauri.config.json version
+        run: |
+          VERSION=${{ github.event.release.tag_name }}
+          echo $VERSION
+          perl -i -pe 's/"version": ".*"/"version": "'$VERSION'"/' src-tauri/tauri.conf.json
 
       - uses: tauri-apps/tauri-action@v0
         env:
