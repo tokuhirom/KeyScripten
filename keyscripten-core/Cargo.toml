@@ -40,5 +40,5 @@ time = "0.3.36"
 env_logger = "0.11.3"
 matches = { version = "0.1.10", features = [] }
 
-rustc-hash = { version = "1.1.0", features = ["std"] }
+rustc-hash = { version = "2.0.0", features = ["std"] }
 lazy_static = { version = "1.4.0", features = [] }
