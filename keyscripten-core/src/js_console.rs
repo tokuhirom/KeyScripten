@@ -28,8 +28,8 @@ use std::collections::VecDeque;
 use std::sync::RwLock;
 use std::time::UNIX_EPOCH;
 use std::{cell::RefCell, rc::Rc, time::SystemTime};
-use boa_engine::string::utf16;
 use boa_engine::JsData;
+use boa_engine::js_str;
 
 /// This represents the different types of log messages.
 #[derive(Debug)]
@@ -333,8 +333,8 @@ impl Console {
             } else if !args[0].is_string() {
                 args.insert(0, JsValue::new(message));
             } else {
-                let value: Vec<u16> = args[0].display().to_string().encode_utf16().collect();
-                let concat = js_string!(&message, utf16!(": "), &value);
+                let value = JsString::from(args[0].display().to_string());
+                let concat = js_string!(message.as_str(), js_str!(": "), &value);
                 args[0] = JsValue::new(concat);
             }
 
