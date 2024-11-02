@@ -29,7 +29,7 @@ anyhow = "1.0.82"
 
 dirs = "5.0.1"
 
-thread-id = "4.2.1"
+thread-id = "5.0.0"
 
 keyscripten-core = {path = "../keyscripten-core" }
 lazy_static = { version = "1.4.0", features = [] }
