@@ -36,7 +36,10 @@
 <div>
     <p>Javascript's console log(periodically fetched from application core)</p>
     <table>
-        <tr><th>Time</th><th>Log level</th><th>message</th></tr>
+        <thead>
+            <tr><th>Time</th><th>Log level</th><th>message</th></tr>
+        </thead>
+        <tbody>
     {#each console_log as log}
         <tr>
             <td>{formatEpochToHHMMSS(log.time_seconds)}</td>
@@ -44,6 +47,7 @@
             <td>{log.message}</td>
         </tr>
     {/each}
+        </tbody>
     </table>
 </div>
 

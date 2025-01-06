@@ -39,12 +39,16 @@
 </script>
 <div>
     <table>
-        <tr><th>Message</th></tr>
+        <thead>
+            <tr><th>Message</th></tr>
+        </thead>
+        <tbody>
     {#each logs as log}
         <tr class={getLogLevel(log)}>
             <td>{log}</td>
         </tr>
     {/each}
+        </tbody>
     </table>
 </div>
 

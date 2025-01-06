@@ -37,7 +37,10 @@
 </script>
 <div>
     <table>
-        <tr><th>Time</th><th>Event type</th><th>KeyCode</th><th>Flags</th></tr>
+        <thead>
+            <tr><th>Time</th><th>Event type</th><th>KeyCode</th><th>Flags</th></tr>
+        </thead>
+        <tbody>
     {#each event_log as log}
         <tr>
             <td>{formatEpochToHHMMSS(log.timestamp)}</td>
@@ -46,6 +49,7 @@
             <td>{flagsToString(log.flags)}</td>
         </tr>
     {/each}
+        </tbody>
     </table>
 </div>
 

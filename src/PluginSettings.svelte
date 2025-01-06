@@ -64,6 +64,7 @@
     </div>
     {#if pluginConfig.enabled}
         <table class="plugin-config-detail">
+            <tbody>
             {#each configSchema.config as schema_config}
                 <tr class="config">
                     <th>{schema_config.name}<br>(<span class="type">{schema_config.type}</span>)</th>
@@ -73,6 +74,7 @@
                         {#if schema_config.type === "hotkey"}
                             <div class="hotkey-note">
                                 <table>
+                                    <tbody>
                                     <tr>
                                         <th>C-</th>
                                         <td>means (press and hold) the Control key</td>
@@ -85,6 +87,7 @@
                                         <th>S-</th>
                                         <td>Shift key(S-tab means shift-tab)</td>
                                     </tr>
+                                    </tbody>
                                 </table>
                             </div>
                         {/if}
@@ -92,6 +95,7 @@
                     </td>
                 </tr>
             {/each}
+            </tbody>
         </table>
     {/if}
 </div>
@@ -101,7 +105,7 @@
         border-collapse: collapse;
         border-radius: 8px;
     }
-    table.plugin-config-detail, table.plugin-config-detail > tr > th, table.plugin-config-detail > tr > td {
+    table.plugin-config-detail, table.plugin-config-detail > tbody > tr > th, table.plugin-config-detail > tbody > tr > td {
         border: 1px solid white;
         padding: 4px;
     }
