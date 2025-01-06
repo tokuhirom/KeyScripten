@@ -33,7 +33,7 @@ apple-sys = { version = "0.2.0", features = ["CoreGraphics", "CoreFoundation"] }
 
 boa_engine = { version = "0.19.0", features = [] }
 boa_runtime = { version = "0.19.0" }
-boa_gc = "0.19.0"
+boa_gc = "0.20.0"
 console = "0.15.8"
 object = "0.36.0"
 time = "0.3.36"
