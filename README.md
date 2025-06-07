@@ -45,6 +45,11 @@ And so, your javascript code can send any keyboard events to the OS.
     npm install
     npm run tauri build
 
+### How do I run this for development?
+
+    npm install
+    npm run tauri dev
+
 ## Release process
 
  - Update version field in `src-tauri/tauri.conf.json5`.
