@@ -9,17 +9,31 @@
     import {listen} from "@tauri-apps/api/event";
     import LogViewer from "./LogViewer.svelte";
     import ConsoleLog from "./ConsoleLog.svelte";
+    import ErrorScreen from "./ErrorScreen.svelte";
 
     let config_schema = {
         plugins: []
     };
     let pane = "settings";
+    let setupError = null;
+    let appReady = false;
 
     onMount(async () => {
-        config_schema = await invoke("get_config_schema");
-        await listen('config_schema-reload', async () => {
+        // First check for error state
+        const error = await invoke("get_setup_error");
+        if (error) {
+            setupError = error;
+        }
+
+        // If no error, proceed with normal initialization
+        if (!setupError) {
             config_schema = await invoke("get_config_schema");
-        })
+            await listen('config_schema-reload', async () => {
+                config_schema = await invoke("get_config_schema");
+            });
+        }
+
+        appReady = true;
     });
 
     /**
@@ -31,29 +45,39 @@
 </script>
 
 <div>
-    <div class="container">
-        <div class="menu">
-            <MenuList pane={pane} plugins={config_schema.plugins} onPaneChange={onPaneChange} />
-        </div>
+    {#if appReady}
+        {#if setupError}
+            <ErrorScreen errorMessage={setupError} />
+        {:else}
+            <div class="container">
+                <div class="menu">
+                    <MenuList pane={pane} plugins={config_schema.plugins} onPaneChange={onPaneChange} />
+                </div>
 
-        <div class="content">
-            {#if pane==="settings"}
-                <Settings />
-            {:else if pane.startsWith("plugin:")}
-                <PluginDetails pluginId={pane.replace("plugin:", "")} />
-            {:else if pane === "logViewer"}
-                <LogViewer />
-            {:else if pane === "console"}
-                <ConsoleLog />
-            {:else if pane === "keyEvents"}
-                <EventLog />
-            {:else if pane === "addPlugin"}
-                <AddPlugin />
-            {:else}
-                Unknown pane: {pane}
-            {/if}
+                <div class="content">
+                    {#if pane==="settings"}
+                        <Settings />
+                    {:else if pane.startsWith("plugin:")}
+                        <PluginDetails pluginId={pane.replace("plugin:", "")} />
+                    {:else if pane === "logViewer"}
+                        <LogViewer />
+                    {:else if pane === "console"}
+                        <ConsoleLog />
+                    {:else if pane === "keyEvents"}
+                        <EventLog />
+                    {:else if pane === "addPlugin"}
+                        <AddPlugin />
+                    {:else}
+                        Unknown pane: {pane}
+                    {/if}
+                </div>
+            </div>
+        {/if}
+    {:else}
+        <div class="loading">
+            <p>Loading application...</p>
         </div>
-    </div>
+    {/if}
 </div>
 
 <style>
@@ -68,5 +92,14 @@
     .content {
         margin-left: 10px;
         flex-grow: 1;
+    }
+
+    .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-size: 18px;
+        color: #555;
     }
 </style>

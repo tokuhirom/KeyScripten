@@ -34,6 +34,10 @@ lazy_static! {
     static ref LOG_BUFFER: RwLock<VecDeque<String>> = RwLock::new(VecDeque::new());
 }
 
+lazy_static! {
+    static ref SETUP_ERROR: RwLock<Option<String>> = RwLock::new(None);
+}
+
 fn build_js<'a>() -> Result<JS, String> {
     let plugins = Plugins::new().map_err(|err| format!("Plugins::new: {:?}", err))?;
     let mut js = JS::new(None, None, Some(plugins)).map_err(|err| format!("{:?}", err))?;
@@ -198,6 +202,17 @@ fn read_console_logs() -> Result<Vec<TimedLogMessage>, String> {
     Ok(buffer)
 }
 
+#[tauri::command]
+fn get_setup_error() -> Result<Option<String>, String> {
+    log::debug!("tauri::command: get_setup_error");
+
+    let error = SETUP_ERROR
+        .read()
+        .map_err(|err| format!("Cannot get lock: {:?}", err))?;
+
+    Ok(error.clone())
+}
+
 fn set_log_level_by_config(app_config: &AppConfig) {
     let level_filter = match LevelFilter::from_str(app_config.log_level.as_str()) {
         Ok(level) => level,
@@ -326,14 +341,24 @@ fn main() -> anyhow::Result<()> {
             let setup_result = setup_rx.recv().expect("Setup message received");
             if let Err(err) = setup_result {
                 log::error!("Cannot run handler: {:?}", err);
-                dialog::message::<Wry>(
-                    None,
-                    "KeyScripten",
-                    format!(
-                        "Cannot setup CGEventTapCreate: {:?}\nPlease read the document for more details: https://github.com/tokuhirom/KeyScripten/blob/main/README.md",
-                        err
-                    ),
+                let error_message = format!(
+                    "Cannot setup CGEventTapCreate: {:?}\nPlease read the document for more details: https://github.com/tokuhirom/KeyScripten/blob/main/README.md",
+                    err
                 );
+
+                // Save error information to global variable
+                if let Ok(mut setup_error) = SETUP_ERROR.write() {
+                    *setup_error = Some(error_message.clone());
+                }
+
+                log::error!("Accessibility permission may not be granted. Please check the permissions in System Preferences");
+
+                if let Ok(mut buffer) = LOG_BUFFER.write() {
+                    if buffer.len() >= 40 {
+                        buffer.pop_front();
+                    }
+                    buffer.push_back(format!("[ERROR] {}", error_message));
+                }
             }
 
             Ok(())
@@ -397,6 +422,7 @@ fn main() -> anyhow::Result<()> {
             read_logs,
             read_console_logs,
             get_plugin_filename,
+            get_setup_error,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
