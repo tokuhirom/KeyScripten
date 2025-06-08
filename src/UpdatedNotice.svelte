@@ -1,18 +1,18 @@
 <script>
-    export let message = '';
+export let message = "";
 
-    // メッセージの表示状態を管理するストア
-    export let showMessage;
+// メッセージの表示状態を管理するストア
+export let showMessage;
 
-    // メッセージが更新されたときにトリガーされる
-    $: if (message) {
-        showMessage = true;
-        setTimeout(() => {
-            console.log("hide message");
-            showMessage = false;
-            message = "";
-        }, 2000);
-    }
+// メッセージが更新されたときにトリガーされる
+$: if (message) {
+	showMessage = true;
+	setTimeout(() => {
+		console.log("hide message");
+		showMessage = false;
+		message = "";
+	}, 2000);
+}
 </script>
 
 <div class:visible={showMessage} class:hidden={!showMessage}>

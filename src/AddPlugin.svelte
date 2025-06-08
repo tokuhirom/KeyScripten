@@ -1,20 +1,22 @@
 <script>
-    import {invoke} from "@tauri-apps/api/tauri";
-    import {emit} from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/tauri";
+import { emit } from "@tauri-apps/api/event";
 
-    let name;
-    let pluginId;
-    let description;
+let name;
+let pluginId;
+let description;
 
-    async function addPlugin() {
-        await invoke("add_plugin", {
-            pluginId, name, description
-        });
-        await emit('js-operation', {
-            "ReloadPlugins": null
-        });
-        return false;
-    }
+async function addPlugin() {
+	await invoke("add_plugin", {
+		pluginId,
+		name,
+		description,
+	});
+	await emit("js-operation", {
+		ReloadPlugins: null,
+	});
+	return false;
+}
 </script>
 
 <div>

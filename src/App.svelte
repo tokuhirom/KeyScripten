@@ -1,47 +1,47 @@
 <script>
-    import { invoke } from "@tauri-apps/api/tauri"
-    import {onMount} from "svelte";
-    import Settings from "./GlobalSettings.svelte";
-    import MenuList from "./MenuList.svelte";
-    import EventLog from "./EventLog.svelte";
-    import AddPlugin from "./AddPlugin.svelte";
-    import PluginDetails from "./PluginDetails.svelte";
-    import {listen} from "@tauri-apps/api/event";
-    import LogViewer from "./LogViewer.svelte";
-    import ConsoleLog from "./ConsoleLog.svelte";
-    import ErrorScreen from "./ErrorScreen.svelte";
+import { invoke } from "@tauri-apps/api/tauri";
+import { onMount } from "svelte";
+import Settings from "./GlobalSettings.svelte";
+import MenuList from "./MenuList.svelte";
+import EventLog from "./EventLog.svelte";
+import AddPlugin from "./AddPlugin.svelte";
+import PluginDetails from "./PluginDetails.svelte";
+import { listen } from "@tauri-apps/api/event";
+import LogViewer from "./LogViewer.svelte";
+import ConsoleLog from "./ConsoleLog.svelte";
+import ErrorScreen from "./ErrorScreen.svelte";
 
-    let config_schema = {
-        plugins: []
-    };
-    let pane = "settings";
-    let setupError = null;
-    let appReady = false;
+let config_schema = {
+	plugins: [],
+};
+let pane = "settings";
+let setupError = null;
+let appReady = false;
 
-    onMount(async () => {
-        // First check for error state
-        const error = await invoke("get_setup_error");
-        if (error) {
-            setupError = error;
-        }
+onMount(async () => {
+	// First check for error state
+	const error = await invoke("get_setup_error");
+	if (error) {
+		setupError = error;
+	}
 
-        // If no error, proceed with normal initialization
-        if (!setupError) {
-            config_schema = await invoke("get_config_schema");
-            await listen('config_schema-reload', async () => {
-                config_schema = await invoke("get_config_schema");
-            });
-        }
+	// If no error, proceed with normal initialization
+	if (!setupError) {
+		config_schema = await invoke("get_config_schema");
+		await listen("config_schema-reload", async () => {
+			config_schema = await invoke("get_config_schema");
+		});
+	}
 
-        appReady = true;
-    });
+	appReady = true;
+});
 
-    /**
-     * @param {string} pane_
-     */
-    function onPaneChange(pane_) {
-        pane = pane_;
-    }
+/**
+ * @param {string} pane_
+ */
+function onPaneChange(pane_) {
+	pane = pane_;
+}
 </script>
 
 <div>
