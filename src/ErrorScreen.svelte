@@ -1,5 +1,5 @@
 <script>
-    export let errorMessage;
+export let errorMessage;
 </script>
 
 <div class="error-container">

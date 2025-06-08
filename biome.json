@@ -7,7 +7,19 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": ["target","node_modules", "dist", "build", ".svelte-kit", ".svelte", ".vscode", ".idea", ".git", ".hg", ".svn"]
+		"ignore": [
+			"target",
+			"node_modules",
+			"dist",
+			"build",
+			".svelte-kit",
+			".svelte",
+			".vscode",
+			".idea",
+			".git",
+			".hg",
+			".svn"
+		]
 	},
 	"formatter": {
 		"enabled": true,

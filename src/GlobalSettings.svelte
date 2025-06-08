@@ -1,23 +1,23 @@
 <script>
-    import {invoke} from "@tauri-apps/api/core";
-    import {onMount} from "svelte";
+import { invoke } from "@tauri-apps/api/core";
+import { onMount } from "svelte";
 
-    let config = {
-        log_level: "info",
-    };
+let config = {
+	log_level: "info",
+};
 
-    onMount(async () => {
-        const c = await invoke("load_config");
-        c.log_level ||= "info";
-        config = c;
-    });
+onMount(async () => {
+	const c = await invoke("load_config");
+	c.log_level ||= "info";
+	config = c;
+});
 
-    async function handleChangeLogLevel() {
-        console.log(`You selected: ${config.log_level}`);
-        await invoke("update_log_level", {
-            logLevel: config.log_level,
-        });
-    }
+async function handleChangeLogLevel() {
+	console.log(`You selected: ${config.log_level}`);
+	await invoke("update_log_level", {
+		logLevel: config.log_level,
+	});
+}
 </script>
 
 <div>

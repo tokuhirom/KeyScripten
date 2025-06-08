@@ -1,37 +1,36 @@
 <script>
+import { onDestroy, onMount } from "svelte";
+import { invoke } from "@tauri-apps/api/core";
 
-    import {onDestroy, onMount} from "svelte";
-    import {invoke} from "@tauri-apps/api/core";
+let console_log = [];
 
-    let console_log = [];
+async function updateConsoleLog() {
+	const r = await invoke("read_console_logs", {});
+	r.reverse();
+	console_log = r;
+}
 
-    async function updateConsoleLog() {
-        const r = await invoke("read_console_logs", {});
-        r.reverse();
-        console_log = r;
-    }
+let intervalId;
 
-    let intervalId;
+onMount(async () => {
+	await updateConsoleLog();
 
-    onMount(async () => {
-        await updateConsoleLog();
+	// TODO fetching events by setInterval is not so good.
+	// i want to push events from rust side, but it's bit hard.
+	intervalId = setInterval(updateConsoleLog, 1000);
+});
+onDestroy(() => {
+	clearInterval(intervalId);
+});
 
-        // TODO fetching events by setInterval is not so good.
-        // i want to push events from rust side, but it's bit hard.
-        intervalId = setInterval(updateConsoleLog, 1000);
-    });
-    onDestroy(() => {
-        clearInterval(intervalId);
-    });
+function formatEpochToHHMMSS(epochSeconds) {
+	let date = new Date(epochSeconds * 1000);
+	let hours = date.getHours().toString().padStart(2, "0");
+	let minutes = date.getMinutes().toString().padStart(2, "0");
+	let seconds = date.getSeconds().toString().padStart(2, "0");
 
-    function formatEpochToHHMMSS(epochSeconds) {
-        let date = new Date(epochSeconds * 1000);
-        let hours = date.getHours().toString().padStart(2, '0');
-        let minutes = date.getMinutes().toString().padStart(2, '0');
-        let seconds = date.getSeconds().toString().padStart(2, '0');
-
-        return `${hours}:${minutes}:${seconds}`;
-    }
+	return `${hours}:${minutes}:${seconds}`;
+}
 </script>
 <div>
     <p>Javascript's console log(periodically fetched from application core)</p>
