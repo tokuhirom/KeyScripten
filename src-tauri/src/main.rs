@@ -17,11 +17,9 @@ use keyscripten_core::js_operation::JsOperation;
 use keyscripten_core::plugin::Plugins;
 use lazy_static::lazy_static;
 use log::{LevelFilter, Record};
-use tauri::api::dialog;
-use tauri::{
-    CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
-    WindowBuilder, Wry,
-};
+use tauri::{Listener, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::menu::{Menu, MenuItem};
+use tauri::tray::TrayIconBuilder;
 
 const APP_NAME: &str = "keyscripten";
 
@@ -299,7 +297,7 @@ fn main() -> anyhow::Result<()> {
             Some(Arc::clone(&VEC_DEQUE)),
             Some(plugins),
         )
-            .expect("Cannot create JS instance");
+        .expect("Cannot create JS instance");
         if let Err(err) = js.load_user_scripts() {
             log::error!("Cannot load plugin: {:?}", err);
         }
@@ -312,26 +310,31 @@ fn main() -> anyhow::Result<()> {
         grab_run();
     });
 
-    log::debug!("Creating menu object");
-
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    let configuration = CustomMenuItem::new("configuration".to_string(), "Configuration");
-    let tray_menu = SystemTrayMenu::new()
-        .add_item(configuration)
-        .add_native_item(SystemTrayMenuItem::Separator) // separator
-        .add_item(quit);
-
-    let tray = SystemTray::new().with_menu(tray_menu);
 
     log::debug!("Building tauri");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_positioner::init())
         .setup(move |app| {
-            app.listen_global("js-operation", move |event| {
+
+            // https://v2.tauri.app/learn/system-tray/
+            log::debug!("Creating menu object");
+            let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let configuration_i = MenuItem::with_id(app, "configuration", "Configuration", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[
+                &configuration_i,
+                &quit_i
+            ])?;
+            TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .menu(&menu)
+                .build(app)?;
+
+            app.listen_any("js-operation", move |event| {
                 // update-config
                 log::info!("js-operation: {:?}", event);
-                let js_operation: JsOperation = serde_json::from_str(event.payload().unwrap())
+                let js_operation: JsOperation = serde_json::from_str(event.payload())
                     .expect("Deserialize js-operation");
                 js_operation_tx.send(js_operation)
                     .expect("Send message");
@@ -363,47 +366,43 @@ fn main() -> anyhow::Result<()> {
 
             Ok(())
         })
-        .system_tray(tray)
-        .on_system_tray_event(|app, event| {
-            tauri_plugin_positioner::on_tray_event(app, &event);
-
+        .on_menu_event(|app, event| {
             #[allow(clippy::single_match)]
-            match event {
-                SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-                    "quit" => {
-                        std::process::exit(0);
-                    }
-                    "configuration" => {
-                        log::info!("Got configuration event");
-                        let window_label = "config-window".to_string();
-                        if let Some(window) = app.get_window(&window_label) {
-                            // If it exists, focus the existing window
-                            if let Err(err) = window.show() {
-                                log::error!("Cannot show configuration window: {:?}", err);
-                            }
-                            if let Err(err) = window.set_focus() {
-                                log::error!("Cannot focus on existing configuration window: {:?}", err);
-                            }
-                        } else {
-                            match WindowBuilder::new(
-                                app,
-                                "config-window".to_string(),
-                                tauri::WindowUrl::App("index.html".into()),
-                            ).build() {
-                                Ok(window) => {
-                                    if let Err(err) = window.set_title("KeyScripten") {
-                                        log::error!("Cannot set window title: {:?}", err);
-                                    }
+            match event.id.as_ref() {
+                "quit" => {
+                    std::process::exit(0);
+                }
+                "configuration" => {
+                    log::info!("Got configuration event");
+                    let window_label = "config-window".to_string();
+                    if let Some(window) = app.get_webview_window(&window_label) {
+                        // If it exists, focus the existing window
+                        if let Err(err) = window.show() {
+                            log::error!("Cannot show configuration window: {:?}", err);
+                        }
+                        if let Err(err) = window.set_focus() {
+                            log::error!("Cannot focus on existing configuration window: {:?}", err);
+                        }
+                    } else {
+                        match WebviewWindowBuilder::new(
+                            app,
+                            "config-window".to_string(),
+                            WebviewUrl::App("index.html".into()),
+                        ).inner_size(800.0, 600.0).build() {
+                            Ok(window) => {
+                                if let Err(err) = window.set_title("KeyScripten") {
+                                    log::error!("Cannot set window title: {:?}", err);
                                 }
-                                Err(err) => {
-                                    log::error!("Cannot open configuration window: {:?}", err);
-                                }
+                            }
+                            Err(err) => {
+                                log::error!("Cannot open configuration window: {:?}", err);
                             }
                         }
                     }
-                    _ => {}
-                },
-                _ => {}
+                }
+                _ => {
+                    println!("menu item {:?} not handled", event.id);
+                }
             }
         })
         .invoke_handler(tauri::generate_handler![

@@ -1,7 +1,7 @@
 <script>
 
     import {onDestroy, onMount} from "svelte";
-    import {invoke} from "@tauri-apps/api/tauri";
+    import {invoke} from "@tauri-apps/api/core";
     import {getKeyName} from "./keycode.js";
     import {flagsToString} from "./flags.js";
 
