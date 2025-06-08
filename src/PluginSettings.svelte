@@ -1,58 +1,64 @@
 <script>
-    import {invoke} from "@tauri-apps/api/core";
-    import {afterUpdate, onMount} from "svelte";
-    import {emit} from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
+import { emit } from "@tauri-apps/api/event";
+import { afterUpdate, onMount } from "svelte";
 
-    export let pluginId;
-    export let configSchema = {
-        config: []
-    };
-    let prevPluginId;
-    let prevConfigSchema;
+export let pluginId;
+export const configSchema = {
+	config: [],
+};
+let prevPluginId;
+let prevConfigSchema;
 
-    let pluginConfig = {
-        enabled: false,
-        config: {},
-    };
+let pluginConfig = {
+	enabled: false,
+	config: {},
+};
 
-    async function reload() {
-        if (pluginId === prevPluginId && configSchema === prevConfigSchema && !!prevPluginId) {
-            console.log(`No pluginId modification: ${pluginId}, ${prevPluginId}`)
-            return;
-        }
-        console.log(`Loading plugin configuration: ${pluginId}`)
+async function reload() {
+	if (
+		pluginId === prevPluginId &&
+		configSchema === prevConfigSchema &&
+		!!prevPluginId
+	) {
+		console.log(`No pluginId modification: ${pluginId}, ${prevPluginId}`);
+		return;
+	}
+	console.log(`Loading plugin configuration: ${pluginId}`);
 
-        prevPluginId = pluginId;
-        prevConfigSchema = configSchema;
+	prevPluginId = pluginId;
+	prevConfigSchema = configSchema;
 
-        pluginConfig = await invoke("load_config_for_plugin", {pluginId});
-        for (const option of configSchema.config) {
-            if (!(option.name in pluginConfig.config)) {
-                pluginConfig.config[option.name] = option.default;
-            }
-            console.log(pluginConfig)
-        }
-        console.log(`Loaded plugin configuration: pluginId=${pluginId}, pluginConfig=${JSON.stringify(pluginConfig)}, configSchema=${JSON.stringify(configSchema)}`)
-    }
+	pluginConfig = await invoke("load_config_for_plugin", { pluginId });
+	for (const option of configSchema.config) {
+		if (!(option.name in pluginConfig.config)) {
+			pluginConfig.config[option.name] = option.default;
+		}
+		console.log(pluginConfig);
+	}
+	console.log(
+		`Loaded plugin configuration: pluginId=${pluginId}, pluginConfig=${JSON.stringify(pluginConfig)}, configSchema=${JSON.stringify(configSchema)}`,
+	);
+}
 
-    onMount(async () => {
-        console.log(pluginId);
-        await reload();
-    });
+onMount(async () => {
+	console.log(pluginId);
+	await reload();
+});
 
-    afterUpdate(async () => {
-        await reload();
-    });
+afterUpdate(async () => {
+	await reload();
+});
 
-    async function onChange() {
-        await invoke("save_config_for_plugin", {
-            pluginId,
-            pluginConfig,
-        })
-        await emit('js-operation', {
-            "ReloadConfig": null
-        });
-    }
+async function onChange() {
+	await invoke("save_config_for_plugin", {
+		pluginId,
+		pluginConfig,
+	});
+	await emit("js-operation", {
+		ReloadConfig: null,
+	});
+}
 </script>
 
 <div class="plugin-config">

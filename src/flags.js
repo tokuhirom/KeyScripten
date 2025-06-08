@@ -12,17 +12,17 @@ const kCGEventFlagMaskNonCoalesced = 256;
  * @param {number} flags
  */
 export function flagsToString(flags) {
-    let flagNames = [];
+	const flagNames = [];
 
-    if (flags & kCGEventFlagMaskAlphaShift) flagNames.push("AlphaShift");
-    if (flags & kCGEventFlagMaskShift) flagNames.push("Shift");
-    if (flags & kCGEventFlagMaskControl) flagNames.push("Control");
-    if (flags & kCGEventFlagMaskAlternate) flagNames.push("Alternate");
-    if (flags & kCGEventFlagMaskCommand) flagNames.push("Command");
-    if (flags & kCGEventFlagMaskHelp) flagNames.push("Help");
-    if (flags & kCGEventFlagMaskSecondaryFn) flagNames.push("SecondaryFn");
-    if (flags & kCGEventFlagMaskNumericPad) flagNames.push("NumericPad");
-    if (flags & kCGEventFlagMaskNonCoalesced) flagNames.push("NonCoalesced");
+	if (flags & kCGEventFlagMaskAlphaShift) flagNames.push("AlphaShift");
+	if (flags & kCGEventFlagMaskShift) flagNames.push("Shift");
+	if (flags & kCGEventFlagMaskControl) flagNames.push("Control");
+	if (flags & kCGEventFlagMaskAlternate) flagNames.push("Alternate");
+	if (flags & kCGEventFlagMaskCommand) flagNames.push("Command");
+	if (flags & kCGEventFlagMaskHelp) flagNames.push("Help");
+	if (flags & kCGEventFlagMaskSecondaryFn) flagNames.push("SecondaryFn");
+	if (flags & kCGEventFlagMaskNumericPad) flagNames.push("NumericPad");
+	if (flags & kCGEventFlagMaskNonCoalesced) flagNames.push("NonCoalesced");
 
-    return flagNames.join(" | ");
+	return flagNames.join(" | ");
 }

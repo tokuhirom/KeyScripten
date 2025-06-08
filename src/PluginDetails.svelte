@@ -1,65 +1,65 @@
 <script>
-    import {invoke} from "@tauri-apps/api/core";
-    import {afterUpdate, onMount} from "svelte";
-    import {emit} from "@tauri-apps/api/event";
-    import PluginSettings from "./PluginSettings.svelte";
-    import EditPluginCode from "./EditPluginCode.svelte";
-    import PluginOther from "./PluginOther.svelte";
+import { invoke } from "@tauri-apps/api/core";
+import { emit } from "@tauri-apps/api/event";
+import { afterUpdate, onMount } from "svelte";
+import EditPluginCode from "./EditPluginCode.svelte";
+import PluginOther from "./PluginOther.svelte";
+import PluginSettings from "./PluginSettings.svelte";
 
-    export let pluginId
-    let prevPluginId;
-    let filename = undefined;
+export let pluginId;
+let prevPluginId;
+let filename = undefined;
 
-    let tab = "settings";
+let tab = "settings";
 
-    let pluginConfig = {
-        enabled: false,
-        config: {},
-    };
-    let configSchema = {
-        id: undefined,
-        config: [],
-    };
+let pluginConfig = {
+	enabled: false,
+	config: {},
+};
+let configSchema = {
+	id: undefined,
+	config: [],
+};
 
-    async function reload() {
-        if (pluginId === prevPluginId && !!prevPluginId) {
-            console.log(`No pluginId modification: ${pluginId}, ${prevPluginId}`)
-            return;
-        }
+async function reload() {
+	if (pluginId === prevPluginId && !!prevPluginId) {
+		console.log(`No pluginId modification: ${pluginId}, ${prevPluginId}`);
+		return;
+	}
 
-        prevPluginId = pluginId;
+	prevPluginId = pluginId;
 
-        configSchema = await invoke("get_config_schema_for_plugin", {pluginId});
-        pluginConfig = await invoke("load_config_for_plugin", {pluginId});
-        if (!pluginId.startsWith("bundled.")) {
-            filename = await invoke("get_plugin_filename", {pluginId});
-        }
-        for (const option of configSchema.config) {
-            if (!(option.name in pluginConfig.config)) {
-                pluginConfig.config[option.name] = option.default;
-            }
-            console.log(pluginConfig)
-        }
-    }
+	configSchema = await invoke("get_config_schema_for_plugin", { pluginId });
+	pluginConfig = await invoke("load_config_for_plugin", { pluginId });
+	if (!pluginId.startsWith("bundled.")) {
+		filename = await invoke("get_plugin_filename", { pluginId });
+	}
+	for (const option of configSchema.config) {
+		if (!(option.name in pluginConfig.config)) {
+			pluginConfig.config[option.name] = option.default;
+		}
+		console.log(pluginConfig);
+	}
+}
 
-    onMount(async () => {
-        console.log(pluginId);
-        await reload();
-    });
+onMount(async () => {
+	console.log(pluginId);
+	await reload();
+});
 
-    afterUpdate(async () => {
-        await reload();
-    });
+afterUpdate(async () => {
+	await reload();
+});
 
-    function showEdit() {
-        tab = "edit";
-    }
-    function showSettings() {
-        tab = "settings";
-    }
-    function showOther() {
-        tab = "other";
-    }
+function showEdit() {
+	tab = "edit";
+}
+function showSettings() {
+	tab = "settings";
+}
+function showOther() {
+	tab = "other";
+}
 </script>
 
 <div class="plugin-config">
