@@ -12,7 +12,7 @@ const kCGEventFlagMaskNonCoalesced = 256;
  * @param {number} flags
  */
 export function flagsToString(flags) {
-	let flagNames = [];
+	const flagNames = [];
 
 	if (flags & kCGEventFlagMaskAlphaShift) flagNames.push("AlphaShift");
 	if (flags & kCGEventFlagMaskShift) flagNames.push("Shift");

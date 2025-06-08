@@ -1,7 +1,7 @@
 <script>
 import { invoke } from "@tauri-apps/api/core";
-import { afterUpdate, onMount } from "svelte";
 import { emit } from "@tauri-apps/api/event";
+import { afterUpdate, onMount } from "svelte";
 import UpdatedNotice from "./UpdatedNotice.svelte";
 
 export let pluginId;

@@ -1,10 +1,10 @@
 <script>
 import { invoke } from "@tauri-apps/api/core";
-import { afterUpdate, onMount } from "svelte";
 import { emit } from "@tauri-apps/api/event";
-import PluginSettings from "./PluginSettings.svelte";
+import { afterUpdate, onMount } from "svelte";
 import EditPluginCode from "./EditPluginCode.svelte";
 import PluginOther from "./PluginOther.svelte";
+import PluginSettings from "./PluginSettings.svelte";
 
 export let pluginId;
 let prevPluginId;

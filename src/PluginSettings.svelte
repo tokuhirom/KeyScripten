@@ -1,10 +1,10 @@
 <script>
 import { invoke } from "@tauri-apps/api/core";
-import { afterUpdate, onMount } from "svelte";
 import { emit } from "@tauri-apps/api/event";
+import { afterUpdate, onMount } from "svelte";
 
 export let pluginId;
-export let configSchema = {
+export const configSchema = {
 	config: [],
 };
 let prevPluginId;

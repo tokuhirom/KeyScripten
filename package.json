@@ -8,6 +8,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"format": "biome format . --write",
+		"check": "biome check . --write",
 		"tauri": "tauri"
 	},
 	"dependencies": {
