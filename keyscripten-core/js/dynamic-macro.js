@@ -10,7 +10,7 @@
 		const repeatSize = checkRepeat(buffer);
 
 		if (repeatSize !== null) {
-			console.log(`DynamicMacro: repeat detected`);
+			console.log("DynamicMacro: repeat detected");
 			sendFlagsChangedEvent(kCGEventFlagMaskNonCoalesced);
 
 			const front = buffer.slice(0, repeatSize);
@@ -24,7 +24,7 @@
 		} else {
 			const patternXYX = checkPatternXYX(buffer);
 			if (patternXYX) {
-				console.log(`DynamicMacro: Predicted`);
+				console.log("DynamicMacro: Predicted");
 				sendFlagsChangedEvent(kCGEventFlagMaskNonCoalesced);
 
 				for (const keyState of patternXYX.Y.reverse()) {
@@ -36,7 +36,7 @@
 
 				return true;
 			} else {
-				console.warn("No pattern found: " + JSON.stringify(buffer));
+				console.warn(`No pattern found: ${JSON.stringify(buffer)}`);
 				return false;
 			}
 		}

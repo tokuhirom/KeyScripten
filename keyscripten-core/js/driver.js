@@ -35,15 +35,17 @@ const buildConfig = (id, config_schema) => {
 	const config = {};
 	for (const item of config_schema) {
 		const value =
+			// biome-ignore lint/complexity/useOptionalChain: <explanation>
 			(((app_config.plugins || {})[id] || {}).config || {})[item.name] ||
 			item.default;
 
 		switch (item.type) {
-			case "hotkey":
+			case "hotkey": {
 				console.log(`Parsing hotkey: ${id}: ${value}`);
 				const hotkey = new HotKey(value);
 				config[item.name] = hotkey;
 				break;
+			}
 			case "string":
 				config[item.name] = value;
 				break;
