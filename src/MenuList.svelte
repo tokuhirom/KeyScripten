@@ -7,8 +7,8 @@ export let onPaneChange;
 
 afterUpdate(() => {
 	if (pane.startsWith("plugin:")) {
-		let pluginId = pane.replace("plugin:", "");
-		for (let plugin of plugins) {
+		const pluginId = pane.replace("plugin:", "");
+		for (const plugin of plugins) {
 			if (pluginId === plugin.id) {
 				return;
 			}

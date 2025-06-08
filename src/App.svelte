@@ -1,15 +1,15 @@
 <script>
+import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 import { onMount } from "svelte";
-import Settings from "./GlobalSettings.svelte";
-import MenuList from "./MenuList.svelte";
-import EventLog from "./EventLog.svelte";
 import AddPlugin from "./AddPlugin.svelte";
-import PluginDetails from "./PluginDetails.svelte";
-import { listen } from "@tauri-apps/api/event";
-import LogViewer from "./LogViewer.svelte";
 import ConsoleLog from "./ConsoleLog.svelte";
 import ErrorScreen from "./ErrorScreen.svelte";
+import EventLog from "./EventLog.svelte";
+import Settings from "./GlobalSettings.svelte";
+import LogViewer from "./LogViewer.svelte";
+import MenuList from "./MenuList.svelte";
+import PluginDetails from "./PluginDetails.svelte";
 
 let config_schema = {
 	plugins: [],

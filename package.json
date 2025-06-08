@@ -8,6 +8,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"format": "npx @biomejs/biome format --write",
+		"check": "npx @biomejs/biome check --write",
 		"tauri": "tauri"
 	},
 	"dependencies": {

@@ -1,7 +1,7 @@
 import "./styles.css";
 
-import App from "./App.svelte";
 import { mount } from "svelte";
+import App from "./App.svelte";
 
 const appElem = document.getElementById("app");
 if (!appElem) {

@@ -1,6 +1,6 @@
 <script>
-import { invoke } from "@tauri-apps/api/tauri";
 import { emit } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/tauri";
 
 let name;
 let pluginId;

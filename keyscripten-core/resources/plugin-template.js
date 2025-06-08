@@ -1,4 +1,4 @@
-(function () {
+(() => {
 	const id = /*ID*/ {};
 	let latestFlags = undefined;
 
@@ -6,7 +6,7 @@
 		id,
 		/*NAME*/ {},
 		/*DESC*/ {},
-		function (event, config) {
+		(event, config) => {
 			if (event.type === "flagsChanged") {
 				console.log(`[${id}] flagsChanged: ${event.flags}`);
 				latestFlags = event.flags;

@@ -1,4 +1,4 @@
-(function () {
+(() => {
 	let latest_flags = undefined;
 	const buffer = [];
 
@@ -48,9 +48,9 @@
 
 		for (let xLen = 1; xLen <= buffer.length / 2; xLen++) {
 			for (let yStart = xLen; yStart + xLen <= buffer.length; yStart++) {
-				let X1 = buffer.slice(0, xLen);
-				let Y = buffer.slice(xLen, yStart);
-				let X2 = buffer.slice(yStart, yStart + xLen);
+				const X1 = buffer.slice(0, xLen);
+				const Y = buffer.slice(xLen, yStart);
+				const X2 = buffer.slice(yStart, yStart + xLen);
 
 				if (JSON.stringify(X1) === JSON.stringify(X2)) {
 					if (
@@ -70,8 +70,8 @@
 
 	function checkRepeat(buffer) {
 		for (let size = buffer.length / 2; size >= 1; size--) {
-			let front = buffer.slice(0, size);
-			let rear = buffer.slice(size, size * 2);
+			const front = buffer.slice(0, size);
+			const rear = buffer.slice(size, size * 2);
 			// console.log("front=" + front + " rear=" + rear);
 			if (JSON.stringify(front) === JSON.stringify(rear)) {
 				return size;
@@ -92,7 +92,7 @@
     
     Ref. http://www.pitecan.com/papers/JSSSTDmacro/JSSSTDmacro.html
     `,
-		function (event, config) {
+		(event, config) => {
 			// console.log(`config=${JSON.stringify(config)}`);
 
 			if (event.type === "flagsChanged") {

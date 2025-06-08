@@ -1,8 +1,8 @@
 <script>
-import { onDestroy, onMount } from "svelte";
 import { invoke } from "@tauri-apps/api/tauri";
-import { getKeyName } from "./keycode.js";
+import { onDestroy, onMount } from "svelte";
 import { flagsToString } from "./flags.js";
+import { getKeyName } from "./keycode.js";
 
 let logs = [];
 
@@ -23,10 +23,10 @@ onDestroy(() => {
 });
 
 function formatEpochToHHMMSS(epochSeconds) {
-	let date = new Date(epochSeconds * 1000);
-	let hours = date.getHours().toString().padStart(2, "0");
-	let minutes = date.getMinutes().toString().padStart(2, "0");
-	let seconds = date.getSeconds().toString().padStart(2, "0");
+	const date = new Date(epochSeconds * 1000);
+	const hours = date.getHours().toString().padStart(2, "0");
+	const minutes = date.getMinutes().toString().padStart(2, "0");
+	const seconds = date.getSeconds().toString().padStart(2, "0");
 
 	return `${hours}:${minutes}:${seconds}`;
 }
