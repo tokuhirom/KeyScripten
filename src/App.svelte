@@ -1,5 +1,5 @@
 <script>
-    import { invoke } from "@tauri-apps/api/tauri"
+    import { invoke } from "@tauri-apps/api/core"
     import {onMount} from "svelte";
     import Settings from "./GlobalSettings.svelte";
     import MenuList from "./MenuList.svelte";
