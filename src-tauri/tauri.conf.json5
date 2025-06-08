@@ -18,7 +18,7 @@
   },
   "productName": "KeyScripten",
   "mainBinaryName": "KeyScripten",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "identifier": "com.github.tokuhirom.keyscripten",
   "plugins": {},
   "app": {
