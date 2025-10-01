@@ -23,7 +23,7 @@ log = { version = "0.4.21", features = [] }
 fern = { version = "0.7.0", features = ["date-based"] }
 chrono = "0.4.38"
 
-config = { version = "0.14.0", features = [] }
+config = { version = "0.15.0", features = [] }
 
 anyhow = "1.0.82"
 
