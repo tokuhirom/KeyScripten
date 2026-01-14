@@ -52,7 +52,7 @@ impl JsBuiltin {
         match AppConfig::load() {
             Ok(config) => match serde_json::to_string(&config) {
                 Ok(json) => {
-                    return Ok(JsValue::String(JsString::from(json.as_str())));
+                    return Ok(JsValue::new(JsString::from(json.as_str())));
                 }
                 Err(err) => Err(JsError::from_opaque(
                     js_string!(format!("Cannot make json: {:?}", err)).into(),

@@ -256,7 +256,7 @@ impl JS {
                 &JsValue::undefined(),
                 &[
                     JsValue::from(js_key_event),
-                    JsValue::Boolean(needs_config_reload),
+                    JsValue::new(needs_config_reload),
                 ],
                 &mut self.context,
             )

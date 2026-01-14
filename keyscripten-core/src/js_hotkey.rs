@@ -10,7 +10,12 @@ pub struct JsHotKey {
 
 impl JsHotKey {
     fn matches(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let Some(this) = this.as_object().and_then(|obj| obj.downcast_ref::<Self>()) else {
+        let Some(obj) = this.as_object() else {
+            return Err(JsError::from_opaque(
+                js_string!("the 'this' object is not a JsHotkey").into(),
+            ));
+        };
+        let Some(this_ref) = obj.downcast_ref::<Self>() else {
             return Err(JsError::from_opaque(
                 js_string!("the 'this' object is not a JsHotkey").into(),
             ));
@@ -51,9 +56,9 @@ impl JsHotKey {
             }
         };
 
-        let result = this.hotkey.matches(flags, keycode);
+        let result = this_ref.hotkey.matches(flags, keycode);
 
-        Ok(JsValue::Boolean(result))
+        Ok(JsValue::new(result))
     }
 }
 
