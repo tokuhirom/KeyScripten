@@ -307,77 +307,17 @@ dependencies = [
 
 [[package]]
 name = "boa_ast"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c340fe0f0b267787095cbe35240c6786ff19da63ec7b69367ba338eace8169b"
-dependencies = [
- "bitflags 2.10.0",
- "boa_interner 0.20.0",
- "boa_macros 0.20.0",
- "boa_string 0.20.0",
- "indexmap 2.12.1",
- "num-bigint",
- "rustc-hash 2.1.1",
-]
-
-[[package]]
-name = "boa_ast"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc119a5ad34c3f459062a96907f53358989b173d104258891bb74f95d93747e8"
 dependencies = [
  "bitflags 2.10.0",
- "boa_interner 0.21.0",
- "boa_macros 0.21.0",
- "boa_string 0.21.0",
+ "boa_interner",
+ "boa_macros",
+ "boa_string",
  "indexmap 2.12.1",
  "num-bigint",
  "rustc-hash 2.1.1",
-]
-
-[[package]]
-name = "boa_engine"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f620c3f06f51e65c0504ddf04978be1b814ac6586f0b45f6019801ab5efd37f9"
-dependencies = [
- "arrayvec",
- "bitflags 2.10.0",
- "boa_ast 0.20.0",
- "boa_gc 0.20.0",
- "boa_interner 0.20.0",
- "boa_macros 0.20.0",
- "boa_parser 0.20.0",
- "boa_profiler",
- "boa_string 0.20.0",
- "bytemuck",
- "cfg-if",
- "dashmap",
- "fast-float2",
- "hashbrown 0.15.2",
- "icu_normalizer 1.5.0",
- "indexmap 2.12.1",
- "intrusive-collections",
- "itertools 0.13.0",
- "num-bigint",
- "num-integer",
- "num-traits",
- "num_enum",
- "once_cell",
- "pollster",
- "portable-atomic",
- "rand 0.8.5",
- "regress",
- "rustc-hash 2.1.1",
- "ryu-js",
- "serde",
- "serde_json",
- "sptr",
- "static_assertions",
- "tap",
- "thin-vec",
- "thiserror 2.0.17",
- "time",
 ]
 
 [[package]]
@@ -389,12 +329,12 @@ dependencies = [
  "aligned-vec",
  "arrayvec",
  "bitflags 2.10.0",
- "boa_ast 0.21.0",
- "boa_gc 0.21.0",
- "boa_interner 0.21.0",
- "boa_macros 0.21.0",
- "boa_parser 0.21.0",
- "boa_string 0.21.0",
+ "boa_ast",
+ "boa_gc",
+ "boa_interner",
+ "boa_macros",
+ "boa_parser",
+ "boa_string",
  "bytemuck",
  "cfg-if",
  "cow-utils",
@@ -410,7 +350,7 @@ dependencies = [
  "icu_normalizer 2.0.1",
  "indexmap 2.12.1",
  "intrusive-collections",
- "itertools 0.14.0",
+ "itertools",
  "num-bigint",
  "num-integer",
  "num-traits",
@@ -435,44 +375,15 @@ dependencies = [
 
 [[package]]
 name = "boa_gc"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2425c0b7720d42d73eaa6a883fbb77a5c920da8694964a3d79a67597ac55cce2"
-dependencies = [
- "boa_macros 0.20.0",
- "boa_profiler",
- "boa_string 0.20.0",
- "hashbrown 0.15.2",
- "thin-vec",
-]
-
-[[package]]
-name = "boa_gc"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1179f690cbfcbe5364cceee5f1cb577265bb6f07b0be6f210aabe270adcf9da"
 dependencies = [
- "boa_macros 0.21.0",
- "boa_string 0.21.0",
+ "boa_macros",
+ "boa_string",
  "either",
  "hashbrown 0.16.1",
  "thin-vec",
-]
-
-[[package]]
-name = "boa_interner"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42407a3b724cfaecde8f7d4af566df4b56af32a2f11f0956f5570bb974e7f749"
-dependencies = [
- "boa_gc 0.20.0",
- "boa_macros 0.20.0",
- "hashbrown 0.15.2",
- "indexmap 2.12.1",
- "once_cell",
- "phf 0.11.2",
- "rustc-hash 2.1.1",
- "static_assertions",
 ]
 
 [[package]]
@@ -481,26 +392,14 @@ version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9626505d33dc63d349662437297df1d3afd9d5fc4a2b3ad34e5e1ce879a78848"
 dependencies = [
- "boa_gc 0.21.0",
- "boa_macros 0.21.0",
+ "boa_gc",
+ "boa_macros",
  "hashbrown 0.16.1",
  "indexmap 2.12.1",
  "once_cell",
  "phf 0.13.1",
  "rustc-hash 2.1.1",
  "static_assertions",
-]
-
-[[package]]
-name = "boa_macros"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fd3f870829131332587f607a7ff909f1af5fc523fd1b192db55fbbdf52e8d3c"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.111",
- "synstructure",
 ]
 
 [[package]]
@@ -519,33 +418,14 @@ dependencies = [
 
 [[package]]
 name = "boa_parser"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9cc142dac798cdc6e2dbccfddeb50f36d2523bb977a976e19bdb3ae19b740804"
-dependencies = [
- "bitflags 2.10.0",
- "boa_ast 0.20.0",
- "boa_interner 0.20.0",
- "boa_macros 0.20.0",
- "boa_profiler",
- "fast-float2",
- "icu_properties 1.5.1",
- "num-bigint",
- "num-traits",
- "regress",
- "rustc-hash 2.1.1",
-]
-
-[[package]]
-name = "boa_parser"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02f99bf5b684f0de946378fcfe5f38c3a0fbd51cbf83a0f39ff773a0e218541f"
 dependencies = [
  "bitflags 2.10.0",
- "boa_ast 0.21.0",
- "boa_interner 0.21.0",
- "boa_macros 0.21.0",
+ "boa_ast",
+ "boa_interner",
+ "boa_macros",
  "fast-float2",
  "icu_properties 2.0.2",
  "num-bigint",
@@ -555,19 +435,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "boa_profiler"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4064908e7cdf9b6317179e9b04dcb27f1510c1c144aeab4d0394014f37a0f922"
-
-[[package]]
 name = "boa_runtime"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8ee83c5e3634de25fe80c785c4a240483daedf9e346a9848ec87f7a13250471"
 dependencies = [
- "boa_engine 0.21.0",
- "boa_gc 0.21.0",
+ "boa_engine",
+ "boa_gc",
  "bytemuck",
  "either",
  "futures",
@@ -576,19 +450,6 @@ dependencies = [
  "rustc-hash 2.1.1",
  "serde_json",
  "url",
-]
-
-[[package]]
-name = "boa_string"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7debc13fbf7997bf38bf8e9b20f1ad5e2a7d27a900e1f6039fe244ce30f589b5"
-dependencies = [
- "fast-float2",
- "paste",
- "rustc-hash 2.1.1",
- "sptr",
- "static_assertions",
 ]
 
 [[package]]
@@ -2040,8 +1901,6 @@ version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
 dependencies = [
- "allocator-api2",
- "equivalent",
  "foldhash 0.1.4",
 ]
 
@@ -2530,15 +2389,6 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
@@ -2677,8 +2527,8 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "apple-sys",
- "boa_engine 0.20.0",
- "boa_gc 0.20.0",
+ "boa_engine",
+ "boa_gc",
  "boa_runtime",
  "chrono",
  "cocoa",
@@ -3792,12 +3642,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pollster"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f3a9f18d041e6d0e102a0a46750538147e5e8992d3b4873aaafee2520b00ce3"
-
-[[package]]
 name = "portable-atomic"
 version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4649,12 +4493,6 @@ name = "spin"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d5fe4ccb98d9c292d56fec89a5e07da7fc4cf0dc11e156b41793132775d3e591"
-
-[[package]]
-name = "sptr"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b9b39299b249ad65f3b7e96443bad61c02ca5cd3589f46cb6d610a0fd6c0d6a"
 
 [[package]]
 name = "stable_deref_trait"
