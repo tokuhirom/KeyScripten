@@ -8,7 +8,7 @@ import PluginSettings from "./PluginSettings.svelte";
 
 export let pluginId;
 let prevPluginId;
-let filename = undefined;
+let filename;
 
 let tab = "settings";
 

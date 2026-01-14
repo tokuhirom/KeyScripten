@@ -1,5 +1,5 @@
 (() => {
-	let latest_flags = undefined;
+	let latest_flags;
 	const buffer = [];
 
 	/**
