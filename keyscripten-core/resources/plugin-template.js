@@ -1,6 +1,6 @@
 (() => {
 	const id = /*ID*/ {};
-	let latestFlags = undefined;
+	let latestFlags;
 
 	registerPlugin(
 		id,
