@@ -321,9 +321,9 @@ dependencies = [
 
 [[package]]
 name = "boa_runtime"
-version = "0.21.0"
+version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8ee83c5e3634de25fe80c785c4a240483daedf9e346a9848ec87f7a13250471"
+checksum = "caa4d5b97ec713cc84c95be6686d82d4ae0090c45954a61d88f901889134eba5"
 dependencies = [
  "boa_engine",
  "boa_gc",
