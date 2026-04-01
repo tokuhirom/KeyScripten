@@ -2561,7 +2561,7 @@ dependencies = [
  "lazy_static",
  "log",
  "matches",
- "object 0.38.0",
+ "object 0.39.0",
  "rustc-hash 1.1.0",
  "serde",
  "serde_json",
@@ -3246,9 +3246,9 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.38.0"
+version = "0.39.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8b28f24bd43920cd8e0bc4f9c6553e8b93221c512cb9a1014987fc89d36f830"
+checksum = "63944c133d03f44e75866bbd160b95af0ec3f6a13d936d69d31c81078cbc5baf"
 dependencies = [
  "flate2",
  "memchr",
@@ -5013,12 +5013,12 @@ dependencies = [
 
 [[package]]
 name = "thread-id"
-version = "5.0.0"
+version = "5.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99043e46c5a15af379c06add30d9c93a6c0e8849de00d244c4a2c417da128d80"
+checksum = "2010d27add3f3240c1fef7959f46c814487b216baee662af53be645ba7831c07"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
