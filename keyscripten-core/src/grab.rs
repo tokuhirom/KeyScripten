@@ -3,16 +3,17 @@
 use crate::js::JS;
 use crate::send::USER_DATA_FROM_THIS_APP;
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{
+use apple_sys::CoreFoundation::{
     kCFAllocatorDefault, kCFRunLoopCommonModes, CFMachPortCreateRunLoopSource, CFRunLoopAddSource,
     CFRunLoopGetCurrent, CFRunLoopRun,
 };
 use apple_sys::CoreGraphics::{
-    CGEventField_kCGEventSourceUserData, CGEventGetIntegerValueField, CGEventMask, CGEventRef,
-    CGEventSetType, CGEventTapCreate, CGEventTapEnable, CGEventTapLocation_kCGHIDEventTap,
-    CGEventTapOptions_kCGEventTapOptionDefault, CGEventTapPlacement_kCGHeadInsertEventTap,
-    CGEventTapProxy, CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown,
-    CGEventType_kCGEventKeyUp, CGEventType_kCGEventNull,
+    CGEventGetIntegerValueField, CGEventMask, CGEventRef, CGEventSetType, CGEventTapCreate,
+    CGEventTapEnable, CGEventTapProxy, CGEventType,
+};
+use crate::cg_constants::{
+    kCGEventFlagsChanged, kCGEventKeyDown, kCGEventKeyUp, kCGEventNull, kCGEventSourceUserData,
+    kCGEventTapOptionDefault, kCGHIDEventTap, kCGHeadInsertEventTap,
 };
 use cocoa::base::nil;
 use cocoa::foundation::NSAutoreleasePool;
@@ -22,7 +23,7 @@ extern "C" {}
 
 // This event is sent from this application itself.
 unsafe fn is_sent_from_this_app(cg_event: CGEventRef) -> bool {
-    let user_data = CGEventGetIntegerValueField(cg_event, CGEventField_kCGEventSourceUserData);
+    let user_data = CGEventGetIntegerValueField(cg_event, kCGEventSourceUserData);
     user_data == USER_DATA_FROM_THIS_APP
 }
 
@@ -43,7 +44,7 @@ unsafe extern "C" fn raw_callback(
         Ok(b) => {
             if !b {
                 log::debug!("Don't send keyboard event to the destination.");
-                CGEventSetType(cg_event, CGEventType_kCGEventNull);
+                CGEventSetType(cg_event, kCGEventNull);
             }
         }
         Err(err) => {
@@ -59,12 +60,12 @@ pub fn grab_setup(js: JS) -> anyhow::Result<()> {
         let _pool = NSAutoreleasePool::new(nil);
         log::debug!("Calling CGEventTapCreate");
         let tap = CGEventTapCreate(
-            CGEventTapLocation_kCGHIDEventTap, // HID, Session, AnnotatedSession,
-            CGEventTapPlacement_kCGHeadInsertEventTap,
-            CGEventTapOptions_kCGEventTapOptionDefault,
-            (1 << CGEventType_kCGEventKeyDown as CGEventMask)
-                + (1 << CGEventType_kCGEventKeyUp as CGEventMask)
-                + (1 << CGEventType_kCGEventFlagsChanged as CGEventMask),
+            kCGHIDEventTap, // HID, Session, AnnotatedSession,
+            kCGHeadInsertEventTap,
+            kCGEventTapOptionDefault,
+            (1 << kCGEventKeyDown as CGEventMask)
+                + (1 << kCGEventKeyUp as CGEventMask)
+                + (1 << kCGEventFlagsChanged as CGEventMask),
             Some(raw_callback),
             Box::into_raw(Box::new(js)) as *mut _,
         );

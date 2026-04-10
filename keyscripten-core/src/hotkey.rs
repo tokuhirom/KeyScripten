@@ -1,8 +1,9 @@
 use crate::keycode;
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{
-    CGEventFlags, CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand,
-    CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskShift, CGKeyCode,
+use apple_sys::CoreGraphics::{CGEventFlags, CGKeyCode};
+use crate::cg_constants::{
+    kCGEventFlagMaskAlternate, kCGEventFlagMaskCommand, kCGEventFlagMaskControl,
+    kCGEventFlagMaskShift,
 };
 use boa_gc::{Finalize, Trace};
 use std::collections::HashMap;
@@ -16,10 +17,10 @@ pub struct HotKey {
 impl HotKey {
     pub fn from_str(s: &str) -> anyhow::Result<HotKey> {
         let mut map = HashMap::new();
-        map.insert("C-", CGEventFlags_kCGEventFlagMaskControl);
-        map.insert("S-", CGEventFlags_kCGEventFlagMaskShift);
-        map.insert("M-", CGEventFlags_kCGEventFlagMaskCommand);
-        map.insert("A-", CGEventFlags_kCGEventFlagMaskAlternate);
+        map.insert("C-", kCGEventFlagMaskControl);
+        map.insert("S-", kCGEventFlagMaskShift);
+        map.insert("M-", kCGEventFlagMaskCommand);
+        map.insert("A-", kCGEventFlagMaskAlternate);
 
         let mut chars = s.chars().peekable();
         let mut flags = 0;
@@ -62,10 +63,10 @@ impl HotKey {
         );
 
         // 全てのキー修飾フラグを取得
-        let all_modifiers = CGEventFlags_kCGEventFlagMaskControl
-            | CGEventFlags_kCGEventFlagMaskAlternate
-            | CGEventFlags_kCGEventFlagMaskShift
-            | CGEventFlags_kCGEventFlagMaskCommand;
+        let all_modifiers = kCGEventFlagMaskControl
+            | kCGEventFlagMaskAlternate
+            | kCGEventFlagMaskShift
+            | kCGEventFlagMaskCommand;
 
         // 期待するフラグだけが押されていて、それ以外のフラグは押されていないことをチェック
         let is_correct_flags_pressed = flags & all_modifiers == expected_flags;
@@ -89,7 +90,7 @@ mod tests {
         let shortcut = HotKey::from_str("C-M-t")?;
         assert_eq!(
             shortcut.flags,
-            CGEventFlags_kCGEventFlagMaskControl | CGEventFlags_kCGEventFlagMaskCommand
+            kCGEventFlagMaskControl | kCGEventFlagMaskCommand
         );
         assert_eq!(shortcut.keycode, KEY_CODE_KEY_T);
 

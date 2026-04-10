@@ -1,4 +1,5 @@
 pub mod app_config;
+mod cg_constants;
 pub mod event;
 pub mod grab;
 mod hotkey;

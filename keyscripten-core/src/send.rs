@@ -1,9 +1,10 @@
 use anyhow::anyhow;
 use apple_sys::CoreGraphics::{
-    CGEventCreate, CGEventCreateKeyboardEvent, CGEventField_kCGEventSourceUserData, CGEventFlags,
-    CGEventPost, CGEventSetFlags, CGEventSetIntegerValueField, CGEventSetType, CGEventSourceCreate,
-    CGEventSourceRef, CGEventSourceStateID_kCGEventSourceStatePrivate,
-    CGEventTapLocation_kCGHIDEventTap, CGEventType_kCGEventFlagsChanged, CGKeyCode,
+    CGEventCreate, CGEventCreateKeyboardEvent, CGEventFlags, CGEventPost, CGEventSetFlags,
+    CGEventSetIntegerValueField, CGEventSetType, CGEventSourceCreate, CGEventSourceRef, CGKeyCode,
+};
+use crate::cg_constants::{
+    kCGEventFlagsChanged, kCGEventSourceStatePrivate, kCGEventSourceUserData, kCGHIDEventTap,
 };
 
 #[link(name = "Cocoa", kind = "framework")]
@@ -13,7 +14,7 @@ pub const USER_DATA_FROM_THIS_APP: i64 = 5963;
 
 fn build_event_source() -> anyhow::Result<CGEventSourceRef> {
     unsafe {
-        let source = CGEventSourceCreate(CGEventSourceStateID_kCGEventSourceStatePrivate);
+        let source = CGEventSourceCreate(kCGEventSourceStatePrivate);
         if source.is_null() {
             return Err(anyhow!("Cannot create event source"));
         }
@@ -37,10 +38,10 @@ pub fn send_keyboard_event(
         CGEventSetFlags(event, flags);
         CGEventSetIntegerValueField(
             event,
-            CGEventField_kCGEventSourceUserData,
+            kCGEventSourceUserData,
             USER_DATA_FROM_THIS_APP,
         );
-        CGEventPost(CGEventTapLocation_kCGHIDEventTap, event);
+        CGEventPost(kCGHIDEventTap, event);
         Ok(())
     }
 }
@@ -53,9 +54,9 @@ pub fn send_flags_changed_event(flags: CGEventFlags) -> anyhow::Result<()> {
         if event.is_null() {
             return Err(anyhow!("Can't create new CGEvent"));
         }
-        CGEventSetType(event, CGEventType_kCGEventFlagsChanged);
+        CGEventSetType(event, kCGEventFlagsChanged);
         CGEventSetFlags(event, flags);
-        CGEventPost(CGEventTapLocation_kCGHIDEventTap, event);
+        CGEventPost(kCGHIDEventTap, event);
         Ok(())
     }
 }
