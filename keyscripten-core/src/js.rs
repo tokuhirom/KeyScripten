@@ -1,12 +1,10 @@
 use anyhow::anyhow;
-use apple_sys::CoreGraphics::{
-    CGEventField_kCGKeyboardEventKeycode, CGEventFlags_kCGEventFlagMaskAlphaShift,
-    CGEventFlags_kCGEventFlagMaskAlternate, CGEventFlags_kCGEventFlagMaskCommand,
-    CGEventFlags_kCGEventFlagMaskControl, CGEventFlags_kCGEventFlagMaskHelp,
-    CGEventFlags_kCGEventFlagMaskNonCoalesced, CGEventFlags_kCGEventFlagMaskNumericPad,
-    CGEventFlags_kCGEventFlagMaskSecondaryFn, CGEventFlags_kCGEventFlagMaskShift, CGEventRef,
-    CGEventType, CGEventType_kCGEventFlagsChanged, CGEventType_kCGEventKeyDown,
-    CGEventType_kCGEventKeyUp,
+use apple_sys::CoreGraphics::{CGEventRef, CGEventType};
+use crate::cg_constants::{
+    kCGEventFlagsChanged, kCGEventKeyDown, kCGEventKeyUp, kCGEventFlagMaskAlphaShift,
+    kCGEventFlagMaskAlternate, kCGEventFlagMaskCommand, kCGEventFlagMaskControl,
+    kCGEventFlagMaskHelp, kCGEventFlagMaskNonCoalesced, kCGEventFlagMaskNumericPad,
+    kCGEventFlagMaskSecondaryFn, kCGEventFlagMaskShift, kCGKeyboardEventKeycode,
 };
 use boa_engine::{js_string, Context, JsObject, JsValue, NativeFunction, Source};
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -103,44 +101,44 @@ impl JS {
     }
 
     fn register_constants(&mut self) -> anyhow::Result<()> {
-        self.register_constant(js_string!("kCGEventKeyDown"), CGEventType_kCGEventKeyDown)?;
-        self.register_constant(js_string!("kCGEventKeyUp"), CGEventType_kCGEventKeyUp)?;
-        self.register_constant(js_string!("kCGEventFlagsChanged"), CGEventType_kCGEventFlagsChanged)?;
+        self.register_constant(js_string!("kCGEventKeyDown"), kCGEventKeyDown)?;
+        self.register_constant(js_string!("kCGEventKeyUp"), kCGEventKeyUp)?;
+        self.register_constant(js_string!("kCGEventFlagsChanged"), kCGEventFlagsChanged)?;
         self.register_constant(
             js_string!("kCGKeyboardEventKeycode"),
-            CGEventField_kCGKeyboardEventKeycode,
+            kCGKeyboardEventKeycode,
         )?;
         self.register_constant(
             js_string!("kCGEventFlagMaskNonCoalesced"),
-            CGEventFlags_kCGEventFlagMaskNonCoalesced,
+            kCGEventFlagMaskNonCoalesced,
         )?;
 
         // CGEventFlags
         self.register_constant(
             js_string!("kCGEventFlagMaskAlphaShift"),
-            CGEventFlags_kCGEventFlagMaskAlphaShift,
+            kCGEventFlagMaskAlphaShift,
         )?;
-        self.register_constant(js_string!("kCGEventFlagMaskShift"), CGEventFlags_kCGEventFlagMaskShift)?;
+        self.register_constant(js_string!("kCGEventFlagMaskShift"), kCGEventFlagMaskShift)?;
         self.register_constant(
             js_string!("kCGEventFlagMaskControl"),
-            CGEventFlags_kCGEventFlagMaskControl,
+            kCGEventFlagMaskControl,
         )?;
         self.register_constant(
             js_string!("kCGEventFlagMaskAlternate"),
-            CGEventFlags_kCGEventFlagMaskAlternate,
+            kCGEventFlagMaskAlternate,
         )?;
         self.register_constant(
             js_string!("kCGEventFlagMaskCommand"),
-            CGEventFlags_kCGEventFlagMaskCommand,
+            kCGEventFlagMaskCommand,
         )?;
-        self.register_constant(js_string!("kCGEventFlagMaskHelp"), CGEventFlags_kCGEventFlagMaskHelp)?;
+        self.register_constant(js_string!("kCGEventFlagMaskHelp"), kCGEventFlagMaskHelp)?;
         self.register_constant(
             js_string!("kCGEventFlagMaskSecondaryFn"),
-            CGEventFlags_kCGEventFlagMaskSecondaryFn,
+            kCGEventFlagMaskSecondaryFn,
         )?;
         self.register_constant(
             js_string!("kCGEventFlagMaskNumericPad"),
-            CGEventFlags_kCGEventFlagMaskNumericPad,
+            kCGEventFlagMaskNumericPad,
         )?;
 
         Ok(())
@@ -342,7 +340,7 @@ impl JS {
             JsValue::from(event.keycode),
         )?;
 
-        if cg_event_type == CGEventType_kCGEventFlagsChanged {
+        if cg_event_type == kCGEventFlagsChanged {
             set(
                 self,
                 &key_event,
