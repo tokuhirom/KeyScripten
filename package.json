@@ -16,7 +16,7 @@
 		"@tauri-apps/plugin-shell": "^2.2.1"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.4.13",
+		"@biomejs/biome": "2.4.14",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tauri-apps/cli": "^2.5.0",
 		"svelte": "^5.0.0",
