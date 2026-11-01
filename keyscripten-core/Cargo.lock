@@ -159,7 +159,7 @@ checksum = "6339a700715bda376f5ea65c76e8fe8fc880930d8b0638cea68e7f3da6538e0a"
 dependencies = [
  "bitflags 2.10.0",
  "boa_interner",
- "boa_macros",
+ "boa_macros 0.21.1",
  "boa_string",
  "indexmap",
  "num-bigint",
@@ -176,9 +176,9 @@ dependencies = [
  "arrayvec",
  "bitflags 2.10.0",
  "boa_ast",
- "boa_gc",
+ "boa_gc 0.21.1",
  "boa_interner",
- "boa_macros",
+ "boa_macros 0.21.1",
  "boa_parser",
  "boa_string",
  "bytemuck",
@@ -225,11 +225,21 @@ version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17323a98cf2e631afacf1a6d659c1212c48a68bacfa85afab0a66ade80582e51"
 dependencies = [
- "boa_macros",
+ "boa_macros 0.21.1",
  "boa_string",
  "either",
  "hashbrown 0.16.0",
  "thin-vec",
+]
+
+[[package]]
+name = "boa_gc"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af82119558ab1002d1978c8459b53a3ebb506177d29a3aca37c07c1777b1d966"
+dependencies = [
+ "boa_macros 0.22.0",
+ "hashbrown 0.17.1",
 ]
 
 [[package]]
@@ -238,8 +248,8 @@ version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20510b8b02bcde9b0a01cf34c0c308c56156503d1d91cdab4c8cfbd292b747ea"
 dependencies = [
- "boa_gc",
- "boa_macros",
+ "boa_gc 0.21.1",
+ "boa_macros 0.21.1",
  "hashbrown 0.16.0",
  "indexmap",
  "once_cell",
@@ -259,7 +269,21 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.108",
- "synstructure",
+ "synstructure 0.13.0",
+]
+
+[[package]]
+name = "boa_macros"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b882fd440dc0f4b7441367cf89567bb077920356750c9a76a16c002d8ec2fa5c"
+dependencies = [
+ "cfg-if",
+ "cow-utils",
+ "proc-macro2",
+ "quote",
+ "syn 3.0.9",
+ "synstructure 0.14.0",
 ]
 
 [[package]]
@@ -271,7 +295,7 @@ dependencies = [
  "bitflags 2.10.0",
  "boa_ast",
  "boa_interner",
- "boa_macros",
+ "boa_macros 0.21.1",
  "fast-float2",
  "icu_properties",
  "num-bigint",
@@ -287,7 +311,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caa4d5b97ec713cc84c95be6686d82d4ae0090c45954a61d88f901889134eba5"
 dependencies = [
  "boa_engine",
- "boa_gc",
+ "boa_gc 0.21.1",
  "bytemuck",
  "either",
  "futures",
@@ -637,7 +661,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -920,6 +944,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hashbrown"
+version = "0.17.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
+dependencies = [
+ "allocator-api2",
+ "equivalent",
+ "foldhash",
+]
+
+[[package]]
 name = "http"
 version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1142,7 +1177,7 @@ dependencies = [
  "anyhow",
  "apple-sys",
  "boa_engine",
- "boa_gc",
+ "boa_gc 0.22.0",
  "boa_runtime",
  "chrono",
  "cocoa",
@@ -1563,9 +1598,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.41"
+version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce25767e7b499d1b604768e7cde645d14cc8584231ea6b295e9c9eb22c02e1d1"
+checksum = "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001"
 dependencies = [
  "proc-macro2",
 ]
@@ -1695,7 +1730,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1773,7 +1808,7 @@ checksum = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -1856,9 +1891,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "3.0.3"
+version = "3.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53e9bae58849f64dfa4f5d5ae372c8341f7305f82a3868709269343628b659a3"
+checksum = "d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1875,6 +1910,17 @@ dependencies = [
  "quote",
  "syn 2.0.108",
  "unicode-xid",
+]
+
+[[package]]
+name = "synstructure"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "901704edd0dfe137f1987838ee4f259e4e063c31371bdb423f7ae38ec6f77f02"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -1899,7 +1945,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2534,7 +2580,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.108",
- "synstructure",
+ "synstructure 0.13.0",
 ]
 
 [[package]]
@@ -2555,7 +2601,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.108",
- "synstructure",
+ "synstructure 0.13.0",
 ]
 
 [[package]]
